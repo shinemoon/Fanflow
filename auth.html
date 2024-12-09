@@ -26,12 +26,29 @@
   <script defer src="crypto-js.min.js"></script>
   <script defer src="oauth1.js"></script>
   <script defer src="fanfou.js"></script>
-  <script defer src="popup.js"></script>
+  <script defer src="auth.js"></script>
 </head>
 
 <body>
   <div id="app">
     <h1>FanFlow</h1>
+    <div id="auth-section">
+      <button id="login-btn">Login with Fanfou</button>
+    </div>
+
+
+    <iframe id="auth-iframe"></iframe>
+    <div id="pin-section">
+      <label for="pin-input">Enter PIN:</label>
+      <input type="text" id="pin-input" />
+      <button id="submit-pin-btn">Submit</button>
+    </div>
+
+
+    <div id="result-section">
+      <p>Access Token: <span id="access-token"></span></p>
+      <p>Access Token Secret: <span id="access-token-secret"></span></p>
+    </div>
   </div>
 </body>
 
