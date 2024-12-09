@@ -1,0 +1,22 @@
+﻿{
+	"name": "FanFlow",
+	"version": "0.1",
+	"description": "Fanfou flow in browser",
+	"short_name": "FFlow",
+	"manifest_version": 3,
+	"icons": {
+		"48": "images/icon.png",
+		"128": "images/icon.png"
+	},
+	"action": {
+		"default_icon": "images/icon.png",
+		"default_popup": "popup.html",
+		"default_title": "FanFlow"
+	},
+	"host_permissions": [
+		"http://fanfou.com/*"
+	],
+	"permissions": [
+		"storage"
+	]
+}

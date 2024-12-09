@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fanfou OAuth</title>
+  <style>
+    #auth-iframe {
+      display: none;
+      width: 100%;
+      height: 300px;
+      border: none;
+    }
+    #pin-section {
+      display: none;
+      margin-top: 10px;
+    }
+    #result-section {
+      display: none;
+    }
+  </style>
+  <script src="crypto-js.min.js"></script>
+  <script defer src="oauth1.js"></script>
+  <script defer src="popup.js"></script>
+</head>
+<body>
+  <div id="app">
+    <h1>Fanfou OAuth</h1>
+    <div id="auth-section">
+      <button id="login-btn">Login with Fanfou</button>
+    </div>
+    <iframe id="auth-iframe"></iframe>
+    <div id="pin-section">
+      <label for="pin-input">Enter PIN:</label>
+      <input type="text" id="pin-input" />
+      <button id="submit-pin-btn">Submit</button>
+    </div>
+    <div id="result-section">
+      <p>Access Token: <span id="access-token"></span></p>
+      <p>Access Token Secret: <span id="access-token-secret"></span></p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,24 @@
+// index.scss
+
+$container-width: 300px;
+$container-height: 400px;
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.page-container {
+    width: $container-width;
+    height: $container-height;
+    margin: 0 auto; // 居中显示
+    overflow: hidden; // 如果内容超出容器大小，隐藏超出部分
+    background-color: #fff; // 可以根据需要设置背景颜色
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); // 可以根据需要设置阴影效果
+
+    // 如果需要设置最小宽度和高度
+    min-width: $container-width;
+    min-height: $container-height;
+}
