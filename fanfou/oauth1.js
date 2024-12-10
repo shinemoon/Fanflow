@@ -1,4 +1,5 @@
-const FANFOU_API_BASE = "http://fanfou.com/oauth";
+const FANFOU_API_BASE = "http://api.fanfou.com";
+const FANFOU_AUTH_BASE = "http://fanfou.com/oauth";
 const CONSUMER_KEY = "ce23ee7b25d7adc9eccb4c4741b197de";
 const CONSUMER_SECRET = "de57b89fb6ead9652dcffbbd1207519f";
 
@@ -17,22 +18,6 @@ const OAuth1 = {
       .replace(/[!*'()]/g, c => '%' + c.charCodeAt(0).toString(16));
   },
 
-  createSignatureBase(method, url, params) {
-    const sortedParams = Object.keys(params).sort().map(key => {
-      return `${this.percentEncode(key)}=${this.percentEncode(params[key])}`;
-    }).join('&');
-
-    return [
-      method.toUpperCase(),
-      this.percentEncode(url),
-      this.percentEncode(sortedParams)
-    ].join('&');
-  },
-
-  createSignature(baseString, consumerSecret, tokenSecret = '') {
-    const signingKey = `${this.percentEncode(consumerSecret)}&${this.percentEncode(tokenSecret)}`;
-    return CryptoJS.HmacSHA1(baseString, signingKey).toString(CryptoJS.enc.Base64);
-  },
 
   buildAuthHeader(params) {
     const header = Object.keys(params).map(key => {
@@ -43,7 +28,7 @@ const OAuth1 = {
   }
 };
 async function fetchRequestToken() {
-  const url = `${FANFOU_API_BASE}/request_token`;
+  const url = `${FANFOU_AUTH_BASE}/request_token`;
 
   const params = {
     oauth_consumer_key: CONSUMER_KEY,
@@ -53,8 +38,10 @@ async function fetchRequestToken() {
     oauth_version: "1.0"
   };
 
-  const baseString = OAuth1.createSignatureBase("GET", url, params);
-  params.oauth_signature = OAuth1.createSignature(baseString, CONSUMER_SECRET);
+
+  // 生成签名
+  const signature = generateOAuthSignature('GET', url, params, CONSUMER_SECRET);
+  params.oauth_signature = signature;
 
   const headers = { Authorization: OAuth1.buildAuthHeader(params) };
 
@@ -73,7 +60,7 @@ async function fetchRequestToken() {
 }
 
 async function fetchAccessToken(verifier) {
-  const url = `${FANFOU_API_BASE}/access_token`;
+  const url = `${FANFOU_AUTH_BASE}/access_token`;
 
   const params = {
     oauth_consumer_key: CONSUMER_KEY,
@@ -85,8 +72,8 @@ async function fetchAccessToken(verifier) {
     oauth_verifier: verifier
   };
 
-  const baseString = OAuth1.createSignatureBase("GET", url, params);
-  params.oauth_signature = OAuth1.createSignature(baseString, CONSUMER_SECRET, oauthTokenSecret);
+  const signature = generateOAuthSignature('GET', url, params, CONSUMER_SECRET);
+  params.oauth_signature = signature;
 
   const headers = { Authorization: OAuth1.buildAuthHeader(params) };
 
@@ -97,14 +84,6 @@ async function fetchAccessToken(verifier) {
 
     const accessToken = tokenData.get("oauth_token");
     const accessTokenSecret = tokenData.get("oauth_token_secret");
-
-    document.getElementById("auth-section").style.display = "none";
-    document.getElementById("auth-iframe").style.display = "none";
-    document.getElementById("pin-section").style.display = "none";
-    document.getElementById("result-section").style.display = "block";
-
-    document.getElementById("access-token").textContent = accessToken;
-    document.getElementById("access-token-secret").textContent = accessTokenSecret;
 
     const tokenGot = {
       oauthToken: accessToken,
@@ -146,14 +125,80 @@ async function validateToken(oauthToken, oauthTokenSecret) {
       oauth_version: "1.0"
     };
 
-    const baseString = OAuth1.createSignatureBase("GET", url, params);
-    params.oauth_signature = OAuth1.createSignature(baseString, CONSUMER_SECRET, oauthTokenSecret);
+    const signature = generateOAuthSignature('GET', url, params, CONSUMER_SECRET, oauthTokenSecret);
+    params.oauth_signature = signature;
+
+
 
     const headers = { Authorization: OAuth1.buildAuthHeader(params) };
     const response = await fetch(url, { method: "GET", headers });
-
     return response.ok;
   } catch (error) {
+    console.log(error);
     return false;
   }
+}
+
+function clearToken() {
+  chrome.storage.local.remove("fanfouToken", () => {
+    if (chrome.runtime.lastError) {
+      console.error("Error clearing token:", chrome.runtime.lastError);
+    } else {
+      console.log("Token cleared successfully.");
+    }
+  });
+}
+
+/**
+ * 创建 OAuth 签名
+ * @param {string} baseString - 签名基字符串
+ * @param {string} consumerSecret - 应用的 Consumer Secret
+ * @param {string} tokenSecret - 用户的 Token Secret，默认为空
+ * @returns {string} 签名结果（Base64 编码）
+ */
+function createSignature(baseString, consumerSecret, tokenSecret = '') {
+  // 签名密钥 = consumerSecret & tokenSecret（需编码）
+  const signingKey = `${encodeURIComponent(consumerSecret)}&${encodeURIComponent(tokenSecret)}`;
+
+  // 使用 CryptoJS 生成 HMAC-SHA1 签名并编码为 Base64
+  const signature = CryptoJS.HmacSHA1(baseString, signingKey).toString(CryptoJS.enc.Base64);
+
+  return signature;
+}
+
+
+/**
+ * 创建签名基字符串
+ * @param {string} httpMethod - 请求方法（GET 或 POST）
+ * @param {string} baseUrl - 请求的基础 URL
+ * @param {Object} params - 所有参与签名的参数
+ * @returns {string} 签名基字符串
+ */
+function createBaseString(httpMethod, baseUrl, params) {
+  // 按照参数名称字典序排序
+  const sortedParams = Object.keys(params)
+    .sort()
+    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+    .join('&');
+
+  // 构造签名基字符串
+  return `${httpMethod.toUpperCase()}&${encodeURIComponent(baseUrl)}&${encodeURIComponent(sortedParams)}`;
+}
+
+/**
+ * 生成 OAuth 签名的完整流程
+ * @param {string} httpMethod - 请求方法（GET 或 POST）
+ * @param {string} baseUrl - 请求的基础 URL
+ * @param {Object} allParams - 所有请求参数（包括 QueryString 和 Body）
+ * @param {string} consumerSecret - 应用的 Consumer Secret
+ * @param {string} tokenSecret - 用户的 Token Secret，默认为空
+ * @returns {string} OAuth 签名
+ */
+function generateOAuthSignature(httpMethod, baseUrl, allParams, consumerSecret, tokenSecret = '') {
+  // 创建签名基字符串
+  const baseString = createBaseString(httpMethod, baseUrl, allParams);
+  console.log(baseString);
+
+  // 创建签名
+  return createSignature(baseString, consumerSecret, tokenSecret);
 }

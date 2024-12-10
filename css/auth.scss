@@ -1,0 +1,45 @@
+$container-width: 100%;
+$banner-color: #73cbe1aa;
+//$container-height: 400px;
+
+body {
+    display: flex;
+    justify-content: left;
+
+    #app {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: column;
+        justify-content: center;
+        align-content: center;
+
+
+        width: $container-width;
+        text-align: left;
+
+        #auth-iframe {
+            display: none;
+            border: none;
+            height: 600px;
+            width: 1020px;
+        }
+
+        #pin-section {
+            display: none;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            background: $banner-color;
+            line-height: 3em;
+            padding-left: 10px;
+            font-size: 1.1em;
+        }
+
+        #result-section {
+            display: none;
+            display: block;
+            font-size: 1.3em;
+            margin-top: 100px;
+            color: #06c;
+        }
+    }
+}

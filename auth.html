@@ -5,49 +5,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fanfou OAuth</title>
+  <link rel="stylesheet" href="css/auth.css">
   <style>
-    #auth-iframe {
-      display: none;
-      width: 100%;
-      height: 300px;
-      border: none;
-    }
-
-    #pin-section {
-      display: none;
-      margin-top: 10px;
-    }
-
-    #result-section {
-      display: none;
-    }
   </style>
 
-  <script defer src="crypto-js.min.js"></script>
-  <script defer src="oauth1.js"></script>
-  <script defer src="fanfou.js"></script>
+  <script defer src="fanfou/crypto-js.min.js"></script>
+  <script defer src="fanfou/oauth1.js"></script>
+  <script defer src="fanfou/fanfou.js"></script>
   <script defer src="auth.js"></script>
 </head>
 
 <body>
   <div id="app">
-    <h1>FanFlow</h1>
-    <div id="auth-section">
-      <button id="login-btn">Login with Fanfou</button>
-    </div>
-
-
-    <iframe id="auth-iframe"></iframe>
     <div id="pin-section">
       <label for="pin-input">Enter PIN:</label>
       <input type="text" id="pin-input" />
       <button id="submit-pin-btn">Submit</button>
     </div>
 
-
+    <iframe id="auth-iframe"></iframe>
     <div id="result-section">
-      <p>Access Token: <span id="access-token"></span></p>
-      <p>Access Token Secret: <span id="access-token-secret"></span></p>
+      <p id="countdown-message"></p>
     </div>
   </div>
 </body>

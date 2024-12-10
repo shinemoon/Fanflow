@@ -1,0 +1,35 @@
+body {
+  display: flex;
+  justify-content: left;
+}
+body #app {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  justify-content: center;
+  align-content: center;
+  width: 100%;
+  text-align: left;
+}
+body #app #auth-iframe {
+  display: none;
+  border: none;
+  height: 600px;
+  width: 1020px;
+}
+body #app #pin-section {
+  display: none;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  background: rgba(115, 203, 225, 0.6666666667);
+  line-height: 3em;
+  padding-left: 10px;
+  font-size: 1.1em;
+}
+body #app #result-section {
+  display: none;
+  display: block;
+  font-size: 1.3em;
+  margin-top: 100px;
+  color: #06c;
+}/*# sourceMappingURL=auth.css.map */
