@@ -125,12 +125,26 @@ async function validateToken(oauthToken, oauthTokenSecret) {
       oauth_version: "1.0"
     };
 
+    // 需要传递的参数对象
+    /*
+    const queryParams = {
+      mode: 'default',
+      format: 'json',
+    };
+    // 构建完整的 URL
+    const url = `${initurl}?${buildQueryString(queryParams)}`;
+    */
+
+
     const signature = generateOAuthSignature('GET', url, params, CONSUMER_SECRET, oauthTokenSecret);
     params.oauth_signature = signature;
 
 
 
-    const headers = { Authorization: OAuth1.buildAuthHeader(params) };
+    const headers = {
+      Authorization: OAuth1.buildAuthHeader(params),
+      'Content-Type': 'application/json' // 示例：设置请求体的内容类型
+    };
     const response = await fetch(url, { method: "GET", headers });
     return response.ok;
   } catch (error) {
@@ -201,4 +215,15 @@ function generateOAuthSignature(httpMethod, baseUrl, allParams, consumerSecret, 
 
   // 创建签名
   return createSignature(baseString, consumerSecret, tokenSecret);
+}
+
+/**
+ * 将对象转换为查询参数字符串
+ * @param {Object} params - 参数对象
+ * @returns {string} 查询字符串
+ */
+function buildQueryString(params) {
+  return Object.entries(params)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join('&');
 }

@@ -9,7 +9,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (token) {
     const isValid = await validateToken(token.oauthToken, token.oauthTokenSecret);
     if (isValid) {
-      showHomeStream(token.oauthToken, token.oauthTokenSecret);
       return;
     }
   }
