@@ -13,6 +13,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
   // If no valid token, then creat auth html
-//  chrome.tabs.create({ url: "auth.html" });
+chrome.tabs.create({ url: "auth.html" });
 
 });

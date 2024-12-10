@@ -1,8 +1,5 @@
 const FANFOU_API_BASE = "http://api.fanfou.com";
 const FANFOU_AUTH_BASE = "http://fanfou.com/oauth";
-const CONSUMER_KEY = "ce23ee7b25d7adc9eccb4c4741b197de";
-const CONSUMER_SECRET = "de57b89fb6ead9652dcffbbd1207519f";
-
 
 const OAuth1 = {
   generateNonce() {
@@ -125,27 +122,23 @@ async function validateToken(oauthToken, oauthTokenSecret) {
       oauth_version: "1.0"
     };
 
-    // 需要传递的参数对象
-    /*
-    const queryParams = {
+    // Parameter passing
+    let fetchPar = new URLSearchParams({
       mode: 'default',
       format: 'json',
-    };
-    // 构建完整的 URL
-    const url = `${initurl}?${buildQueryString(queryParams)}`;
-    */
+    });
 
-
-    const signature = generateOAuthSignature('GET', url, params, CONSUMER_SECRET, oauthTokenSecret);
+    const signature = generateOAuthSignature('POST', url, params, CONSUMER_SECRET, oauthTokenSecret);
     params.oauth_signature = signature;
-
-
 
     const headers = {
       Authorization: OAuth1.buildAuthHeader(params),
-      'Content-Type': 'application/json' // 示例：设置请求体的内容类型
+      'Content-Type': 'application/json' //
     };
-    const response = await fetch(url, { method: "GET", headers });
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: fetchPar    });
     return response.ok;
   } catch (error) {
     console.log(error);
