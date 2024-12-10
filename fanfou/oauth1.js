@@ -204,7 +204,7 @@ function createBaseString(httpMethod, baseUrl, params) {
 function generateOAuthSignature(httpMethod, baseUrl, allParams, consumerSecret, tokenSecret = '') {
   // 创建签名基字符串
   const baseString = createBaseString(httpMethod, baseUrl, allParams);
-  console.log(baseString);
+  //console.log(baseString);
 
   // 创建签名
   return createSignature(baseString, consumerSecret, tokenSecret);
