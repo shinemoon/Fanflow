@@ -138,8 +138,16 @@ async function validateToken(oauthToken, oauthTokenSecret) {
     const response = await fetch(url, {
       method: "POST",
       headers,
-      body: fetchPar    });
-    return response.ok;
+      body: fetchPar
+    });
+    if (response.ok) {
+      // 当response.ok为true时，处理response.json()，这里简单将解析后的数据打印出来，实际中可以按业务需求处理
+      const jsonData = await response.json();
+      console.log(jsonData);
+      return jsonData;
+    } else {
+      return false;
+    }
   } catch (error) {
     console.log(error);
     return false;
