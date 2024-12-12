@@ -7,6 +7,8 @@
   <title>Message Feed</title>
   <link rel="stylesheet" href="icons/style.css">
   <link rel="stylesheet" href="css/popup.css">
+
+  <script defer src="jquery-3.7.1.min.js"></script>
   <script defer src="fanfou/crypto-js.min.js"></script>
   <script defer src="fanfou/cred.js"></script>
   <script defer src="fanfou/oauth1.js"></script>
@@ -17,101 +19,18 @@
 <body>
   <div class="container">
     <div class="feed" id="feed">
-      <!-- Demo messages -->
-      <div class="message">
-        <div class="content">Hello world! This is a demo message.</div>
-        <div class="actions">
-          <span class="icon-heart1"></span>
-          <span class="icon-reply"></span>
-          <span class="icon-share-square-o"></span>
-        </div>
-      </div>
-      <div class="message">
-        <div class="content">Another example message for the feed.</div>
-        <div class="actions">
-          <span class="icon-heart1"></span>
-          <span class="icon-reply"></span>
-        </div>
-      </div>
-      <div class="message">
-        <div class="content">Feel free to customize these messages!</div>
-        <div class="actions">
-          <span class="icon-heart1"></span>
-          <span class="icon-reply"></span>
-        </div>
-      </div>
-      <div class="message">
-        <div class="content">Feel free to customize these messages!</div>
-        <div class="actions">
-          <span class="icon-heart1"></span>
-          <span class="icon-reply"></span>
-        </div>
-      </div>
-      <div class="message">
-        <div class="content">Feel free to customize these messages!</div>
-        <div class="actions">
-          <span class="icon-heart1"></span>
-          <span class="icon-reply"></span>
-        </div>
-      </div>
-      <div class="message">
-        <div class="content">Feel free to customize these messages!</div>
-        <div class="actions">
-          <span class="icon-heart1"></span>
-          <span class="icon-reply"></span>
-        </div>
-      </div>
-      <div class="message">
-        <div class="content">Feel free to customize these messages!</div>
-        <div class="actions">
-          <span class="icon-heart1"></span>
-          <span class="icon-reply"></span>
-        </div>
-      </div>
-      <div class="message">
-        <div class="content">Feel free to customize these messages!</div>
-        <div class="actions">
-          <span class="icon-heart1"></span>
-          <span class="icon-reply"></span>
-        </div>
-      </div>
-      <div class="message">
-        <div class="content">Feel free to customize these messages!</div>
-        <div class="actions">
-          <span class="icon-heart1"></span>
-          <span class="icon-reply"></span>
-        </div>
-      </div>
-      <div class="message">
-        <div class="content">Feel free to customize these messages!</div>
-        <div class="actions">
-          <span class="icon-heart1"></span>
-          <span class="icon-reply"></span>
-        </div>
-      </div>
-      <div class="message">
-        <div class="content">Feel free to customize these messages!</div>
-        <div class="actions">
-          <span class="icon-heart1"></span>
-          <span class="icon-reply"></span>
-        </div>
-      </div>
-      <div class="message">
-        <div class="content">Feel free to customize these messages!</div>
-        <div class="actions">
-          <span class="icon-heart1"></span>
-          <span class="icon-reply"></span>
-          <span class="icon-share-square-o"></span>
-        </div>
-      </div>
+      
+
     </div>
     <div class="post-section">
       <!--span id="post-span" class="icon-edit"><span class="button-ind"></span></span-->
       <div class="button-array">
-      <span class="post-span tab icon-share-alt"></span>
-      <span class="post-span tab icon-access active"></span>
-      <span class="post-span tab icon-heart1 "></span>
-      <span class="post-span button icon-edit"></span>
+      <span class="first post-span tab icon-food"></span>
+      <span class="post-span tab icon-bubble"></span>
+      <span class="post-span tab icon-reply active"></span>
+      <span class="post-span tab icon-mail"></span>
+      <span class="post-span tab icon-settings"></span>
+      <span class="last post-span button icon-edit"></span>
       </div>
       <div id="userinfo">
         <span id="user-avator"><img src="images/avator.png"></span>

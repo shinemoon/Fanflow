@@ -1,3 +1,6 @@
+$content-line-max: 3;
+$message-font-size: 12px;
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -55,13 +58,75 @@ body {
     display: flex;
     flex-direction: column;
     position: relative;
+
+    .message-meta {
+        display: flex;
+        align-items: flex-end;
+        background: #f0ffff55;
+
+        span {
+            margin-right: 5px;
+        }
+
+        .msg-time {
+            color:darkgray;
+        }
+
+        .msg-source {
+            color:cadetblue;
+        }
+
+        img.msg-avator {
+            width: 20px;
+            border: 1px dotted grey;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .msg-nickname {
+            font-size: 11px;
+            color: cornflowerblue;
+            margin-right: 5px;
+            white-space: nowrap;
+            /* 强制文本不换行 */
+            overflow: hidden;
+            /* 超出部分隐藏 */
+            text-overflow: ellipsis;
+            /* 显示省略号 */
+            max-width: 80px;
+        }
+    }
+
+    .content {
+        margin: 5px;
+        margin-bottom: 10px;
+        font-size: $message-font-size;
+        line-height: 1.2em;
+        color: #333;
+        word-wrap: break-word;
+        // 设置最高行数
+
+
+        /* 限制在一个块元素中显示的最大行数 */
+        -webkit-line-clamp: $content-line-max;
+        /* 指定块元素的布局方式 */
+        display: -webkit-box;
+        /* 指定行的垂直方向 */
+        -webkit-box-orient: vertical;
+        /* 溢出的内容会被隐藏 */
+        overflow: hidden;
+        /* 超出的内容显示省略号 */
+        text-overflow: ellipsis;
+
+        img {
+            max-width: 100%;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+    }
+
 }
 
-.message .content {
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: #333;
-}
 
 .actions {
     display: flex;
@@ -70,7 +135,8 @@ body {
     bottom: 4px;
     right: 6px;
     font-size: 12px;
-    color: #007bff;
+    //    color: #007bff;
+    color: #81b7ce;
     cursor: pointer;
 }
 
@@ -81,7 +147,6 @@ body {
 
 .actions span:hover {
     //    text-decoration: underline;
-    opacity: 0.5;
     color: #0056b3;
 }
 
@@ -109,9 +174,18 @@ body {
             ;
 
             &.active {
-                background: #eee;
-                box-shadow: inset 0 0 3px 5px rgba(100, 100, 100, 0.1);
-                color: #222;
+                background: #ddd;
+                //  box-shadow: inset 0 0 3px 5px rgba(100, 100, 100, 0.1);
+                color: #fff;
+                text-shadow:
+                    -1px -1px 0px rgba(0, 0, 0, 0.3),
+                    /* 左上角 */
+                    1px 1px 0px rgba(255, 255, 255, 0.6),
+                    /* 右下角 */
+                    1px -1px 0px rgba(0, 0, 0, 0.3),
+                    /* 右下角 */
+                    -1px 1px 0px rgba(255, 255, 255, 0.6);
+                /* 左上角 */
             }
 
             &:hover {
@@ -127,6 +201,15 @@ body {
                     background: #218838;
                 }
             }
+
+            &.first {
+                border-radius: 5px 0px 0px 5px;
+            }
+
+            &.last {
+                border-radius: 0px 5px 5px 0px;
+            }
+
         }
 
     }
@@ -178,10 +261,10 @@ body {
     /* transform: rotate(5deg); */
     font-size: 12px;
     color: #28773c;
-    opacity: 0.2;
+    opacity: 0.5;
     position: fixed;
     bottom: 5px;
-    left: 130px;
+    left: 58px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

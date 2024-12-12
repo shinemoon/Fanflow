@@ -57,11 +57,60 @@ body {
   flex-direction: column;
   position: relative;
 }
-
+.message .message-meta {
+  display: flex;
+  align-items: flex-end;
+  background: rgba(240, 255, 255, 0.3333333333);
+}
+.message .message-meta span {
+  margin-right: 5px;
+}
+.message .message-meta .msg-time {
+  color: darkgray;
+}
+.message .message-meta .msg-source {
+  color: cadetblue;
+}
+.message .message-meta img.msg-avator {
+  width: 20px;
+  border: 1px dotted grey;
+  border-radius: 5px;
+  margin-right: 10px;
+}
+.message .message-meta .msg-nickname {
+  font-size: 11px;
+  color: cornflowerblue;
+  margin-right: 5px;
+  white-space: nowrap;
+  /* 强制文本不换行 */
+  overflow: hidden;
+  /* 超出部分隐藏 */
+  text-overflow: ellipsis;
+  /* 显示省略号 */
+  max-width: 80px;
+}
 .message .content {
-  margin-bottom: 8px;
-  font-size: 14px;
+  margin: 5px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  line-height: 1.2em;
   color: #333;
+  word-wrap: break-word;
+  /* 限制在一个块元素中显示的最大行数 */
+  -webkit-line-clamp: 3;
+  /* 指定块元素的布局方式 */
+  display: -webkit-box;
+  /* 指定行的垂直方向 */
+  -webkit-box-orient: vertical;
+  /* 溢出的内容会被隐藏 */
+  overflow: hidden;
+  /* 超出的内容显示省略号 */
+  text-overflow: ellipsis;
+}
+.message .content img {
+  max-width: 100%;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .actions {
@@ -71,7 +120,7 @@ body {
   bottom: 4px;
   right: 6px;
   font-size: 12px;
-  color: #007bff;
+  color: #81b7ce;
   cursor: pointer;
 }
 
@@ -81,7 +130,6 @@ body {
 }
 
 .actions span:hover {
-  opacity: 0.5;
   color: #0056b3;
 }
 
@@ -108,9 +156,10 @@ body {
   background: #fefefe;
 }
 .post-section .button-array .post-span.active {
-  background: #eee;
-  box-shadow: inset 0 0 3px 5px rgba(100, 100, 100, 0.1);
-  color: #222;
+  background: #ddd;
+  color: #fff;
+  text-shadow: -1px -1px 0px rgba(0, 0, 0, 0.3), 1px 1px 0px rgba(255, 255, 255, 0.6), 1px -1px 0px rgba(0, 0, 0, 0.3), -1px 1px 0px rgba(255, 255, 255, 0.6);
+  /* 左上角 */
 }
 .post-section .button-array .post-span:hover {
   opacity: 0.8;
@@ -122,6 +171,12 @@ body {
 }
 .post-section .button-array .post-span.button:hover {
   background: #218838;
+}
+.post-section .button-array .post-span.first {
+  border-radius: 5px 0px 0px 5px;
+}
+.post-section .button-array .post-span.last {
+  border-radius: 0px 5px 5px 0px;
 }
 .post-section #userinfo {
   display: flex;
@@ -162,10 +217,10 @@ body {
   /* transform: rotate(5deg); */
   font-size: 12px;
   color: #28773c;
-  opacity: 0.2;
+  opacity: 0.5;
   position: fixed;
   bottom: 5px;
-  left: 130px;
+  left: 58px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
