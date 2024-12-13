@@ -1,6 +1,8 @@
 let oauthToken = null;
 let oauthTokenSecret = null;
 
+let debug = true;
+
 // Page Init
 
 
@@ -20,7 +22,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
 function buildPage(validUser) {
-  let debug = true;
   console.log("认证成功，页面构建开始");
   if (debug) {
     console.log("调试模式: 生成伪信息流 ");
@@ -57,7 +58,7 @@ function appendMessages(n) {
     $metaDiv.append($('<img>').addClass('msg-avator').prop("src","images/avator-demo.png"));
     $metaDiv.append($('<span>').addClass('msg-nickname').text(nickName));
     $metaDiv.append($('<span>').addClass('msg-time').text("xxx-xx-xx"));
-    $metaDiv.append($('<span>').addClass('msg-source').text("From"));
+    $metaDiv.append($('<span>').addClass('msg-source').text("via"));
 
 
     // 创建内容容器并添加文本
@@ -89,6 +90,3 @@ function appendMessages(n) {
     $feed.append($messageDiv);
   }
 }
-
-// 调用函数，向feed中追加5个消息
-appendMessages(5);
