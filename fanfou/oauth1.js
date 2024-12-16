@@ -37,7 +37,7 @@ async function fetchRequestToken() {
 
 
   // 生成签名
-  const signature = generateOAuthSignature('GET', url, params, CONSUMER_SECRET);
+  const signature = generateOAuthSignature('GET', url, {}, params, CONSUMER_SECRET);
   params.oauth_signature = signature;
 
   const headers = { Authorization: OAuth1.buildAuthHeader(params) };
@@ -47,10 +47,10 @@ async function fetchRequestToken() {
     const text = await response.text();
     const tokenData = new URLSearchParams(text);
 
-    oauthToken = tokenData.get("oauth_token");
-    oauthTokenSecret = tokenData.get("oauth_token_secret");
+    var oauthRequestToken = tokenData.get("oauth_token");
+    var oauthRequestTokenSecret = tokenData.get("oauth_token_secret");
 
-    console.log("Request Token:", oauthToken);
+    console.log("Request Token:", oauthRequestToken);
   } catch (error) {
     console.error("Failed to fetch request token:", error);
   }
@@ -61,7 +61,7 @@ async function fetchAccessToken(verifier) {
 
   const params = {
     oauth_consumer_key: CONSUMER_KEY,
-    oauth_token: oauthToken,
+    oauth_token: oauthRequestToken,
     oauth_signature_method: "HMAC-SHA1",
     oauth_timestamp: OAuth1.generateTimestamp(),
     oauth_nonce: OAuth1.generateNonce(),
@@ -69,7 +69,7 @@ async function fetchAccessToken(verifier) {
     oauth_verifier: verifier
   };
 
-  const signature = generateOAuthSignature('GET', url, params, CONSUMER_SECRET);
+  const signature = generateOAuthSignature('GET', url, {}, params, CONSUMER_SECRET);
   params.oauth_signature = signature;
 
   const headers = { Authorization: OAuth1.buildAuthHeader(params) };
@@ -128,7 +128,7 @@ async function validateToken(oauthToken, oauthTokenSecret) {
       format: 'json',
     });
 
-    const signature = generateOAuthSignature('POST', url, params, CONSUMER_SECRET, oauthTokenSecret);
+    const signature = generateOAuthSignature('POST', url, {}, params, CONSUMER_SECRET, oauthTokenSecret);
     params.oauth_signature = signature;
 
     const headers = {
@@ -143,7 +143,6 @@ async function validateToken(oauthToken, oauthTokenSecret) {
     if (response.ok) {
       // 当response.ok为true时，处理response.json()，这里简单将解析后的数据打印出来，实际中可以按业务需求处理
       const jsonData = await response.json();
-      console.log(jsonData);
       return jsonData;
     } else {
       return false;
@@ -188,7 +187,6 @@ function createSignature(baseString, consumerSecret, tokenSecret = '') {
  * @param {string} baseUrl - 请求的基础 URL
  * @param {Object} params - 所有参与签名的参数
  * @returns {string} 签名基字符串
- */
 function createBaseString(httpMethod, baseUrl, params) {
   // 按照参数名称字典序排序
   const sortedParams = Object.keys(params)
@@ -199,6 +197,33 @@ function createBaseString(httpMethod, baseUrl, params) {
   // 构造签名基字符串
   return `${httpMethod.toUpperCase()}&${encodeURIComponent(baseUrl)}&${encodeURIComponent(sortedParams)}`;
 }
+ */
+
+function createBaseString(httpMethod, baseUrl, queryParams = {}, headerParams = {}) {
+  // 解析基础URL和查询参数
+  const urlObj = new URL(baseUrl);
+  const allParams = { ...queryParams };
+
+  // 将URL中的查询参数合并到allParams中
+  urlObj.searchParams.forEach((value, key) => {
+      allParams[key] = value;
+  });
+
+  // 合并头部参数（如果需要）
+  for (const [key, value] of Object.entries(headerParams)) {
+      allParams[key] = value;
+  }
+
+  // 按照参数名称字典序排序
+  const sortedParams = Object.keys(allParams)
+      .sort()
+      .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(allParams[key])}`)
+      .join('&');
+
+  // 构造签名基字符串
+  return `${httpMethod.toUpperCase()}&${encodeURIComponent(urlObj.origin + urlObj.pathname)}&${encodeURIComponent(sortedParams)}`;
+}
+
 
 /**
  * 生成 OAuth 签名的完整流程
@@ -209,9 +234,9 @@ function createBaseString(httpMethod, baseUrl, params) {
  * @param {string} tokenSecret - 用户的 Token Secret，默认为空
  * @returns {string} OAuth 签名
  */
-function generateOAuthSignature(httpMethod, baseUrl, allParams, consumerSecret, tokenSecret = '') {
+function generateOAuthSignature(httpMethod, baseUrl, queryParams, headerParams, consumerSecret, tokenSecret = '') {
   // 创建签名基字符串
-  const baseString = createBaseString(httpMethod, baseUrl, allParams);
+  const baseString = createBaseString(httpMethod, baseUrl, queryParams, headerParams);
   //console.log(baseString);
 
   // 创建签名

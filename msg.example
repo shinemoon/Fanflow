@@ -1,0 +1,59 @@
+  /*
+  // 构建消息对象
+  // To
+    var message = {
+      nickname: nickName,
+      time: "xxx-xx-xx",
+      source: "via",
+      content: contentText,
+      hasImage: Math.random() < 1 / 3, // 是否有图片
+      hasLinkIcon: Math.random() < 1 / 3 // 是否有链接图标
+    };
+
+  // From
+  {
+    "created_at": "Mon Dec 16 10:56:15 +0000 2024",
+      "id": "1MyaVjZNyIg",
+        "rawid": 273604701,
+          "text": "已经95斤了，今晚开始高低要运动了",
+            "source": "<a href=\"https://fanfou.com/%7EMrTbRkAwu3o\" target=\"_blank\">泡饭</a>",
+              "truncated": false,
+                "in_reply_to_status_id": "",
+                  "in_reply_to_user_id": "",
+                    "favorited": false,
+                      "in_reply_to_screen_name": "",
+                        "is_self": false,
+                          "location": "江苏 苏州",
+                            "user": {
+      "id": "SherryYuan",
+        "name": "芳芳加加油",
+          "screen_name": "芳芳加加油",
+            "unique_id": "~WPhATCtg-QI",
+              "location": "江苏 苏州",
+                "gender": "女",
+                  "birthday": "",
+                    "description": "Live and let live. Agree or disagree.",
+                      "profile_image_url": "https://s3.meituan.net/v1/mss_3d027b52ec5a4d589e68050845611e68/avatar/s0/00/j4/yp.jpg?1550324005",
+                        "profile_image_url_large": "https://s3.meituan.net/v1/mss_3d027b52ec5a4d589e68050845611e68/avatar/l0/00/j4/yp.jpg?1550324005",
+                          "url": "http://i.mtime.com/SherryYuan/",
+                            "protected": true,
+                              "followers_count": 1346,
+                                "friends_count": 550,
+                                  "favourites_count": 527,
+                                    "statuses_count": 45157,
+                                      "photo_count": 3148,
+                                        "following": true,
+                                          "notifications": true,
+                                            "created_at": "Mon Apr 30 13:39:52 +0000 2012",
+                                              "utc_offset": 28800,
+                                                "profile_background_color": "#232323",
+                                                  "profile_text_color": "#272B2F",
+                                                    "profile_link_color": "#24BDDF",
+                                                      "profile_sidebar_fill_color": "#E6EBED",
+                                                        "profile_sidebar_border_color": "#FFFFFF",
+                                                          "profile_background_image_url": "https://s3.meituan.net/v1/mss_3d027b52ec5a4d589e68050845611e68/avatar/b0/00/j4/yp_1551414431.jpg?1551414431",
+                                                            "profile_background_tile": true
+    }
+  }
+*/
+

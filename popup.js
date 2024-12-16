@@ -1,17 +1,37 @@
-let oauthToken = null;
-let oauthTokenSecret = null;
+let validToken = null;
+let curList = null;
 
-let debug = true;
+// Default Stub
+let userInfo = {
+  id: "_",
+  name: "NickName",
+  screen_name: "NickName",
+  url: "https://fanfou.com",
+  profile_image_url: "images/avator.png",
+  profile_image_url_large: "images/avator.png",
+  followers_count: 0,
+  friends_count: 0,
+  description: "有目的地生活"
+};
 
 // Page Init
 
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // Build dummy page firstly
+  buildPage(null);
   const token = await getStoredToken();
   if (token) {
     const isValid = await validateToken(token.oauthToken, token.oauthTokenSecret);
     if (isValid) {
-      //Show UserInfo
+      // Global assignment on token.
+      validToken = {
+        oauthToken: token.oauthToken,
+        oauthTokenSecret: token.oauthTokenSecret
+      }
+      chrome.storage.local.set({ userinfo: isValid }, function () {
+        console.log("Local Save users");
+      });
       buildPage(isValid);
       return;
     }
@@ -21,72 +41,85 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 
-function buildPage(validUser) {
+async function buildPage(validUser) {
   console.log("认证成功，页面构建开始");
-  if (debug) {
-    console.log("调试模式: 生成伪信息流 ");
-    appendMessages(10);
+  // To load local store firstly
+  if (validUser == null) {
+    chrome.storage.local.get({ userinfo: userInfo, msglist: [] }, function (r) {
+      // Restore local list firstly , waiting for fetching
+      console.log('Fill w/ local msgs/userInfo');
+      updateUserInfo(r.userinfo);
+      buildHtmlFromMessages(r.msglist);
+      curList = r.msglist;
+    })
+  } else {
+    updateUserInfo(validUser);
+    console.log("真实模式: 在线获取信息流, 但是原则上仅pullin 新的消息");
+    var since_id = null;
+    var max_id = null;
+    if (curList.length > 0) {
+      since_id = curList[0].id;
+    }
+    result = getTimeline(since_id, max_id, function (res) {
+      console.log("获得"+res.msglist.length+"条新消息")
+      //let messages = curList.concat(remapMessage(res.msglist));
+      let messages = remapMessage(res.msglist).concat(curList);
+      // Construct the full list
+      // Store for local save
+      chrome.storage.local.set({ msglist: messages }, function () {
+        console.log("Local Save Msgs");
+      });
+      buildHtmlFromMessages(messages);
+    });
   }
-
 };
 
-function generateRandomString(length) {
-  var result = '';
-  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  var charactersLength = characters.length;
-  for (var i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
+
+
+function updateUserInfo(usr) {
+  $('#user-avator img').prop("src", usr.profile_image_url);
+  $('#user-name').text(usr.screen_name);
+  $('#user-description').text(usr.description);
+  $('#user-follower .value').text(String(usr.followers_count));
+  $('#user-following .value').text(String(usr.friends_count));
 }
 
-function appendMessages(n) {
+function buildHtmlFromMessages(messageList) {
   var $feed = $('#feed');
-
-  for (var i = 0; i < n; i++) {
+  $feed.empty();
+  messageList.forEach(function (message) {
     // 创建消息容器
     var $messageDiv = $('<div>').addClass('message');
 
-    // 生成随机长度的内容字符串
-    var contentLength = Math.floor(Math.random() * 140) + 1;
-    var nickLength = Math.floor(Math.random() * 20) + 1;
-    var contentText = generateRandomString(contentLength);
-    var nickName =generateRandomString(nickLength);
+    // 创建Meta容器
+    var $metaDiv = $('<div>').addClass('message-meta');
+    $metaDiv.append($('<img>').addClass('msg-avator').prop("src", message.avator));
+    $metaDiv.append($('<span>').addClass('msg-nickname').text(message.nickname));
+    $metaDiv.append($('<span>').addClass('msg-time').text(message.time));
+    $metaDiv.append($('<span>').addClass('msg-source').text(message.source));
 
-    // 创建Meta容器并添加文本
-    var $metaDiv= $('<div>').addClass('message-meta');
-    $metaDiv.append($('<img>').addClass('msg-avator').prop("src","images/avator-demo.png"));
-    $metaDiv.append($('<span>').addClass('msg-nickname').text(nickName));
-    $metaDiv.append($('<span>').addClass('msg-time').text("xxx-xx-xx"));
-    $metaDiv.append($('<span>').addClass('msg-source').text("via"));
-
-
-    // 创建内容容器并添加文本
-    var $contentDiv = $('<div>').addClass('content').text(contentText);
-
-    // 以1/3的概率添加图片
-    if (Math.random() < 1 / 3) {
-      var $img = $('<img>').addClass('content-img').attr('src', 'images/demo.jpg');
+    // 创建内容容器
+    var $contentDiv = $('<div>').addClass('content').text(message.content);
+    if (message.hasImage) {
+      var $img = $('<img>').addClass('content-img').attr('src', message.image);
       $contentDiv.append($img);
     }
 
-    $messageDiv.append($metaDiv);
-    $messageDiv.append($contentDiv);
-
     // 创建操作容器
     var $actionsDiv = $('<div>').addClass('actions');
-
-    // 添加星标、引用和回复图标
     $actionsDiv.append($('<span>').addClass('icon-star'));
     $actionsDiv.append($('<span>').addClass('icon-quote1'));
     $actionsDiv.append($('<span>').addClass('icon-reply'));
-
-    // 以1/3的概率添加链接图标
-    if (Math.random() < 1 / 3) {
+    if (message.hasLinkIcon) {
       $actionsDiv.append($('<span>').addClass('icon-link'));
     }
 
+    // 拼装消息HTML
+    $messageDiv.append($metaDiv);
+    $messageDiv.append($contentDiv);
     $messageDiv.append($actionsDiv);
+
+    // 添加到页面
     $feed.append($messageDiv);
-  }
+  });
 }

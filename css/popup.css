@@ -97,7 +97,7 @@ body {
   color: #333;
   word-wrap: break-word;
   /* 限制在一个块元素中显示的最大行数 */
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 5;
   /* 指定块元素的布局方式 */
   display: -webkit-box;
   /* 指定行的垂直方向 */
