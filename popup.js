@@ -1,5 +1,9 @@
 let validToken = null;
+
+
+// local list max as 100 msb
 let curList = null;
+let listLength = 100;
 
 // Default Stub
 let userInfo = {
@@ -19,7 +23,7 @@ let userInfo = {
 
 document.addEventListener("DOMContentLoaded", async () => {
   // Build dummy page firstly
-  buildPage(null);
+  buildHomePage(null,bindClickActions);
   const token = await getStoredToken();
   if (token) {
     const isValid = await validateToken(token.oauthToken, token.oauthTokenSecret);
@@ -32,16 +36,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       chrome.storage.local.set({ userinfo: isValid }, function () {
         console.log("Local Save users");
       });
-      buildPage(isValid);
+      buildHomePage(isValid, bindClickActions);
       return;
     }
   }
   // If no valid token, then creat auth html
   chrome.tabs.create({ url: "auth.html" });
+
+
 });
 
 
-async function buildPage(validUser) {
+async function buildHomePage(validUser,cb) {
   console.log("认证成功，页面构建开始");
   // To load local store firstly
   if (validUser == null) {
@@ -50,7 +56,9 @@ async function buildPage(validUser) {
       console.log('Fill w/ local msgs/userInfo');
       updateUserInfo(r.userinfo);
       buildHtmlFromMessages(r.msglist);
-      curList = r.msglist;
+      //curList = r.msglist;
+      messageListUpdate('over', listLength, r.msglist);
+
     })
   } else {
     updateUserInfo(validUser);
@@ -61,17 +69,31 @@ async function buildPage(validUser) {
       since_id = curList[0].id;
     }
     result = getTimeline(since_id, max_id, function (res) {
-      console.log("获得"+res.msglist.length+"条新消息")
+      console.log("获得" + res.msglist.length + "条新消息")
+      var lastReadInd = 0;
       //let messages = curList.concat(remapMessage(res.msglist));
-      let messages = remapMessage(res.msglist).concat(curList);
+      // only if older ones, those will be append at end of previous list, other is in revered direction
+      if (max_id != null) {
+        lastReadInd = (curList.length > 0) ? curList.length - 1 : 0;
+        //curList = curList.concat(remapMessage(res.msglist));
+        messageListUpdate("down", listLength, res.msglist);
+      } else {
+        lastReadInd = res.msglist.length;
+        //curList = remapMessage(res.msglist).concat(curList);
+        messageListUpdate("up", listLength, res.msglist);
+      }
       // Construct the full list
       // Store for local save
-      chrome.storage.local.set({ msglist: messages }, function () {
+      chrome.storage.local.set({ msglist: curList }, function () {
         console.log("Local Save Msgs");
       });
-      buildHtmlFromMessages(messages);
+      buildHtmlFromMessages(curList);
+      // To mark the 'last read' class
+      $('.last-read').removeClass('last-read');
+      $('div.message').eq(lastReadInd).addClass('last-read');
     });
   }
+  cb();
 };
 
 
@@ -122,4 +144,37 @@ function buildHtmlFromMessages(messageList) {
     // 添加到页面
     $feed.append($messageDiv);
   });
+}
+
+// Update the curList
+// up - fetch newer
+// down -fetch older
+// over - replace
+function messageListUpdate(direction = 'up', limit = 100, newlist) {
+  if (direction == 'over') {
+    curList = newlist;
+  };
+  if (direction == 'up') {
+    curList = remapMessage(newlist).concat(curList);
+    if (curList.length > limit)
+      curList = curList.slice(0, limit);
+  };
+  if (direction == 'down') {
+    curList = curList.concat(remapMessage(newlist));
+    if (curList.length > limit)
+      curList = curList.slice(Math.max(0, array.length - limit));
+  };
+}
+
+function bindClickActions() {
+  //For Timeline
+  $('.tab').click(function () {
+    $('.tab.active').removeClass('active');
+    $(this).addClass('active');
+    if ($(this).prop('id') == 'home') {
+      console.log("home clicked");
+      buildHomePage(validUser,bindClickActions);
+    }
+  })
+
 }

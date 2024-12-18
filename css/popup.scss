@@ -1,4 +1,4 @@
-$content-line-max: 5; 
+$content-line-max: 5;
 $message-font-size: 12px;
 
 body {
@@ -59,6 +59,10 @@ body {
     flex-direction: column;
     position: relative;
 
+    &.last-read {
+        box-shadow: lightblue 3px 0px 4px 0px; 
+    }
+
     .message-meta {
         display: flex;
         align-items: flex-end;
@@ -69,11 +73,11 @@ body {
         }
 
         .msg-time {
-            color:darkgray;
+            color: darkgray;
         }
 
         .msg-source {
-            color:cadetblue;
+            color: cadetblue;
         }
 
         img.msg-avator {
@@ -101,7 +105,7 @@ body {
         margin: 5px;
         margin-bottom: 10px;
         font-size: $message-font-size;
-        line-height: 1.2em;
+        line-height: 1.4em;
         color: #333;
         word-wrap: break-word;
         // 设置最高行数

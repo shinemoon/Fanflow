@@ -57,6 +57,9 @@ body {
   flex-direction: column;
   position: relative;
 }
+.message.last-read {
+  box-shadow: lightblue 3px 0px 4px 0px;
+}
 .message .message-meta {
   display: flex;
   align-items: flex-end;
@@ -93,7 +96,7 @@ body {
   margin: 5px;
   margin-bottom: 10px;
   font-size: 12px;
-  line-height: 1.2em;
+  line-height: 1.4em;
   color: #333;
   word-wrap: break-word;
   /* 限制在一个块元素中显示的最大行数 */
