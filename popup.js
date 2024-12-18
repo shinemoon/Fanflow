@@ -22,8 +22,24 @@ let userInfo = {
 
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // Build dummy page firstly
-  buildHomePage(null,bindClickActions);
+  buildHomePage();
+
+  // bindClick
+  bindClickActions();
+});
+
+
+async function buildHomePage() {
+  console.log("认证成功，页面构建开始");
+  // To load local store firstly
+  chrome.storage.local.get({ userinfo: userInfo, msglist: [] }, function (r) {
+    // Restore local list firstly , waiting for fetching
+    console.log('Fill w/ local msgs/userInfo');
+    updateUserInfo(r.userinfo);
+    buildHtmlFromMessages(r.msglist);
+    //curList = r.msglist;
+    messageListUpdate('over', listLength, r.msglist);
+  })
   const token = await getStoredToken();
   if (token) {
     const isValid = await validateToken(token.oauthToken, token.oauthTokenSecret);
@@ -36,64 +52,42 @@ document.addEventListener("DOMContentLoaded", async () => {
       chrome.storage.local.set({ userinfo: isValid }, function () {
         console.log("Local Save users");
       });
-      buildHomePage(isValid, bindClickActions);
-      return;
-    }
-  }
-  // If no valid token, then creat auth html
-  chrome.tabs.create({ url: "auth.html" });
-
-
-});
-
-
-async function buildHomePage(validUser,cb) {
-  console.log("认证成功，页面构建开始");
-  // To load local store firstly
-  if (validUser == null) {
-    chrome.storage.local.get({ userinfo: userInfo, msglist: [] }, function (r) {
-      // Restore local list firstly , waiting for fetching
-      console.log('Fill w/ local msgs/userInfo');
-      updateUserInfo(r.userinfo);
-      buildHtmlFromMessages(r.msglist);
-      //curList = r.msglist;
-      messageListUpdate('over', listLength, r.msglist);
-
-    })
-  } else {
-    updateUserInfo(validUser);
-    console.log("真实模式: 在线获取信息流, 但是原则上仅pullin 新的消息");
-    var since_id = null;
-    var max_id = null;
-    if (curList.length > 0) {
-      since_id = curList[0].id;
-    }
-    result = getTimeline(since_id, max_id, function (res) {
-      console.log("获得" + res.msglist.length + "条新消息")
-      var lastReadInd = 0;
-      //let messages = curList.concat(remapMessage(res.msglist));
-      // only if older ones, those will be append at end of previous list, other is in revered direction
-      if (max_id != null) {
-        lastReadInd = (curList.length > 0) ? curList.length - 1 : 0;
-        //curList = curList.concat(remapMessage(res.msglist));
-        messageListUpdate("down", listLength, res.msglist);
-      } else {
-        lastReadInd = res.msglist.length;
-        //curList = remapMessage(res.msglist).concat(curList);
-        messageListUpdate("up", listLength, res.msglist);
+      updateUserInfo(isValid);
+      console.log("真实模式: 在线获取信息流, 但是原则上仅pullin 新的消息");
+      var since_id = null;
+      var max_id = null;
+      if (curList.length > 0) {
+        since_id = curList[0].id;
       }
-      // Construct the full list
-      // Store for local save
-      chrome.storage.local.set({ msglist: curList }, function () {
-        console.log("Local Save Msgs");
+      result = getTimeline(since_id, max_id, function (res) {
+        console.log("获得" + res.msglist.length + "条新消息")
+        var lastReadInd = 0;
+        //let messages = curList.concat(remapMessage(res.msglist));
+        // only if older ones, those will be append at end of previous list, other is in revered direction
+        if (max_id != null) {
+          lastReadInd = (curList.length > 0) ? curList.length - 1 : 0;
+          //curList = curList.concat(remapMessage(res.msglist));
+          messageListUpdate("down", listLength, res.msglist);
+        } else {
+          lastReadInd = res.msglist.length;
+          //curList = remapMessage(res.msglist).concat(curList);
+          messageListUpdate("up", listLength, res.msglist);
+        }
+        // Construct the full list
+        // Store for local save
+        chrome.storage.local.set({ msglist: curList }, function () {
+          console.log("Local Save Msgs");
+        });
+        buildHtmlFromMessages(curList);
+        // To mark the 'last read' class
+        $('.last-read').removeClass('last-read');
+        $('div.message').eq(lastReadInd).addClass('last-read');
       });
-      buildHtmlFromMessages(curList);
-      // To mark the 'last read' class
-      $('.last-read').removeClass('last-read');
-      $('div.message').eq(lastReadInd).addClass('last-read');
-    });
+    }
+  } else {
+    // If no valid token, then creat auth html
+    chrome.tabs.create({ url: "auth.html" });
   }
-  cb();
 };
 
 
@@ -173,7 +167,7 @@ function bindClickActions() {
     $(this).addClass('active');
     if ($(this).prop('id') == 'home') {
       console.log("home clicked");
-      buildHomePage(validUser,bindClickActions);
+      buildHomePage(true);
     }
   })
 
