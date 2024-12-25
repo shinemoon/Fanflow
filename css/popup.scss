@@ -1,11 +1,14 @@
 $content-line-max: 5;
 $message-font-size: 12px;
+$mainback: #f9f9f9;
+$mainfore: #f1f1f1;
+
 
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f9f9f9;
+    background-color: $mainback;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -24,6 +27,34 @@ body {
     min-height: 200px;
     max-height: 600px;
 }
+
+.mask {
+    display:none;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    left: 0px;
+    top: 0px;
+    background: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+
+    &.show {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+
+    }
+
+    .frame {
+        width: 90%;
+        height: 75%;
+        border-radius: 5px;
+        background: $mainfore;
+        margin-top: -30px;
+    }
+}
+
 
 .feed {
     flex: 1;
@@ -61,6 +92,10 @@ body {
 
     &.last-read {
         box-shadow: lightblue 3px 0px 4px 0px;
+    }
+
+    &.unread {
+        background: #dbe3ee61;
     }
 
     .message-meta {
@@ -122,13 +157,21 @@ body {
         /* 超出的内容显示省略号 */
         text-overflow: ellipsis;
 
-        img {
-            max-width: 100%;
+        img.content-img {
+            position: relative;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
             margin-top: 10px;
-            margin-bottom: 10px;
+            object-fit: cover; // Ensure the image covers the area and crops from the center
+            object-position: center; // Center the image
+            //border:1px solid #aaa;
+            box-shadow: inset 0px 0 11px 8px rgb(212 207 207 / 74%);
+            border-radius: 4px;
+            cursor: pointer;
         }
     }
-
 }
 
 

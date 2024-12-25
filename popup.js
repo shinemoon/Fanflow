@@ -79,7 +79,23 @@ async function buildHomePage() {
           console.log("Local Save Msgs");
         });
         buildHtmlFromMessages(curList);
-        // To mark the 'last read' class
+        // To mark the 'last read' class & also unread
+        $('.unread').removeClass('unread');
+        $('div.message').each(function (index) {
+          if (max_id != null) {
+            //Down, i.e. all item after mark 'unread'
+            //Up, i.e. all item before mark 'unread'
+            if (index > lastReadInd) {
+              $(this).addClass('unread');
+            }
+          } else {
+            //Up, i.e. all item before mark 'unread'
+            if (index < lastReadInd) {
+              $(this).addClass('unread');
+            }
+          }
+        });
+
         $('.last-read').removeClass('last-read');
         $('div.message').eq(lastReadInd).addClass('last-read');
       });
@@ -169,6 +185,12 @@ function bindClickActions() {
       console.log("home clicked");
       buildHomePage(true);
     }
-  })
+  });
+
+
+  // For img
+  $('.content-img').click(function(){
+
+  });
 
 }

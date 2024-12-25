@@ -23,6 +23,29 @@ body {
   max-height: 600px;
 }
 
+.mask {
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  background: rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+.mask.show {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.mask .frame {
+  width: 90%;
+  height: 75%;
+  border-radius: 5px;
+  background: #f1f1f1;
+  margin-top: -30px;
+}
+
 .feed {
   flex: 1;
   overflow-y: auto;
@@ -59,6 +82,9 @@ body {
 }
 .message.last-read {
   box-shadow: lightblue 3px 0px 4px 0px;
+}
+.message.unread {
+  background: rgba(219, 227, 238, 0.3803921569);
 }
 .message .message-meta {
   display: flex;
@@ -110,10 +136,20 @@ body {
   /* 超出的内容显示省略号 */
   text-overflow: ellipsis;
 }
-.message .content img {
-  max-width: 100%;
+.message .content img.content-img {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100px;
   margin-top: 10px;
-  margin-bottom: 10px;
+  -o-object-fit: cover;
+     object-fit: cover;
+  -o-object-position: center;
+     object-position: center;
+  box-shadow: inset 0px 0 11px 8px rgba(212, 207, 207, 0.74);
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .actions {
