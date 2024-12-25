@@ -26,17 +26,20 @@ async function fanfouRequest(apiurl, fmode, params, cb) {
     headers.append('Authorization', authHeader);
 
     try {
+        $('.ajax').addClass('loading');
         const response = await fetch(url, {
             method: fmode,
             headers: headers,
         });
 
+        $('.ajax').removeClass('loading');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         cb(response);
     } catch (error) {
+        $('.ajax').removeClass('loading');
         console.error('Error:', error);
         return null;
     }
