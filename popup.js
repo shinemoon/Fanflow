@@ -22,14 +22,11 @@ let userInfo = {
 
 
 document.addEventListener("DOMContentLoaded", async () => {
-  buildHomePage();
-
-  // bindClick
-  bindClickActions();
+  buildHomePage(bindClickActions);
 });
 
 
-async function buildHomePage() {
+async function buildHomePage(cb) {
   console.log("认证成功，页面构建开始");
   // To load local store firstly
   chrome.storage.local.get({ userinfo: userInfo, msglist: [] }, function (r) {
@@ -60,6 +57,7 @@ async function buildHomePage() {
         since_id = curList[0].id;
       }
       result = getTimeline(since_id, max_id, function (res) {
+        //result = getTimeline(null, max_id, function (res) {
         console.log("获得" + res.msglist.length + "条新消息")
         var lastReadInd = 0;
         //let messages = curList.concat(remapMessage(res.msglist));
@@ -98,6 +96,9 @@ async function buildHomePage() {
 
         $('.last-read').removeClass('last-read');
         $('div.message').eq(lastReadInd).addClass('last-read');
+
+        // Use CB  to bind all actions after loaded!
+        cb();
       });
     }
   } else {
@@ -133,7 +134,7 @@ function buildHtmlFromMessages(messageList) {
     // 创建内容容器
     var $contentDiv = $('<div>').addClass('content').text(message.content);
     if (message.hasImage) {
-      var $img = $('<img>').addClass('content-img').attr('src', message.image);
+      var $img = $('<img>').addClass('content-img').attr('src', message.image).attr('largeurl', message.largeimage);
       $contentDiv.append($img);
     }
 
@@ -183,14 +184,90 @@ function bindClickActions() {
     $(this).addClass('active');
     if ($(this).prop('id') == 'home') {
       console.log("home clicked");
-      buildHomePage(true);
+      //buildHomePage(true);
     }
   });
-
-
   // For img
-  $('.content-img').click(function(){
-
+  $('.content-img').click(function () {
+    console.log("switchMask");
+    constructPop("img", [$(this).attr("src"), $(this).attr('largeurl')]);
+    $('.mask').addClass('show');
   });
 
+
+  //For Mask
+  $('#popmask').on('click', function (event) {
+    // 检查点击的目标是否是 #popframe 或其子元素
+    if (!$(event.target).closest('#popframe').length) {
+      // 在这里执行你希望在 #popframe 之外点击时触发的操作
+      $('#popmask').removeClass('show');
+    }
+  });
+}
+
+function constructPop(type, content) {
+  var $popframe = $('#popframe');
+  $popframe.empty();
+
+  // Add control row
+  var $controls = $('<div>').addClass('pop-controls');
+  // General
+  $controls.append($('<span class="retweet">').addClass('icon-retweet'));
+  $controls.append($('<span class="reply">').addClass('icon-reply'));
+  $controls.append($('<span class="star">').addClass('icon-star'));
+
+  // for pic
+  $controls.append($('<span class="resize">').addClass('icon-resize'));
+  $controls.append($('<span class="download">').addClass('icon-download2'));
+  $popframe.append($controls);
+  var ctrl_buttons = ['retweet', 'reply', 'star', 'resize', 'download'];
+  // For img display
+  if (type == "img") {
+    ctrl_buttons = ['resize', 'download'];
+    // Create a container for the blur effect
+    var $imgContainer = $('<div>').addClass('img-container');
+
+    // Create image element with blur effect background
+    var $img = $('<img class="popimg thumb">').attr('src', content[0]);
+
+
+    // Add both to frame
+    $imgContainer.appendTo($popframe);
+    $img.appendTo($imgContainer);
+
+    const fullImg = new Image();
+    fullImg.onload = () => {
+      $img.fadeOut(300, function () {
+        $(this).attr('src', content[1]).fadeIn(800);
+        $imgContainer.addClass('clean');
+      });
+    };
+    fullImg.src = content[1];
+    // And then need actions for scale and download
+    // Resize button - open in new window
+
+    $('.resize').click(function () {
+      const imgUrl = $('.popimg').attr('src');
+      window.open(imgUrl, '_blank');
+    });
+
+    // Download button
+    $('.download').click(async function () {
+      const imgUrl = $('.popimg').attr('src');
+      try {
+        const response = await fetch(imgUrl);
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = objectUrl;
+        link.download = imgUrl.split('/').pop();
+        link.click();
+        URL.revokeObjectURL(objectUrl);
+      } catch (error) {
+        console.error('Download failed:', error);
+      }
+    });
+
+  }
+  ctrl_buttons.forEach(btn => $('.' + btn).addClass("show"));
 }

@@ -79,6 +79,7 @@ function remapMessage(msgs) {
             content: v.text,
             hasImage: 'photo' in v,
             image: ('photo' in v) ? v.photo.imageurl : null,
+            largeimage: ('photo' in v) ? v.photo.largeurl: null,
             hasLinkIcon: (v.in_reply_to_status_id != ""),
             id: v.id,
             userid: v.user.id,
@@ -88,4 +89,11 @@ function remapMessage(msgs) {
         retArr.push(curmsg);
     });
     return retArr;
+}
+
+// Debug /background cli
+function clearCache (){
+        chrome.storage.local.set({ msglist: []}, function () {
+            console.log("Clear Local MsgList");
+        });
 }

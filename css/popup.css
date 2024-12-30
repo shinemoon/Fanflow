@@ -52,6 +52,7 @@ body {
   top: 0px;
   background: rgba(0, 0, 0, 0.2);
   cursor: pointer;
+  z-index: 999;
 }
 .mask.show {
   display: flex;
@@ -64,6 +65,54 @@ body {
   border-radius: 5px;
   background: #f1f1f1;
   margin-top: -30px;
+}
+.mask .frame#popframe .pop-controls {
+  display: flex;
+  gap: 2px;
+  font-size: 14px;
+  color: #81b7ce;
+  cursor: pointer;
+  position: relative;
+  top: 10px;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: flex-start;
+}
+.mask .frame#popframe .pop-controls span {
+  display: none;
+  margin-left: 8px;
+}
+.mask .frame#popframe .pop-controls span:hover {
+  opacity: 0.5;
+}
+.mask .frame#popframe .pop-controls span.show {
+  display: inline-block;
+}
+.mask .frame#popframe .img-container {
+  background-size: cover;
+  background-position: center;
+  filter: blur(10px);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 400px;
+  max-height: 400px;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+.mask .frame#popframe .img-container.clean {
+  filter: blur(0px);
+}
+.mask .frame#popframe img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 400px;
+  max-height: 400px;
+  -o-object-fit: cover;
+     object-fit: cover;
 }
 
 .feed {
@@ -283,4 +332,5 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 200px;
+  z-index: 100;
 }/*# sourceMappingURL=popup.css.map */
