@@ -1,13 +1,13 @@
-async function buildHomePage(cb) {
+async function buildHomePage(type = "up", cb) {
   console.log("认证成功，页面构建开始");
   // To load local store firstly
   chrome.storage.local.get({ userinfo: userInfo, msglist: [] }, function (r) {
     // Restore local list firstly , waiting for fetching
     console.log('Fill w/ local msgs/userInfo');
     updateUserInfo(r.userinfo);
-    buildHtmlFromMessages(r.msglist);
+    buildHtmlFromMessages(remapMessage(r.msglist));
     //curList = r.msglist;
-    messageListUpdate('over', listLength, r.msglist);
+    messageListUpdate(type, listLength, r.msglist);
   })
   const token = await getStoredToken();
   if (token) {
@@ -29,7 +29,6 @@ async function buildHomePage(cb) {
         since_id = curList[0].id;
       }
       result = getTimeline(since_id, max_id, function (res) {
-        //result = getTimeline(null, max_id, function (res) {
         console.log("获得" + res.msglist.length + "条新消息")
         var lastReadInd = 0;
         //let messages = curList.concat(remapMessage(res.msglist));
@@ -48,7 +47,7 @@ async function buildHomePage(cb) {
         chrome.storage.local.set({ msglist: curList }, function () {
           console.log("Local Save Msgs");
         });
-        buildHtmlFromMessages(curList);
+        buildHtmlFromMessages(remapMessage(curList));
         // To mark the 'last read' class & also unread
         $('.unread').removeClass('unread');
         $('div.message').each(function (index) {
@@ -125,16 +124,19 @@ function buildHtmlFromMessages(messageList) {
 // down -fetch older
 // over - replace
 function messageListUpdate(direction = 'up', limit = 100, newlist) {
+
   if (direction == 'over') {
     curList = newlist;
   };
+
   if (direction == 'up') {
-    curList = remapMessage(newlist).concat(curList);
+    curList = newlist.concat(curList);
     if (curList.length > limit)
       curList = curList.slice(0, limit);
   };
+
   if (direction == 'down') {
-    curList = curList.concat(remapMessage(newlist));
+    curList = curList.concat(newlist);
     if (curList.length > limit)
       curList = curList.slice(Math.max(0, array.length - limit));
   };

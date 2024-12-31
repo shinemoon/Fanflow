@@ -2,7 +2,7 @@ let validToken = null;
 
 
 // local list max as 100 msb
-let curList = null;
+let curList = [];
 let listLength = 100;
 
 // Default Stub
@@ -22,7 +22,29 @@ let userInfo = {
 
 
 document.addEventListener("DOMContentLoaded", async () => {
-  buildHomePage(bindClickActions);
+  buildHomePage("up",bindClickActions);
+  // Bind page listener
+
+  // Monitor scroll events on #feed element
+  $('#feed').on('scroll', function () {
+    const feedElement = $(this)[0];
+    const scrollTop = feedElement.scrollTop;
+    const scrollHeight = feedElement.scrollHeight;
+    const clientHeight = feedElement.clientHeight;
+
+    // Check if scrolled to bottom (with 50px threshold)
+    if (scrollHeight - scrollTop - clientHeight < 50) {
+      // TODO: Add your bottom scroll handler here
+      console.log('Reached bottom');
+    }
+
+    // Check if scrolled to top
+    if (scrollTop === 0) {
+      // TODO: Add your top scroll handler here
+      console.log('Reached top');
+    }
+  });
+
 });
 
 
@@ -41,7 +63,7 @@ function bindClickActions() {
     $(this).addClass('active');
     if ($(this).prop('id') == 'home') {
       console.log("home clicked");
-      //buildHomePage(true);
+      $('#feed').scrollTop(0);
     }
   });
   // For img

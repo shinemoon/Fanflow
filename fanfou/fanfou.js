@@ -71,6 +71,8 @@ async function getTimeline(since_id = null, max_id = null, cb) {
 function remapMessage(msgs) {
     let retArr = [];
     msgs.forEach(function (v, i) {
+        console.log(i);
+        console.log(v);
         let curmsg = {
             nickname: v.user.screen_name,
             avator: v.user.profile_image_url,
