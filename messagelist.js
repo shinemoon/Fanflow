@@ -164,6 +164,10 @@ function buildPopImg(thumb, large) {
   // And then need actions for scale and download
   // Resize button - open in new window
 
+  $('.popimg').click(function () {
+      $('#popmask').removeClass('show');
+  }); 
+
   $('.resize').click(function () {
     const imgUrl = $('.popimg').attr('src');
     window.open(imgUrl, '_blank');
