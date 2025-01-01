@@ -49,10 +49,11 @@ async function fetchRequestToken() {
 
     var oauthRequestToken = tokenData.get("oauth_token");
     var oauthRequestTokenSecret = tokenData.get("oauth_token_secret");
-
     console.log("Request Token:", oauthRequestToken);
+    return oauthRequestToken;
   } catch (error) {
     console.error("Failed to fetch request token:", error);
+    return null;
   }
 }
 
@@ -145,6 +146,12 @@ async function validateToken(oauthToken, oauthTokenSecret) {
       const jsonData = await response.json();
       return jsonData;
     } else {
+      // To clean the token, re-login
+      console.log('Token invalid, clear it');
+      clearToken();
+      if (window.location.pathname.includes('popup.html')) {
+        window.close();
+      }
       return false;
     }
   } catch (error) {

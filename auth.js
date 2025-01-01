@@ -1,3 +1,4 @@
+let oauthRequestToken = null;
 let oauthToken = null;
 let oauthTokenSecret = null;
 
@@ -14,9 +15,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
   // Request 
-  await fetchRequestToken();
-  if (oauthToken) {
-    const authUrl = `http://fanfou.com/oauth/authorize?oauth_token=${oauthToken}&oauth_callback=oob`;
+  oauthRequestToken = await fetchRequestToken();
+  if (oauthRequestToken) {
+    const authUrl = `http://fanfou.com/oauth/authorize?oauth_token=${oauthRequestToken}&oauth_callback=oob`;
     const iframe = document.getElementById("auth-iframe");
     iframe.src = authUrl;
     iframe.style.display = "block";
