@@ -5,7 +5,7 @@ async function buildHomePage(type = "up", cb) {
     // Restore local list firstly , waiting for fetching
     console.log('Fill w/ local msgs/userInfo');
     updateUserInfo(r.userinfo);
-    buildHtmlFromMessages(remapMessage(r.msglist));
+    buildHtmlFromMessages(r.msglist);
     //curList = r.msglist;
     messageListUpdate(type, listLength, r.msglist);
   })
@@ -31,15 +31,12 @@ async function buildHomePage(type = "up", cb) {
       result = getTimeline(since_id, max_id, function (res) {
         console.log("获得" + res.msglist.length + "条新消息")
         var lastReadInd = 0;
-        //let messages = curList.concat(remapMessage(res.msglist));
         // only if older ones, those will be append at end of previous list, other is in revered direction
         if (max_id != null) {
           lastReadInd = (curList.length > 0) ? curList.length - 1 : 0;
-          //curList = curList.concat(remapMessage(res.msglist));
           messageListUpdate("down", listLength, res.msglist);
         } else {
           lastReadInd = res.msglist.length;
-          //curList = remapMessage(res.msglist).concat(curList);
           messageListUpdate("up", listLength, res.msglist);
         }
         // Construct the full list
@@ -47,7 +44,7 @@ async function buildHomePage(type = "up", cb) {
         chrome.storage.local.set({ msglist: curList }, function () {
           console.log("Local Save Msgs");
         });
-        buildHtmlFromMessages(remapMessage(curList));
+        buildHtmlFromMessages(curList);
         // To mark the 'last read' class & also unread
         $('.unread').removeClass('unread');
         $('div.message').each(function (index) {
@@ -82,7 +79,8 @@ async function buildHomePage(type = "up", cb) {
 function buildHtmlFromMessages(messageList) {
   var $feed = $('#feed');
   $feed.empty();
-  messageList.forEach(function (message) {
+  sortedList = remapMessage(messageList);
+  sortedList.forEach(function (message) {
     // 创建消息容器
     var $messageDiv = $('<div>').addClass('message');
 

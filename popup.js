@@ -22,7 +22,7 @@ let userInfo = {
 
 
 document.addEventListener("DOMContentLoaded", async () => {
-  buildHomePage("up",bindClickActions);
+  buildHomePage("up", bindClickActions);
   // Bind page listener
 
   // Monitor scroll events on #feed element
