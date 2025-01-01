@@ -66,7 +66,7 @@ function bindClickActions() {
       $('#feed').scrollTop(0);
     }
   });
-  // For img
+  // For img 
   $('.content-img').click(function () {
     console.log("switchMask");
     constructPop("img", [$(this).attr("src"), $(this).attr('largeurl')]);
