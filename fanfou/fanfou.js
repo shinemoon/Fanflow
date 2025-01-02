@@ -26,20 +26,17 @@ async function fanfouRequest(apiurl, fmode, params, cb) {
     headers.append('Authorization', authHeader);
 
     try {
-        $('.ajax').addClass('loading');
         const response = await fetch(url, {
             method: fmode,
             headers: headers,
         });
 
-        $('.ajax').removeClass('loading');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         cb(response);
     } catch (error) {
-        $('.ajax').removeClass('loading');
         console.error('Error:', error);
         return null;
     }
@@ -48,7 +45,7 @@ async function fanfouRequest(apiurl, fmode, params, cb) {
 async function getTimeline(since_id = null, max_id = null, cb) {
     var url = new URL('http://api.fanfou.com/statuses/home_timeline.json');
     const queryParams = {
-        count: 60,
+        count: 20,
     }
     if (since_id)
         queryParams.since_id = since_id;
@@ -71,8 +68,6 @@ async function getTimeline(since_id = null, max_id = null, cb) {
 function remapMessage(msgs) {
     let retArr = [];
     msgs.forEach(function (v, i) {
-        console.log(i);
-        console.log(v);
         let curmsg = {
             nickname: v.user.screen_name,
             avator: v.user.profile_image_url,

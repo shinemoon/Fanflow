@@ -3,7 +3,6 @@ async function buildHomePage(type = "up", cb) {
   // To load local store firstly
   chrome.storage.local.get({ userinfo: userInfo, msglist: [] }, function (r) {
     // Restore local list firstly , waiting for fetching
-    console.log('Fill w/ local msgs/userInfo');
     updateUserInfo(r.userinfo);
     buildHtmlFromMessages(r.msglist);
     //curList = r.msglist;
@@ -19,25 +18,33 @@ async function buildHomePage(type = "up", cb) {
         oauthTokenSecret: token.oauthTokenSecret
       }
       chrome.storage.local.set({ userinfo: isValid }, function () {
-        console.log("Local Save users");
+        //console.log("Local Save users");
       });
       updateUserInfo(isValid);
       console.log("真实模式: 在线获取信息流, 但是原则上仅pullin 新的消息");
       var since_id = null;
       var max_id = null;
       if (curList.length > 0) {
-        since_id = curList[0].id;
+        if (type == "up") {
+          since_id = curList[0].id;
+        }
+        if (type == "down") {
+          max_id = curList[curList.length - 1].id;
+        }
+
       }
+      $('.ajax').addClass('loading');
       result = getTimeline(since_id, max_id, function (res) {
         console.log("获得" + res.msglist.length + "条新消息")
         var lastReadInd = 0;
         // only if older ones, those will be append at end of previous list, other is in revered direction
         if (max_id != null) {
-          lastReadInd = (curList.length > 0) ? curList.length - 1 : 0;
           messageListUpdate("down", listLength, res.msglist);
+          //lastReadInd = (curList.length > 0) ? curList.length - 1 : 0;
+          lastReadInd = curList.length - res.msglist.length - 1;
         } else {
-          lastReadInd = res.msglist.length;
           messageListUpdate("up", listLength, res.msglist);
+          lastReadInd = res.msglist.length;
         }
         // Construct the full list
         // Store for local save
@@ -64,9 +71,12 @@ async function buildHomePage(type = "up", cb) {
 
         $('.last-read').removeClass('last-read');
         $('div.message').eq(lastReadInd).addClass('last-read');
+        reloc(true, function () {
+          // Use CB  to bind all actions after loaded!
+          cb();
+          $('.ajax').removeClass('loading');
+        });
 
-        // Use CB  to bind all actions after loaded!
-        cb();
       });
     }
   } else {
@@ -136,7 +146,7 @@ function messageListUpdate(direction = 'up', limit = 100, newlist) {
   if (direction == 'down') {
     curList = curList.concat(newlist);
     if (curList.length > limit)
-      curList = curList.slice(Math.max(0, array.length - limit));
+      curList = curList.slice(Math.max(0, curList.length - limit));
   };
 }
 
@@ -165,8 +175,8 @@ function buildPopImg(thumb, large) {
   // Resize button - open in new window
 
   $('.popimg').click(function () {
-      $('#popmask').removeClass('show');
-  }); 
+    $('#popmask').removeClass('show');
+  });
 
   $('.resize').click(function () {
     const imgUrl = $('.popimg').attr('src');
@@ -191,4 +201,37 @@ function buildPopImg(thumb, large) {
   });
 
 
+}
+// Keep in .last-read 
+
+function reloc(run = true, cb) {
+  // Check if the element with the class 'last-read' exists
+  if ($('#feed .last-read').length) {
+    // Get the current scroll position of #feed
+    var currentScrollTop = $('#feed').scrollTop();
+
+    // Get the top position of the element relative to #feed
+    var targetPosition = $('#feed .last-read').offset().top;
+
+    // Calculate the scroll distance to the target position relative to the current scroll position
+    var scrollDistance = targetPosition + currentScrollTop;
+    /*
+        console.log("Current scrollTop:", currentScrollTop);
+        console.log("Target position:", targetPosition);
+        console.log("Scroll distance:", scrollDistance);
+    */
+
+    // Scroll #feed to the target position with the calculated scroll distance
+    if (run)
+      $('#feed').animate({
+        scrollTop: scrollDistance
+      }, 1000, function () {
+        // This function will be called when animation is complete
+        cb();
+      });
+    else
+      cb();
+  } else {
+    cb();
+  }
 }
