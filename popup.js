@@ -3,7 +3,7 @@ let validToken = null;
 
 // local list max as 100 msb
 let curList = [];
-let listLength = 256;
+let listLength = 200;
 
 // Default Stub
 let userInfo = {

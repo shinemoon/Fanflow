@@ -31,7 +31,6 @@ async function buildHomePage(type = "up", cb) {
         if (type == "down") {
           max_id = curList[curList.length - 1].id;
         }
-
       }
       $('.ajax').addClass('loading');
       result = getTimeline(since_id, max_id, function (res) {
@@ -133,15 +132,22 @@ function buildHtmlFromMessages(messageList) {
 // over - replace
 function messageListUpdate(direction = 'up', limit = 100, newlist) {
 
-  if (direction == 'over') {
+  if (direction == 'up' && curList.length > 0) {
+    // to check if this init up list can concat with previous curList?
+    const existingIds = new Set(curList.slice(0, newlist.length).map(item => item.id));
+    originalLength = newlist.length;
+    newlist = newlist.filter(item => !existingIds.has(item.id));
+    // Not connected with orginal curList, then override it totally
+    if (newlist.length == originalLength && originalLength > 0) {
+      curList = newlist;
+    } else {
+      curList = newlist.concat(curList);
+      if (curList.length > limit)
+        curList = curList.slice(0, limit);
+    }
+  } else if (direction == 'up') {
     curList = newlist;
-  };
-
-  if (direction == 'up') {
-    curList = newlist.concat(curList);
-    if (curList.length > limit)
-      curList = curList.slice(0, limit);
-  };
+  }
 
   if (direction == 'down') {
     curList = curList.concat(newlist);
