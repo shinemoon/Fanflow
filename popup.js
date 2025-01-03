@@ -1,9 +1,11 @@
 let validToken = null;
 
-
 // local list max as 100 msb
 let curList = [];
 let listLength = 200;
+let listShowLength = 5;
+let listShowInd = 0;   // Start INDEX of current visible list!
+
 
 // Default Stub
 let userInfo = {
@@ -31,18 +33,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     const scrollTop = feedElement.scrollTop;
     const scrollHeight = feedElement.scrollHeight;
     const clientHeight = feedElement.clientHeight;
+    let toBottom = scrollHeight - scrollTop - clientHeight;
     // Check if scrolled to top
     if (scrollTop === 0) {
       // TODO: Add your top scroll handler here
       if ($('.ajax').hasClass('loading') == false) {
         console.log('Reached top');
-        buildHomePage("up", bindClickActions);
+        //buildHomePage("up", bindClickActions);
       }
-    } else if (scrollHeight - scrollTop - clientHeight == 0) {
+    } else if (toBottom >=0 && toBottom <= 10 ) {
+      console.log(toBottom);
       // Check if scrolled to bottom (with 50px threshold)
       // TODO: Add your bottom scroll handler here
       if ($('.ajax').hasClass('loading') == false) {
         console.log('Reached bottom');
+        listShowInd = listShowInd + $(("#feed .message").length);
         buildHomePage("down", bindClickActions);
       }
     }
@@ -68,6 +73,8 @@ function bindClickActions() {
     $(this).addClass('active');
     if ($(this).prop('id') == 'home') {
       console.log("home clicked");
+      //Re-pull the data!
+      listShowInd = 0;
       $('#feed').scrollTop(0);
     }
   });

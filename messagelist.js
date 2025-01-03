@@ -4,7 +4,7 @@ async function buildHomePage(type = "up", cb) {
   chrome.storage.local.get({ userinfo: userInfo, msglist: [] }, function (r) {
     // Restore local list firstly , waiting for fetching
     updateUserInfo(r.userinfo);
-    buildHtmlFromMessages(r.msglist);
+    buildHtmlFromMessages(messageList = r.msglist, showInd=0, lastReadInd=0, max_id=null, since_id=null, cb = cb);
     //curList = r.msglist;
     messageListUpdate(type, listLength, r.msglist);
   })
@@ -20,16 +20,36 @@ async function buildHomePage(type = "up", cb) {
       chrome.storage.local.set({ userinfo: isValid }, function () {
         //console.log("Local Save users");
       });
+      // Need to check if there is existed list items ?
       updateUserInfo(isValid);
-      console.log("真实模式: 在线获取信息流, 但是原则上仅pullin 新的消息");
       var since_id = null;
       var max_id = null;
+
       if (curList.length > 0) {
         if (type == "up") {
-          since_id = curList[0].id;
+          // Use existed ones
+          // Then directly show remained existed messages
+          since_id = curList[listShowInd].id;
+          if (listShowInd > 0) {
+            console.log("原有缓存队列: 获取剩下的" + listShowInd + "元素");
+            buildHtmlFromMessages(messageList = curList, showInd = (showInd > listShowLength - 1) ? (showInd - listShowLength + 1) : 0, max_id = null, since_id = since_id, lastReadInd = listShowInd, cb = cb);
+            return;
+          } else {
+            // or if that's first message, then pull in 
+            console.log("超出缓存队列: 在线获取信息流,pullin更新的消息");
+          }
         }
         if (type == "down") {
-          max_id = curList[curList.length - 1].id;
+          let max_id_ind = (listShowInd+listShowLength-1 < curList.length) ? listShowInd+listShowLength-1 : curList.length-1;
+          max_id = curList[max_id_ind].id;
+
+          if (listShowInd < curList.length - 1) {
+            console.log("原有缓存队列: 获取剩下的" + (curList.length - listShowInd - 1) + "元素");
+            buildHtmlFromMessages(messageList = curList, showInd = max_id_ind, max_id = max_id, lastReadInd = max_id_ind%listShowLength, cb = cb);
+            return;
+          } else {
+            console.log("超出缓存队列: 在线获取信息流,pullin 更旧的消息");
+          }
         }
       }
       $('.ajax').addClass('loading');
@@ -39,7 +59,6 @@ async function buildHomePage(type = "up", cb) {
         // only if older ones, those will be append at end of previous list, other is in revered direction
         if (max_id != null) {
           messageListUpdate("down", listLength, res.msglist);
-          //lastReadInd = (curList.length > 0) ? curList.length - 1 : 0;
           lastReadInd = curList.length - res.msglist.length - 1;
         } else {
           messageListUpdate("up", listLength, res.msglist);
@@ -50,32 +69,8 @@ async function buildHomePage(type = "up", cb) {
         chrome.storage.local.set({ msglist: curList }, function () {
           console.log("Local Save Msgs");
         });
-        buildHtmlFromMessages(curList);
-        // To mark the 'last read' class & also unread
-        $('.unread').removeClass('unread');
-        $('div.message').each(function (index) {
-          if (max_id != null) {
-            //Down, i.e. all item after mark 'unread'
-            //Up, i.e. all item before mark 'unread'
-            if (index > lastReadInd) {
-              $(this).addClass('unread');
-            }
-          } else {
-            //Up, i.e. all item before mark 'unread'
-            if (index < lastReadInd) {
-              $(this).addClass('unread');
-            }
-          }
-        });
-
-        $('.last-read').removeClass('last-read');
-        $('div.message').eq(lastReadInd).addClass('last-read');
-        reloc(true, function () {
-          // Use CB  to bind all actions after loaded!
-          cb();
-          $('.ajax').removeClass('loading');
-        });
-
+        // Need to handle the index of showing
+        buildHtmlFromMessages(messageList = curList, showInd=listShowInd, lastReadInd = lastReadInd, max_id = max_id, since_id = since_id, cb = cb);
       });
     }
   } else {
@@ -85,10 +80,12 @@ async function buildHomePage(type = "up", cb) {
 };
 
 
-function buildHtmlFromMessages(messageList) {
+function buildHtmlFromMessages(messageList, showInd = 0, lastReadInd = 0, max_id = null, since_id = null, cb = function () { }) {
   var $feed = $('#feed');
   $feed.empty();
-  sortedList = remapMessage(messageList);
+  // Update current pointer to the showing window in messages
+  listShowInd = showInd;
+  sortedList = remapMessage(messageList).slice(showInd, listShowLength + showInd);
   sortedList.forEach(function (message) {
     // 创建消息容器
     var $messageDiv = $('<div>').addClass('message');
@@ -123,6 +120,31 @@ function buildHtmlFromMessages(messageList) {
 
     // 添加到页面
     $feed.append($messageDiv);
+  });
+
+  // To mark the 'last read' class & also unread
+  $('.unread').removeClass('unread');
+  $('div.message').each(function (index) {
+    if (max_id != null) {
+      //Down, i.e. all item after mark 'unread'
+      //Up, i.e. all item before mark 'unread'
+      if (index > lastReadInd) {
+        $(this).addClass('unread');
+      }
+    } else {
+      //Up, i.e. all item before mark 'unread'
+      if (index < lastReadInd) {
+        $(this).addClass('unread');
+      }
+    }
+  });
+
+  $('.last-read').removeClass('last-read');
+  $('div.message').eq(lastReadInd).addClass('last-read');
+  reloc(true, function () {
+    // Use CB  to bind all actions after loaded!
+    cb();
+    $('.ajax').removeClass('loading');
   });
 }
 
