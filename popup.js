@@ -6,6 +6,8 @@ let listLength = 200;
 let listShowLength = 5;
 let listShowInd = 0;   // Start INDEX of current visible list!
 
+let pagline = null;
+
 
 // Default Stub
 let userInfo = {
@@ -24,37 +26,56 @@ let userInfo = {
 
 
 document.addEventListener("DOMContentLoaded", async () => {
-  buildHomePage("up", bindClickActions);
-  // Bind page listener
+  pagline = new ProgressBar.Line('#progress', {
+    // Stroke color.
+    // Default: '#555'
+    color: 'lightblue',
 
-  // Monitor scroll events on #feed element
-  $('#feed').on('scroll', function () {
+    // Width of the stroke.
+    // Unit is percentage of SVG canvas' size.
+    // Default: 1.0
+    // NOTE: In Line shape, you should control
+    // the stroke width by setting container's height.
+    // WARNING: IE doesn't support values over 6, see this bug:
+    //          https://github.com/kimmobrunfeldt/progressbar.js/issues/79
+    strokeWidth: 0.3,
+
+    // If trail options are not defined, trail won't be drawn
+
+    // Color for lighter trail stroke
+    // underneath the actual progress path.
+    // Default: '#eee'
+    trailColor: '#f4f4f4',
+
+    // Width of the trail stroke. Trail is always centered relative to
+    // actual progress path.
+    // Default: same as strokeWidth
+    trailWidth: 0.1,
+  });
+  pagline.animate(1);
+
+  buildHomePage("init", bindClickActions);
+  // Bind page listener
+  $('.feed').on('wheel', debounce(function (event) {
     const feedElement = $(this)[0];
     const scrollTop = feedElement.scrollTop;
     const scrollHeight = feedElement.scrollHeight;
     const clientHeight = feedElement.clientHeight;
     let toBottom = scrollHeight - scrollTop - clientHeight;
-    // Check if scrolled to top
-    if (scrollTop === 0) {
-      // TODO: Add your top scroll handler here
-      if ($('.ajax').hasClass('loading') == false) {
-        console.log('Reached top');
-        //buildHomePage("up", bindClickActions);
-      }
-    } else if (toBottom >=0 && toBottom <= 10 ) {
-      console.log(toBottom);
-      // Check if scrolled to bottom (with 50px threshold)
-      // TODO: Add your bottom scroll handler here
-      if ($('.ajax').hasClass('loading') == false) {
+    // Check if scrolled to bottom /top => Bottom first
+    if (event.originalEvent.deltaY > 0 && toBottom <= 10) {
+      if (NProgress.status == null) {
         console.log('Reached bottom');
-        listShowInd = listShowInd + $(("#feed .message").length);
         buildHomePage("down", bindClickActions);
       }
+    } else if (event.originalEvent.deltaY < 0 && scrollTop === 0) {
+      // Check if scrolled to bottom (with 50px threshold)
+      console.log('Reached top');
+      if (NProgress.status == null) {
+        //buildHomePage("up", bindClickActions);
+      }
     }
-
-
-  });
-
+  }, 200));
 });
 
 

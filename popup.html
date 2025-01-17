@@ -12,6 +12,14 @@
   <script defer src="fanfou/crypto-js.min.js"></script>
   <script defer src="fanfou/cred.js"></script>
   <script defer src="fanfou/oauth1.js"></script>
+
+
+  <script src='lib/nprogress/nprogress.js'></script>
+  <link rel='stylesheet' href='lib/nprogress/nprogress.css' />
+
+  <script src='lib/progressbar/progressbar.js'></script>
+
+
   <script defer src="utils.js"></script>
   <script defer src="fanfou/fanfou.js"></script>
   <script defer src="popup.js"></script>
@@ -28,22 +36,24 @@
     </div>
 
 
-  <div class="post-section ajax">
-    <!--span id="post-span" class="icon-edit"><span class="button-ind"></span></span-->
-    <div class="button-array">
-      <span class="first post-span tab icon-food active" id="home"></span>
-      <span class="post-span tab icon-bubble"></span>
-      <span class="post-span tab icon-reply"></span>
-      <span class="post-span tab icon-mail"></span>
-      <span class="post-span tab icon-settings"></span>
-      <span class="last post-span button icon-edit"></span>
-    </div>
-    <div id="userinfo">
-      <span id="user-avator"><img src="images/avator.png"></span>
-      <span id="user-name"> NickName</span>
-      <span id="user-following" class="meta"> <span class="value">0</span> Following </span>
-      <span id="user-follower" class="meta"> <span class="value">0</span> Follower </span>
-    </div>
+    <div class="progress" id="progress"></div>
+
+    <div class="post-section ajax">
+      <!--span id="post-span" class="icon-edit"><span class="button-ind"></span></span-->
+      <div class="button-array">
+        <span class="first post-span tab icon-food active" id="home"></span>
+        <span class="post-span tab icon-bubble"></span>
+        <span class="post-span tab icon-reply"></span>
+        <span class="post-span tab icon-mail"></span>
+        <span class="post-span tab icon-settings"></span>
+        <span class="last post-span button icon-edit"></span>
+      </div>
+      <div id="userinfo">
+        <span id="user-avator"><img src="images/avator.png"></span>
+        <span id="user-name"> NickName</span>
+        <span id="user-following" class="meta"> <span class="value">0</span> Following </span>
+        <span id="user-follower" class="meta"> <span class="value">0</span> Follower </span>
+      </div>
 
     </div>
     <span id="user-description" class="meta ajax"> <span class="value">有目的地生活，无目的地读书</span></span>

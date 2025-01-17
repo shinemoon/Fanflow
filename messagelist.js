@@ -4,9 +4,9 @@ async function buildHomePage(type = "up", cb) {
   chrome.storage.local.get({ userinfo: userInfo, msglist: [] }, function (r) {
     // Restore local list firstly , waiting for fetching
     updateUserInfo(r.userinfo);
-    buildHtmlFromMessages(messageList = r.msglist, showInd=0, lastReadInd=0, max_id=null, since_id=null, cb = cb);
+    //    buildHtmlFromMessages(messageList = r.msglist, showInd=0, lastReadInd=0, max_id=null, since_id=null, cb = cb);
     //curList = r.msglist;
-    messageListUpdate(type, listLength, r.msglist);
+    //messageListUpdate(type, listLength, r.msglist);
   })
   const token = await getStoredToken();
   if (token) {
@@ -31,7 +31,7 @@ async function buildHomePage(type = "up", cb) {
           // Then directly show remained existed messages
           since_id = curList[listShowInd].id;
           if (listShowInd > 0) {
-            console.log("原有缓存队列: 获取剩下的" + listShowInd + "元素");
+            console.log("原有缓存队列: 获取剩下的从" + listShowInd + "开始的元素");
             buildHtmlFromMessages(messageList = curList, showInd = (showInd > listShowLength - 1) ? (showInd - listShowLength + 1) : 0, max_id = null, since_id = since_id, lastReadInd = listShowInd, cb = cb);
             return;
           } else {
@@ -40,19 +40,20 @@ async function buildHomePage(type = "up", cb) {
           }
         }
         if (type == "down") {
-          let max_id_ind = (listShowInd+listShowLength-1 < curList.length) ? listShowInd+listShowLength-1 : curList.length-1;
+          let max_id_ind = (listShowInd + listShowLength - 1 < curList.length) ? listShowInd + listShowLength - 1 : curList.length - 1;
           max_id = curList[max_id_ind].id;
 
           if (listShowInd < curList.length - 1) {
             console.log("原有缓存队列: 获取剩下的" + (curList.length - listShowInd - 1) + "元素");
-            buildHtmlFromMessages(messageList = curList, showInd = max_id_ind, max_id = max_id, lastReadInd = max_id_ind%listShowLength, cb = cb);
+            buildHtmlFromMessages(messageList = curList, showInd = max_id_ind, max_id = max_id, lastReadInd = max_id_ind % listShowLength, cb = cb);
             return;
           } else {
             console.log("超出缓存队列: 在线获取信息流,pullin 更旧的消息");
           }
         }
       }
-      $('.ajax').addClass('loading');
+      //      $('.ajax').addClass('loading');
+      NProgress.start();
       result = getTimeline(since_id, max_id, function (res) {
         console.log("获得" + res.msglist.length + "条新消息")
         var lastReadInd = 0;
@@ -70,7 +71,7 @@ async function buildHomePage(type = "up", cb) {
           console.log("Local Save Msgs");
         });
         // Need to handle the index of showing
-        buildHtmlFromMessages(messageList = curList, showInd=listShowInd, lastReadInd = lastReadInd, max_id = max_id, since_id = since_id, cb = cb);
+        buildHtmlFromMessages(messageList = curList, showInd = listShowInd, lastReadInd = lastReadInd, max_id = max_id, since_id = since_id, cb = cb);
       });
     }
   } else {
@@ -144,8 +145,12 @@ function buildHtmlFromMessages(messageList, showInd = 0, lastReadInd = 0, max_id
   reloc(true, function () {
     // Use CB  to bind all actions after loaded!
     cb();
-    $('.ajax').removeClass('loading');
+    //    $('.ajax').removeClass('loading');
+    NProgress.done();
   });
+  listShowInd = listShowInd + $("#feed .message").length;
+  pagline.animate(listShowInd / curList.length);
+  console.log('listShowInd: ' + listShowInd + ' / ' + curList.length);
 }
 
 // Update the curList
@@ -153,6 +158,9 @@ function buildHtmlFromMessages(messageList, showInd = 0, lastReadInd = 0, max_id
 // down -fetch older
 // over - replace
 function messageListUpdate(direction = 'up', limit = 100, newlist) {
+  console.log("更新消息列表");
+  // Not update list, if no scrolling
+  if (direction == 'init') return;
 
   if (direction == 'up' && curList.length > 0) {
     // to check if this init up list can concat with previous curList?

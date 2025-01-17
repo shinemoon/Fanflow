@@ -39,7 +39,7 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 200px;
+  min-height: 600px;
   max-height: 600px;
 }
 
