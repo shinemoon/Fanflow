@@ -33,6 +33,11 @@ async function buildHomePage(type = "up", cb) {
           if (listShowInd > 0) {
             console.log("原有缓存队列: 获取剩下的从" + listShowInd + "开始的元素");
             buildHtmlFromMessages(messageList = curList, showInd = (showInd > listShowLength - 1) ? (showInd - listShowLength + 1) : 0, max_id = null, since_id = since_id, lastReadInd = listShowInd, cb = cb);
+
+            listShowInd = listShowInd - $("#feed .message").length;
+            pagline.animate(listShowInd / curList.length);
+            console.log('listShowInd: ' + listShowInd + ' / ' + curList.length);
+
             return;
           } else {
             // or if that's first message, then pull in 
@@ -46,6 +51,9 @@ async function buildHomePage(type = "up", cb) {
           if (listShowInd < curList.length - 1) {
             console.log("原有缓存队列: 获取剩下的" + (curList.length - listShowInd - 1) + "元素");
             buildHtmlFromMessages(messageList = curList, showInd = max_id_ind, max_id = max_id, lastReadInd = max_id_ind % listShowLength, cb = cb);
+            listShowInd = listShowInd + $("#feed .message").length;
+            pagline.animate(listShowInd / curList.length);
+            console.log('listShowInd: ' + listShowInd + ' / ' + curList.length);
             return;
           } else {
             console.log("超出缓存队列: 在线获取信息流,pullin 更旧的消息");
@@ -148,9 +156,7 @@ function buildHtmlFromMessages(messageList, showInd = 0, lastReadInd = 0, max_id
     //    $('.ajax').removeClass('loading');
     NProgress.done();
   });
-  listShowInd = listShowInd + $("#feed .message").length;
-  pagline.animate(listShowInd / curList.length);
-  console.log('listShowInd: ' + listShowInd + ' / ' + curList.length);
+
 }
 
 // Update the curList

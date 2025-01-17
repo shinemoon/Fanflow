@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Check if scrolled to bottom (with 50px threshold)
       console.log('Reached top');
       if (NProgress.status == null) {
-        //buildHomePage("up", bindClickActions);
+        buildHomePage("up", bindClickActions);
       }
     }
   }, 200));
