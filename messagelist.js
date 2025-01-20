@@ -32,7 +32,7 @@ async function buildHomePage(type = "up", cb) {
           since_id = curList[listShowInd].id;
           if (listShowInd > 0) {
             console.log("原有缓存队列: 获取剩下的从" + listShowInd + "开始的元素");
-            buildHtmlFromMessages(messageList = curList, showInd = (showInd > listShowLength - 1) ? (showInd - listShowLength + 1) : 0, max_id = null, since_id = since_id, lastReadInd = listShowInd, cb = cb);
+            buildHtmlFromMessages(messageList = curList, showInd = (showInd > listShowLength) ? (showInd - listShowLength) : 0, max_id = null, since_id = since_id, lastReadInd = listShowInd, cb = cb);
             listShowInd = listShowInd - $("#feed .message").length;
             pagline.animate(listShowInd / curList.length);
             console.log('listShowInd: ' + listShowInd + ' / ' + curList.length);
