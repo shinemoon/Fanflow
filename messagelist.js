@@ -1,11 +1,11 @@
 async function buildHomePage(type = "up", cb) {
-  console.log("认证成功，页面构建开始");
+  console.log("认证成功，页面构建开始:" + type);
   // To load local store firstly
   chrome.storage.local.get({ userinfo: userInfo, msglist: [] }, function (r) {
     // Restore local list firstly , waiting for fetching
     updateUserInfo(r.userinfo);
     //    buildHtmlFromMessages(messageList = r.msglist, showInd=0, lastReadInd=0, max_id=null, since_id=null, cb = cb);
-    //curList = r.msglist;
+    curList = r.msglist;
     //messageListUpdate(type, listLength, r.msglist);
   })
   const token = await getStoredToken();
@@ -33,7 +33,6 @@ async function buildHomePage(type = "up", cb) {
           if (listShowInd > 0) {
             console.log("原有缓存队列: 获取剩下的从" + listShowInd + "开始的元素");
             buildHtmlFromMessages(messageList = curList, showInd = (showInd > listShowLength - 1) ? (showInd - listShowLength + 1) : 0, max_id = null, since_id = since_id, lastReadInd = listShowInd, cb = cb);
-
             listShowInd = listShowInd - $("#feed .message").length;
             pagline.animate(listShowInd / curList.length);
             console.log('listShowInd: ' + listShowInd + ' / ' + curList.length);
@@ -47,10 +46,9 @@ async function buildHomePage(type = "up", cb) {
         if (type == "down") {
           let max_id_ind = (listShowInd + listShowLength - 1 < curList.length) ? listShowInd + listShowLength - 1 : curList.length - 1;
           max_id = curList[max_id_ind].id;
-
           if (listShowInd < curList.length - 1) {
             console.log("原有缓存队列: 获取剩下的" + (curList.length - listShowInd - 1) + "元素");
-            buildHtmlFromMessages(messageList = curList, showInd = max_id_ind, max_id = max_id, lastReadInd = max_id_ind % listShowLength, cb = cb);
+            buildHtmlFromMessages(messageList = curList, showInd = listShowInd+1, max_id = max_id, lastReadInd = max_id_ind % listShowLength, cb = cb);
             listShowInd = listShowInd + $("#feed .message").length;
             pagline.animate(listShowInd / curList.length);
             console.log('listShowInd: ' + listShowInd + ' / ' + curList.length);
@@ -58,6 +56,16 @@ async function buildHomePage(type = "up", cb) {
           } else {
             console.log("超出缓存队列: 在线获取信息流,pullin 更旧的消息");
           }
+        }
+
+        // Just show the local list
+        if (type == "init") {
+          //Get first page to show
+          buildHtmlFromMessages(messageList = curList, showInd =0, max_id = null, since_id = null, lastReadInd = 0, cb = cb);
+          listShowInd = $("#feed .message").length - 1;
+          pagline.animate(listShowInd / curList.length);
+          console.log('listShowInd: ' + listShowInd + ' / ' + curList.length);
+          return;
         }
       }
       //      $('.ajax').addClass('loading');
@@ -93,17 +101,18 @@ function buildHtmlFromMessages(messageList, showInd = 0, lastReadInd = 0, max_id
   var $feed = $('#feed');
   $feed.empty();
   // Update current pointer to the showing window in messages
-  listShowInd = showInd;
   sortedList = remapMessage(messageList).slice(showInd, listShowLength + showInd);
+  let i = showInd;
   sortedList.forEach(function (message) {
     // 创建消息容器
     var $messageDiv = $('<div>').addClass('message');
+    let localTime = convertToLocalTime(message.time);
 
     // 创建Meta容器
     var $metaDiv = $('<div>').addClass('message-meta');
     $metaDiv.append($('<img>').addClass('msg-avator').prop("src", message.avator));
-    $metaDiv.append($('<span>').addClass('msg-nickname').text(message.nickname));
-    $metaDiv.append($('<span>').addClass('msg-time').text(message.time));
+    $metaDiv.append($('<span>').addClass('msg-nickname').text(message.nickname + " " + (i++)));
+    $metaDiv.append($('<span>').addClass('msg-time').text(localTime.localTime));
     $metaDiv.append($('<span>').addClass('msg-source').text(message.source));
 
     // 创建内容容器
