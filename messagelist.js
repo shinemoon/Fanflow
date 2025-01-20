@@ -4,9 +4,7 @@ async function buildHomePage(type = "up", cb) {
   chrome.storage.local.get({ userinfo: userInfo, msglist: [] }, function (r) {
     // Restore local list firstly , waiting for fetching
     updateUserInfo(r.userinfo);
-    //    buildHtmlFromMessages(messageList = r.msglist, showInd=0, lastReadInd=0, max_id=null, since_id=null, cb = cb);
     curList = r.msglist;
-    //messageListUpdate(type, listLength, r.msglist);
   })
   const token = await getStoredToken();
   if (token) {
@@ -32,7 +30,15 @@ async function buildHomePage(type = "up", cb) {
           since_id = curList[listShowInd].id;
           if (listShowInd > 0) {
             console.log("原有缓存队列: 获取剩下的从" + listShowInd + "开始的元素");
-            buildHtmlFromMessages(messageList = curList, showInd = (showInd > listShowLength) ? (showInd - listShowLength) : 0, max_id = null, since_id = since_id, lastReadInd = listShowInd, cb = cb);
+            let curId = (listShowInd> listShowLength) ? (listShowInd- listShowLength) : 0;
+            buildHtmlFromMessages({
+              messageList: curList,
+              showInd: curId,
+              max_id: null,
+              since_id: since_id,
+              lastReadInd: curId,
+              cb: cb
+            });
             listShowInd = listShowInd - $("#feed .message").length;
             pagline.animate(listShowInd / curList.length);
             console.log('listShowInd: ' + listShowInd + ' / ' + curList.length);
@@ -48,7 +54,13 @@ async function buildHomePage(type = "up", cb) {
           max_id = curList[max_id_ind].id;
           if (listShowInd < curList.length - 1) {
             console.log("原有缓存队列: 获取剩下的" + (curList.length - listShowInd - 1) + "元素");
-            buildHtmlFromMessages(messageList = curList, showInd = listShowInd+1, max_id = max_id, lastReadInd = max_id_ind % listShowLength, cb = cb);
+            buildHtmlFromMessages({
+              messageList: curList,
+              showInd: listShowInd + 1,
+              max_id: max_id,
+              lastReadInd: (listShowInd+1)% listShowLength,
+              cb: cb
+            });
             listShowInd = listShowInd + $("#feed .message").length;
             pagline.animate(listShowInd / curList.length);
             console.log('listShowInd: ' + listShowInd + ' / ' + curList.length);
@@ -61,7 +73,14 @@ async function buildHomePage(type = "up", cb) {
         // Just show the local list
         if (type == "init") {
           //Get first page to show
-          buildHtmlFromMessages(messageList = curList, showInd =0, max_id = null, since_id = null, lastReadInd = 0, cb = cb);
+          buildHtmlFromMessages({
+            messageList: curList,
+            showInd: 0,
+            max_id: null,
+            since_id: null,
+            lastReadInd: 0,
+            cb: cb
+          });
           listShowInd = $("#feed .message").length - 1;
           pagline.animate(listShowInd / curList.length);
           console.log('listShowInd: ' + listShowInd + ' / ' + curList.length);
@@ -72,7 +91,6 @@ async function buildHomePage(type = "up", cb) {
       NProgress.start();
       result = getTimeline(since_id, max_id, function (res) {
         console.log("获得" + res.msglist.length + "条新消息")
-        var lastReadInd = 0;
         // only if older ones, those will be append at end of previous list, other is in revered direction
         if (max_id != null) {
           messageListUpdate("down", listLength, res.msglist);
@@ -87,7 +105,13 @@ async function buildHomePage(type = "up", cb) {
           console.log("Local Save Msgs");
         });
         // Need to handle the index of showing
-        buildHtmlFromMessages(messageList = curList, showInd = listShowInd, lastReadInd = lastReadInd, max_id = max_id, since_id = since_id, cb = cb);
+        buildHtmlFromMessages(
+          messageList = curList,
+          showInd = listShowInd,
+          max_id = max_id,
+          since_id = since_id,
+          lastReadInd = lastReadInd,
+          cb = cb);
       });
     }
   } else {
@@ -97,7 +121,15 @@ async function buildHomePage(type = "up", cb) {
 };
 
 
-function buildHtmlFromMessages(messageList, showInd = 0, lastReadInd = 0, max_id = null, since_id = null, cb = function () { }) {
+function buildHtmlFromMessages({
+  messageList = [],
+  showInd = 0,
+  max_id = null,
+  since_id = null,
+  lastReadInd = 0,
+  cb = function () { }
+} = {}) {
+  console.log("LastRead: " + lastReadInd);
   var $feed = $('#feed');
   $feed.empty();
   // Update current pointer to the showing window in messages

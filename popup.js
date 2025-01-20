@@ -6,6 +6,8 @@ let listLength = 200;
 let listShowLength = 5;
 let listShowInd = 0;   // Start INDEX of current visible list!
 
+var lastReadInd = 0;
+
 let pagline = null;
 
 
