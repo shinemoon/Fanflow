@@ -308,7 +308,7 @@ function reloc(run = true, cb) {
     if (run)
       $('#feed').animate({
         scrollTop: scrollDistance
-      }, 1000, function () {
+      }, 300, function () {
         // This function will be called when animation is complete
         cb();
       });
