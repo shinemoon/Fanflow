@@ -30,13 +30,14 @@ async function buildHomePage(type = "up", cb) {
           since_id = curList[listShowInd].id;
           if (listShowInd > 0) {
             console.log("原有缓存队列: 获取剩下的从" + listShowInd + "开始的元素");
-            let curId = (listShowInd> listShowLength) ? (listShowInd- listShowLength) : 0;
+            // move the pointer to 'previous page header'
+            //let curId = (listShowInd > listShowLength) ? (listShowInd - listShowLength) : 0;
+            listShowInd = (listShowInd - listShowLength>0)?listShowInd - listShowLength:0;
             buildHtmlFromMessages({
               messageList: curList,
-              showInd: curId,
+              showInd: listShowInd+1,
               max_id: null,
               since_id: since_id,
-              lastReadInd: curId,
               cb: cb
             });
             listShowInd = listShowInd - $("#feed .message").length;
@@ -58,9 +59,9 @@ async function buildHomePage(type = "up", cb) {
               messageList: curList,
               showInd: listShowInd + 1,
               max_id: max_id,
-              lastReadInd: (listShowInd+1)% listShowLength,
               cb: cb
             });
+            // move the pointer to end of the page!
             listShowInd = listShowInd + $("#feed .message").length;
             pagline.animate(listShowInd / curList.length);
             console.log('listShowInd: ' + listShowInd + ' / ' + curList.length);
@@ -78,7 +79,6 @@ async function buildHomePage(type = "up", cb) {
             showInd: 0,
             max_id: null,
             since_id: null,
-            lastReadInd: 0,
             cb: cb
           });
           listShowInd = $("#feed .message").length - 1;
@@ -94,10 +94,13 @@ async function buildHomePage(type = "up", cb) {
         // only if older ones, those will be append at end of previous list, other is in revered direction
         if (max_id != null) {
           messageListUpdate("down", listLength, res.msglist);
-          lastReadInd = curList.length - res.msglist.length - 1;
+          //Down side no need to touch listShowInd
+          listShowInd = listShowInd;
         } else {
           messageListUpdate("up", listLength, res.msglist);
-          lastReadInd = res.msglist.length;
+          //Up side  need to sfhit the listShowInd up to first page! // current 
+          //listShowInd = 0;
+          listShowInd = getLastPageFirstIndex(res.msglist, listShowLength)-1;
         }
         // Construct the full list
         // Store for local save
@@ -105,13 +108,16 @@ async function buildHomePage(type = "up", cb) {
           console.log("Local Save Msgs");
         });
         // Need to handle the index of showing
-        buildHtmlFromMessages(
-          messageList = curList,
-          showInd = listShowInd,
-          max_id = max_id,
-          since_id = since_id,
-          lastReadInd = lastReadInd,
-          cb = cb);
+        buildHtmlFromMessages({
+          messageList: curList,
+          showInd: listShowInd + 1,
+          max_id: max_id,
+          since_id: since_id,
+          cb: cb,
+        });
+        //Move pointer to end of page
+        listShowInd = listShowInd + $("#feed .message").length;
+
       });
     }
   } else {
@@ -126,10 +132,8 @@ function buildHtmlFromMessages({
   showInd = 0,
   max_id = null,
   since_id = null,
-  lastReadInd = 0,
   cb = function () { }
 } = {}) {
-  console.log("LastRead: " + lastReadInd);
   var $feed = $('#feed');
   $feed.empty();
   // Update current pointer to the showing window in messages
@@ -173,30 +177,12 @@ function buildHtmlFromMessages({
   });
 
   // To mark the 'last read' class & also unread
-  $('.unread').removeClass('unread');
   $('div.message').each(function (index) {
-    if (max_id != null) {
-      //Down, i.e. all item after mark 'unread'
-      //Up, i.e. all item before mark 'unread'
-      if (index > lastReadInd) {
-        $(this).addClass('unread');
-      }
-    } else {
-      //Up, i.e. all item before mark 'unread'
-      if (index < lastReadInd) {
-        $(this).addClass('unread');
-      }
-    }
   });
 
-  $('.last-read').removeClass('last-read');
-  $('div.message').eq(lastReadInd).addClass('last-read');
-  reloc(true, function () {
-    // Use CB  to bind all actions after loaded!
-    cb();
-    //    $('.ajax').removeClass('loading');
-    NProgress.done();
-  });
+  reloc('#feed');
+  cb();
+  NProgress.done();
 
 }
 
@@ -287,34 +273,6 @@ function buildPopImg(thumb, large) {
 }
 // Keep in .last-read 
 
-function reloc(run = true, cb) {
-  // Check if the element with the class 'last-read' exists
-  if ($('#feed .last-read').length) {
-    // Get the current scroll position of #feed
-    var currentScrollTop = $('#feed').scrollTop();
-
-    // Get the top position of the element relative to #feed
-    var targetPosition = $('#feed .last-read').offset().top;
-
-    // Calculate the scroll distance to the target position relative to the current scroll position
-    var scrollDistance = targetPosition + currentScrollTop;
-    /*
-        console.log("Current scrollTop:", currentScrollTop);
-        console.log("Target position:", targetPosition);
-        console.log("Scroll distance:", scrollDistance);
-    */
-
-    // Scroll #feed to the target position with the calculated scroll distance
-    if (run)
-      $('#feed').animate({
-        scrollTop: scrollDistance
-      }, 300, function () {
-        // This function will be called when animation is complete
-        cb();
-      });
-    else
-      cb();
-  } else {
-    cb();
-  }
+function reloc(el) {
+  $(el).scrollTop(0);
 }

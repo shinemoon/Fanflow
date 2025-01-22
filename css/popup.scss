@@ -173,10 +173,6 @@ body {
     flex-direction: column;
     position: relative;
 
-    &.last-read {
-        box-shadow: lightblue 3px 0px 4px 0px;
-    }
-
     &.unread {
         background: #dbe3ee61;
     }

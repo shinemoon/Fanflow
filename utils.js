@@ -31,3 +31,9 @@ function convertToLocalTime(dateString) {
     localTimeOnly // 本地时间
   };
 }
+
+
+function getLastPageFirstIndex(curList, listShowLength) {
+  const totalPages = Math.ceil(curList.length / listShowLength);
+  return (totalPages - 1) * listShowLength;
+}
