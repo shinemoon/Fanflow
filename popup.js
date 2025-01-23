@@ -3,7 +3,7 @@ let validToken = null;
 // local list max as 100 msb
 let curList = [];
 let listLength = 200;
-let listShowLength = 5;
+let listShowLength = 20;
 let listShowInd = 0;   // Start INDEX of current visible list!
 
 var lastReadInd = 0;

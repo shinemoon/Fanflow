@@ -45,7 +45,7 @@ async function fanfouRequest(apiurl, fmode, params, cb) {
 async function getTimeline(since_id = null, max_id = null, cb) {
     var url = new URL('http://api.fanfou.com/statuses/home_timeline.json');
     const queryParams = {
-        count: 20,
+        count: 60,
     }
     if (since_id)
         queryParams.since_id = since_id;

@@ -27,20 +27,21 @@ async function buildHomePage(type = "up", cb) {
         if (type == "up") {
           // Use existed ones
           // Then directly show remained existed messages
+          console.log('listShowInd: ' + listShowInd + ' / Pre');
           since_id = curList[listShowInd].id;
-          if (listShowInd > 0) {
+          if (listShowInd > listShowLength-1) {
             console.log("原有缓存队列: 获取剩下的从" + listShowInd + "开始的元素");
             // move the pointer to 'previous page header'
             //let curId = (listShowInd > listShowLength) ? (listShowInd - listShowLength) : 0;
-            listShowInd = (listShowInd - listShowLength>0)?listShowInd - listShowLength:0;
+            listShowInd = (listShowInd - 2*listShowLength > -1) ? listShowInd - 2*listShowLength : -1; //TODO : 少翻了一页
             buildHtmlFromMessages({
               messageList: curList,
-              showInd: listShowInd+1,
+              showInd: listShowInd + 1,
               max_id: null,
               since_id: since_id,
               cb: cb
             });
-            listShowInd = listShowInd - $("#feed .message").length;
+            listShowInd = listShowInd + $("#feed .message").length;
             pagline.animate(listShowInd / curList.length);
             console.log('listShowInd: ' + listShowInd + ' / ' + curList.length);
 
@@ -100,7 +101,7 @@ async function buildHomePage(type = "up", cb) {
           messageListUpdate("up", listLength, res.msglist);
           //Up side  need to sfhit the listShowInd up to first page! // current 
           //listShowInd = 0;
-          listShowInd = getLastPageFirstIndex(res.msglist, listShowLength)-1;
+          listShowInd = getLastPageFirstIndex(res.msglist, listShowLength) - 1;
         }
         // Construct the full list
         // Store for local save
