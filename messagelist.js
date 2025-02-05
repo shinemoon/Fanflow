@@ -29,12 +29,13 @@ async function buildHomePage(type = "up", cb) {
           // Then directly show remained existed messages
           console.log('listShowInd: ' + listShowInd + ' / Pre');
           since_id = curList[listShowInd].id;
-          if (listShowInd > listShowLength-1) {
+          if (listShowInd > listShowLength - 1) {
             console.log("原有缓存队列: 获取剩下的从" + listShowInd + "开始的元素");
             // move the pointer to 'previous page header'
             //let curId = (listShowInd > listShowLength) ? (listShowInd - listShowLength) : 0;
-            listShowInd = (listShowInd - 2*listShowLength > -1) ? listShowInd - 2*listShowLength : -1; //TODO : 少翻了一页
+            listShowInd = (listShowInd - 2 * listShowLength > -1) ? listShowInd - 2 * listShowLength : -1; 
             buildHtmlFromMessages({
+              type: type,
               messageList: curList,
               showInd: listShowInd + 1,
               max_id: null,
@@ -57,6 +58,7 @@ async function buildHomePage(type = "up", cb) {
           if (listShowInd < curList.length - 1) {
             console.log("原有缓存队列: 获取剩下的" + (curList.length - listShowInd - 1) + "元素");
             buildHtmlFromMessages({
+              type: type,
               messageList: curList,
               showInd: listShowInd + 1,
               max_id: max_id,
@@ -76,6 +78,7 @@ async function buildHomePage(type = "up", cb) {
         if (type == "init") {
           //Get first page to show
           buildHtmlFromMessages({
+            type: type,
             messageList: curList,
             showInd: 0,
             max_id: null,
@@ -92,6 +95,11 @@ async function buildHomePage(type = "up", cb) {
       NProgress.start();
       result = getTimeline(since_id, max_id, function (res) {
         console.log("获得" + res.msglist.length + "条新消息")
+        if (res.msglist.length > 0) {
+          res.msglist.forEach(item => {
+            item.read = 'new';
+          });
+        }
         // only if older ones, those will be append at end of previous list, other is in revered direction
         if (max_id != null) {
           messageListUpdate("down", listLength, res.msglist);
@@ -110,6 +118,7 @@ async function buildHomePage(type = "up", cb) {
         });
         // Need to handle the index of showing
         buildHtmlFromMessages({
+          type: 'new',
           messageList: curList,
           showInd: listShowInd + 1,
           max_id: max_id,
@@ -129,12 +138,16 @@ async function buildHomePage(type = "up", cb) {
 
 
 function buildHtmlFromMessages({
+  type = "up",
   messageList = [],
   showInd = 0,
   max_id = null,
   since_id = null,
   cb = function () { }
 } = {}) {
+  // Clean current page's status;
+  cleanCurrentPageStatus();
+
   var $feed = $('#feed');
   $feed.empty();
   // Update current pointer to the showing window in messages
@@ -143,12 +156,15 @@ function buildHtmlFromMessages({
   sortedList.forEach(function (message) {
     // 创建消息容器
     var $messageDiv = $('<div>').addClass('message');
+    if (message.newinfo == 'new') {
+      $messageDiv.addClass('unread');
+    }
     let localTime = convertToLocalTime(message.time);
 
     // 创建Meta容器
     var $metaDiv = $('<div>').addClass('message-meta');
     $metaDiv.append($('<img>').addClass('msg-avator').prop("src", message.avator));
-    $metaDiv.append($('<span>').addClass('msg-nickname').text(message.nickname + " " + (i++)));
+    $metaDiv.append($('<span value='+i+'>').addClass('msg-nickname').text(message.nickname + " " + (i++)));
     $metaDiv.append($('<span>').addClass('msg-time').text(localTime.localTime));
     $metaDiv.append($('<span>').addClass('msg-source').text(message.source));
 
@@ -181,7 +197,7 @@ function buildHtmlFromMessages({
   $('div.message').each(function (index) {
   });
 
-  reloc('#feed');
+  reloc('#feed', type);
   cb();
   NProgress.done();
 
@@ -274,6 +290,12 @@ function buildPopImg(thumb, large) {
 }
 // Keep in .last-read 
 
-function reloc(el) {
-  $(el).scrollTop(0);
+function reloc(el, type) {
+  if (type == 'up') {
+    // 滚动到元素的底部
+    $(el).scrollTop($(el)[0].scrollHeight);
+  } else {
+    // 滚动到元素的顶部
+    $(el).scrollTop(0);
+  }
 }

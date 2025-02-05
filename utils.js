@@ -37,3 +37,22 @@ function getLastPageFirstIndex(curList, listShowLength) {
   const totalPages = Math.ceil(curList.length / listShowLength);
   return (totalPages - 1) * listShowLength;
 }
+
+
+function cleanCurrentPageStatus() {
+  // 提取所有 .msg-nickname 元素的 value 值作为索引队列
+  const indexQueue = $('#feed .message .message-meta .msg-nickname').map(function () {
+    return $(this).attr('value'); // 获取 value 值
+  }).get(); // 将 jQuery 对象转换为普通数组
+
+  // 遍历 curList，将对应索引的 item 的 read 属性改为 'read'
+  indexQueue.forEach(index => {
+    if (curList[index]) { // 确保索引存在
+      curList[index].read = 'read';
+    }
+  });
+  // Store for local save
+  chrome.storage.local.set({ msglist: curList }, function () {
+    console.log("Local Save Msgs");
+  });
+}

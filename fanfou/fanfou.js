@@ -69,6 +69,7 @@ function remapMessage(msgs) {
     let retArr = [];
     msgs.forEach(function (v, i) {
         let curmsg = {
+            newinfo:v.read,
             nickname: v.user.screen_name,
             avator: v.user.profile_image_url,
             time: v.created_at,
