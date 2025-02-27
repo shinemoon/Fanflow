@@ -1,3 +1,16 @@
+/**
+ * 构建主页并加载消息列表。
+ * 
+ * @param {string} type - 指定加载类型，默认为 "up"。可选值包括 "up"、"down" 和 "init"。
+ * @param {function} cb - 回调函数，用于处理构建完成后的操作。
+ * 
+ * 该函数首先从本地存储中获取用户信息和消息列表，然后验证存储的令牌。如果令牌有效，将根据指定的类型加载消息列表：
+ * - "up"：向上加载更多消息。
+ * - "down"：向下加载更多消息。
+ * - "init"：初始化时加载消息列表。
+ * 
+ * 如果没有有效的令牌，将打开认证页面。
+ */
 async function buildHomePage(type = "up", cb) {
   console.log("认证成功，页面构建开始:" + type);
   // To load local store firstly
@@ -27,51 +40,14 @@ async function buildHomePage(type = "up", cb) {
         if (type == "up") {
           // Use existed ones
           // Then directly show remained existed messages
-          console.log('listShowInd: ' + listShowInd + ' / Pre');
-          since_id = curList[listShowInd].id;
-          if (listShowInd > listShowLength - 1) {
-            console.log("原有缓存队列: 获取剩下的从" + listShowInd + "开始的元素");
-            // move the pointer to 'previous page header'
-            //let curId = (listShowInd > listShowLength) ? (listShowInd - listShowLength) : 0;
-            listShowInd = (listShowInd - 2 * listShowLength > -1) ? listShowInd - 2 * listShowLength : -1; 
-            buildHtmlFromMessages({
-              type: type,
-              messageList: curList,
-              showInd: listShowInd + 1,
-              max_id: null,
-              since_id: since_id,
-              cb: cb
-            });
-            listShowInd = listShowInd + $("#feed .message").length;
-            pagline.animate(listShowInd / curList.length);
-            console.log('listShowInd: ' + listShowInd + ' / ' + curList.length);
-
-            return;
-          } else {
-            // or if that's first message, then pull in 
-            console.log("超出缓存队列: 在线获取信息流,pullin更新的消息");
-          }
+          //此处则永远从零开始, 并且up时，必然重新拉取最近的信息。
+          since_id = curList[0].id;
+          console.log("向顶部滚动: 在线获取信息流,pullin更新的消息");
         }
         if (type == "down") {
-          let max_id_ind = (listShowInd + listShowLength - 1 < curList.length) ? listShowInd + listShowLength - 1 : curList.length - 1;
-          max_id = curList[max_id_ind].id;
-          if (listShowInd < curList.length - 1) {
-            console.log("原有缓存队列: 获取剩下的" + (curList.length - listShowInd - 1) + "元素");
-            buildHtmlFromMessages({
-              type: type,
-              messageList: curList,
-              showInd: listShowInd + 1,
-              max_id: max_id,
-              cb: cb
-            });
-            // move the pointer to end of the page!
-            listShowInd = listShowInd + $("#feed .message").length;
-            pagline.animate(listShowInd / curList.length);
-            console.log('listShowInd: ' + listShowInd + ' / ' + curList.length);
-            return;
-          } else {
-            console.log("超出缓存队列: 在线获取信息流,pullin 更旧的消息");
-          }
+          // 向底部滚动，suppose也是拉取（因为此时我们不再分段显示）, 所以永远都是最后一个元素的id
+          max_id = curList[curList.length - 1].id;
+          console.log("向底部滚动，在线获取信息流,pullin 更旧的消息");
         }
 
         // Just show the local list
@@ -85,9 +61,6 @@ async function buildHomePage(type = "up", cb) {
             since_id: null,
             cb: cb
           });
-          listShowInd = $("#feed .message").length - 1;
-          pagline.animate(listShowInd / curList.length);
-          console.log('listShowInd: ' + listShowInd + ' / ' + curList.length);
           return;
         }
       }
@@ -95,21 +68,12 @@ async function buildHomePage(type = "up", cb) {
       NProgress.start();
       result = getTimeline(since_id, max_id, function (res) {
         console.log("获得" + res.msglist.length + "条新消息")
-        if (res.msglist.length > 0) {
-          res.msglist.forEach(item => {
-            item.read = 'new';
-          });
-        }
+
         // only if older ones, those will be append at end of previous list, other is in revered direction
         if (max_id != null) {
           messageListUpdate("down", listLength, res.msglist);
-          //Down side no need to touch listShowInd
-          listShowInd = listShowInd;
         } else {
           messageListUpdate("up", listLength, res.msglist);
-          //Up side  need to sfhit the listShowInd up to first page! // current 
-          //listShowInd = 0;
-          listShowInd = getLastPageFirstIndex(res.msglist, listShowLength) - 1;
         }
         // Construct the full list
         // Store for local save
@@ -118,16 +82,14 @@ async function buildHomePage(type = "up", cb) {
         });
         // Need to handle the index of showing
         buildHtmlFromMessages({
-          type: 'new',
-          messageList: curList,
-          showInd: listShowInd + 1,
+          type: type,
+          //messageList: curList,
+          messageList: res.msglist,
+          showInd: 0,
           max_id: max_id,
           since_id: since_id,
           cb: cb,
         });
-        //Move pointer to end of page
-        listShowInd = listShowInd + $("#feed .message").length;
-
       });
     }
   } else {
@@ -137,6 +99,29 @@ async function buildHomePage(type = "up", cb) {
 };
 
 
+/**
+ * 根据消息列表构建HTML并更新页面显示。
+ *
+ * @param {Object} options - 配置选项。
+ * @param {string} [options.type="up"] - 消息显示类型。
+ * @param {Array} [options.messageList=[]] - 消息列表数组。
+ * @param {number} [options.showInd=0] - 显示的起始索引。// 目前倾向于恒为0
+ * @param {string|null} [options.max_id=null] - 最大消息ID（可选）。
+ * @param {string|null} [options.since_id=null] - 最小消息ID（可选）。
+ * @param {Function} [options.cb=function(){}] - 回调函数，在完成后调用。
+ *
+ * @returns {void}
+ *
+ * @example
+ * buildHtmlFromMessages({
+ *   type: "down",
+ *   messageList: messages,
+ *   showInd: 0,
+ *   cb: function() {
+ *     console.log("消息加载完成");
+ *   }
+ * });
+ */
 function buildHtmlFromMessages({
   type = "up",
   messageList = [],
@@ -147,36 +132,40 @@ function buildHtmlFromMessages({
 } = {}) {
   // Clean current page's status;
   cleanCurrentPageStatus();
+  showInd = 0; // Override the showInd!
 
   var $feed = $('#feed');
-  $feed.empty();
-  // Update current pointer to the showing window in messages
-  sortedList = remapMessage(messageList).slice(showInd, listShowLength + showInd);
+  // 似乎就不该清空了，而是永远附加(除了up)
+  //$feed.empty();
+  // clean all 'unread'
+  $('.message').removeClass('unread');
+  sortedList = remapMessage(messageList);
   let i = showInd;
+  let messagesHtml = ''; // 初始化一个空字符串用于存储所有消息的HTML
+
   sortedList.forEach(function (message) {
     // 创建消息容器
-    var $messageDiv = $('<div>').addClass('message');
-    if (message.newinfo == 'new') {
-      $messageDiv.addClass('unread');
-    }
+    let $messageDiv = $('<div>').addClass('message');
+    if(type!="init") $messageDiv.addClass("unread");
+    
     let localTime = convertToLocalTime(message.time);
 
     // 创建Meta容器
-    var $metaDiv = $('<div>').addClass('message-meta');
+    let $metaDiv = $('<div>').addClass('message-meta');
     $metaDiv.append($('<img>').addClass('msg-avator').prop("src", message.avator));
-    $metaDiv.append($('<span value='+i+'>').addClass('msg-nickname').text(message.nickname + " " + (i++)));
+    $metaDiv.append($('<span value=' + i + '>').addClass('msg-nickname').text(message.nickname + " " + (i++)));
     $metaDiv.append($('<span>').addClass('msg-time').text(localTime.localTime));
     $metaDiv.append($('<span>').addClass('msg-source').text(message.source));
 
     // 创建内容容器
-    var $contentDiv = $('<div>').addClass('content').text(message.content);
+    let $contentDiv = $('<div>').addClass('content').text(message.content);
     if (message.hasImage) {
-      var $img = $('<img>').addClass('content-img').attr('src', message.image).attr('largeurl', message.largeimage);
+      let $img = $('<img>').addClass('content-img').attr('src', message.image).attr('largeurl', message.largeimage);
       $contentDiv.append($img);
     }
 
     // 创建操作容器
-    var $actionsDiv = $('<div>').addClass('actions');
+    let $actionsDiv = $('<div>').addClass('actions');
     $actionsDiv.append($('<span>').addClass('icon-star'));
     $actionsDiv.append($('<span>').addClass('icon-quote1'));
     $actionsDiv.append($('<span>').addClass('icon-reply'));
@@ -189,15 +178,20 @@ function buildHtmlFromMessages({
     $messageDiv.append($contentDiv);
     $messageDiv.append($actionsDiv);
 
-    // 添加到页面
-    $feed.append($messageDiv);
+    // 将消息HTML添加到字符串中
+    messagesHtml += $messageDiv.prop('outerHTML');
   });
 
-  // To mark the 'last read' class & also unread
-  $('div.message').each(function (index) {
-  });
+  // 循环结束后一次性添加所有消息到$feed
+  if (type === 'up' || type === 'init') {
+    $feed.prepend(messagesHtml);
+  } else if (type === 'down') {
+    $feed.append(messagesHtml);
+  }
 
-  reloc('#feed', type);
+
+  pagline.animate(curList.length / listLength); 
+  //  reloc('#feed', type);
   cb();
   NProgress.done();
 
@@ -207,6 +201,23 @@ function buildHtmlFromMessages({
 // up - fetch newer
 // down -fetch older
 // over - replace
+/**
+ * 更新消息列表，根据滚动方向和新消息列表更新当前消息列表。
+ *
+ * @param {string} direction - 滚动方向，'up' 表示向上滚动，'down' 表示向下滚动，'init' 表示初始化，不更新列表。
+ * @param {number} limit - 当前消息列表的最大长度限制。
+ * @param {Array} newlist - 新的消息列表，将用于更新当前消息列表。
+ *
+ * @returns {void} 无返回值。
+ *
+ * @example
+ * // 向上滚动并更新消息列表
+ * messageListUpdate('up', 100, newMessages);
+ *
+ * @example
+ * // 向下滚动并更新消息列表
+ * messageListUpdate('down', 100, newMessages);
+ */
 function messageListUpdate(direction = 'up', limit = 100, newlist) {
   console.log("更新消息列表");
   // Not update list, if no scrolling
@@ -236,6 +247,18 @@ function messageListUpdate(direction = 'up', limit = 100, newlist) {
   };
 }
 
+/**
+ * 构建并显示带有模糊效果的图片弹窗。
+ * 
+ * @param {string} thumb - 缩略图的 URL。
+ * @param {string} large - 大图的 URL。
+ * 
+ * 此函数创建一个包含模糊背景的图片容器，并在点击缩略图时切换到大图。
+ * 还提供了缩放和下载功能，用户可以通过点击相应按钮进行操作。
+ * 
+ * @example
+ * buildPopImg('thumb.jpg', 'large.jpg');
+ */
 function buildPopImg(thumb, large) {
   var $popframe = $('#popframe');
   // Create a container for the blur effect
@@ -290,6 +313,12 @@ function buildPopImg(thumb, large) {
 }
 // Keep in .last-read 
 
+/**
+ * 根据类型滚动指定元素的位置。
+ * 
+ * @param {HTMLElement} el - 要滚动的元素。
+ * @param {string} type - 滚动类型，'up' 表示滚动到底部，其他值表示滚动到顶部。
+ */
 function reloc(el, type) {
   if (type == 'up') {
     // 滚动到元素的底部

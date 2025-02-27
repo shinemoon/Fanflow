@@ -45,7 +45,7 @@ async function fanfouRequest(apiurl, fmode, params, cb) {
 async function getTimeline(since_id = null, max_id = null, cb) {
     var url = new URL('http://api.fanfou.com/statuses/home_timeline.json');
     const queryParams = {
-        count: 60,
+        count: fetchCnt,
     }
     if (since_id)
         queryParams.since_id = since_id;
@@ -69,7 +69,6 @@ function remapMessage(msgs) {
     let retArr = [];
     msgs.forEach(function (v, i) {
         let curmsg = {
-            newinfo:v.read,
             nickname: v.user.screen_name,
             avator: v.user.profile_image_url,
             time: v.created_at,

@@ -2,9 +2,8 @@ let validToken = null;
 
 // local list max as 100 msb
 let curList = [];
-let listLength = 200;
-let listShowLength = 20;
-let listShowInd = 0;   // Start INDEX of current visible list!
+let listLength = 1000;
+let fetchCnt = 20;
 
 var lastReadInd = 0;
 
@@ -97,7 +96,6 @@ function bindClickActions() {
     if ($(this).prop('id') == 'home') {
       console.log("home clicked");
       //Re-pull the data!
-      listShowInd = 0;
       $('#feed').scrollTop(0);
     }
   });
