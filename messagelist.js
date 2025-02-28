@@ -36,6 +36,7 @@ async function buildHomePage(type = "up", cb) {
       var since_id = null;
       var max_id = null;
 
+
       if (curList.length > 0) {
         if (type == "up") {
           // Use existed ones
@@ -51,18 +52,29 @@ async function buildHomePage(type = "up", cb) {
         }
 
         // Just show the local list
+        // 初始化则重新load
         if (type == "init") {
-          //Get first page to show
-          buildHtmlFromMessages({
-            type: type,
-            messageList: curList,
-            showInd: 0,
-            max_id: null,
-            since_id: null,
-            cb: cb
-          });
-          return;
+          if (initRrefresh == false) {
+            //Get first page to show
+            buildHtmlFromMessages({
+              type: type,
+              messageList: curList,
+              showInd: 0,
+              max_id: null,
+              since_id: null,
+              cb: cb
+            });
+            return;
+          } else {
+            type = 'forceRefresh';
+          }
         }
+
+        if (type == "forceRefresh") {
+          curList = [];
+        };
+
+
       }
       //      $('.ajax').addClass('loading');
       NProgress.start();
@@ -134,9 +146,11 @@ function buildHtmlFromMessages({
   cleanCurrentPageStatus();
   showInd = 0; // Override the showInd!
 
-  var $feed = $('#feed');
-  // 似乎就不该清空了，而是永远附加(除了up)
-  //$feed.empty();
+  var feed = $('#feed');
+  // 似乎就不该清空了，而是永远附加(除了up) - forceRefresh 除外
+  if (type == "forceRefresh") {
+    feed.empty();
+  }
   // clean all 'unread'
   $('.message').removeClass('unread');
   sortedList = remapMessage(messageList);
@@ -183,17 +197,17 @@ function buildHtmlFromMessages({
   });
 
   // 循环结束后一次性添加所有消息到$feed
-  if (type === 'up' || type === 'init') {
-    $feed.prepend(messagesHtml);
+  if (type === 'up' || type === 'init' || type === 'forceRefresh') {
+    feed.prepend(messagesHtml);
     // 裁剪#feed中的.message队列，确认仅保留前<N (N=limit)个.message
-    let messages = $feed.children('.message');
+    let messages = feed.children('.message');
     if (messages.length > listLength) {
       messages.slice(listLength).remove();
     }
   } else if (type === 'down') {
-    $feed.append(messagesHtml);
+    feed.append(messagesHtml);
     // 裁剪#feed中的.message队列，确认仅保留后<N (N=limit)个.message
-    let messages = $feed.children('.message');
+    let messages = feed.children('.message');
     if (messages.length > listLength) {
       messages.slice(0, -listLength).remove();
     }

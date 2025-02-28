@@ -1,13 +1,11 @@
 let validToken = null;
-
 // local list max as 100 msb
 let curList = [];
-let listLength = 100;
-let fetchCnt = 20;
-
+let listLength = 1000;
+let fetchCnt = 60;
 var lastReadInd = 0;
-
 let pagline = null;
+let initRrefresh = false;
 
 
 // Default Stub
@@ -90,16 +88,18 @@ function updateUserInfo(usr) {
 
 function bindClickActions() {
   //For Timeline
+  $('.tab').off('click');
   $('.tab').click(function () {
     $('.tab.active').removeClass('active');
     $(this).addClass('active');
     if ($(this).prop('id') == 'home') {
       console.log("home clicked");
-      //Re-pull the data!
       $('#feed').scrollTop(0);
+      buildHomePage("forceRefresh",bindClickActions);
     }
   });
   // For img 
+  $('.content-img').off('click');
   $('.content-img').click(function () {
     console.log("switchMask");
     constructPop("img", [$(this).attr("src"), $(this).attr('largeurl')]);
@@ -108,6 +108,7 @@ function bindClickActions() {
 
 
   //For Mask
+  $('#popmask').off("click");
   $('#popmask').on('click', function (event) {
     // 检查点击的目标是否是 #popframe 或其子元素
     if (!$(event.target).closest('#popframe').length) {
