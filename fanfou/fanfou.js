@@ -82,6 +82,7 @@ function remapMessage(msgs) {
             userid: v.user.id,
             usergender: v.user.gender,
             favorited: v.favorited,
+            raw:v,
         }
         retArr.push(curmsg);
     });

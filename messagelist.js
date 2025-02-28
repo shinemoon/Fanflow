@@ -170,6 +170,43 @@ function buildHtmlFromMessages({
     $metaDiv.append($('<span value=' + i + '>').addClass('msg-nickname').text(message.nickname + " " + (i++)));
     $metaDiv.append($('<span>').addClass('msg-time').text(localTime.localTime));
     $metaDiv.append($('<span>').addClass('msg-source').text(message.source));
+    // TODO: 优化显示
+    // 提取用户
+
+    //if there is message.raw.repost_status in message, then to fetch message.raw.repost_status.repost_screen_name/ repost_status_id / repost_user_id and text , combine with one dict repost_details, and then , try to show match the repost_screen_name & text in message.content, use <span class='content-highlight'> to mark those and be one new 'highlight-content' var
+    if (message.raw && message.raw.repost_status) {
+      const repostDetails = {
+        screen_name: message.raw.repost_status.repost_screen_name,
+        status_id: message.raw.repost_status.repost_status_id,
+        user_id: message.raw.repost_status.repost_user_id,
+        text: message.raw.repost_status.text
+      };
+
+      // Create a regular expression to find mentions of the repost screen name in the content
+      const regex = new RegExp(`@${repostDetails.screen_name}\\b`, 'g');
+
+      // Replace mentions in the content with highlighted text
+      const highlightedContent = message.content.replace(regex, '<span class="content-highlight">@$&</span>');
+
+      // Create a new content container with the highlighted content
+      let $contentDiv = $('<div>').addClass('content').html(highlightedContent);
+      if (message.hasImage) {
+        let $img = $('<img>').addClass('content-img').attr('src', message.image).attr('largeurl', message.largeimage);
+        $contentDiv.append($img);
+      }
+
+      // Append the new content container to the message div
+      $messageDiv.append($contentDiv);
+    } else {
+      // If there is no repost status, proceed as before
+      let $contentDiv = $('<div>').addClass('content').text(message.content);
+      if (message.hasImage) {
+        let $img = $('<img>').addClass('content-img').attr('src', message.image).attr('largeurl', message.largeimage);
+        $contentDiv.append($img);
+      }
+      $messageDiv.append($contentDiv);
+    }
+
 
     // 创建内容容器
     let $contentDiv = $('<div>').addClass('content').text(message.content);
