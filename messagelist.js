@@ -146,8 +146,8 @@ function buildHtmlFromMessages({
   sortedList.forEach(function (message) {
     // 创建消息容器
     let $messageDiv = $('<div>').addClass('message');
-    if(type!="init") $messageDiv.addClass("unread");
-    
+    if (type != "init") $messageDiv.addClass("unread");
+
     let localTime = convertToLocalTime(message.time);
 
     // 创建Meta容器
@@ -185,12 +185,20 @@ function buildHtmlFromMessages({
   // 循环结束后一次性添加所有消息到$feed
   if (type === 'up' || type === 'init') {
     $feed.prepend(messagesHtml);
+    // 裁剪#feed中的.message队列，确认仅保留前<N (N=limit)个.message
+    let messages = $feed.children('.message');
+    if (messages.length > listLength) {
+      messages.slice(listLength).remove();
+    }
   } else if (type === 'down') {
     $feed.append(messagesHtml);
+    // 裁剪#feed中的.message队列，确认仅保留后<N (N=limit)个.message
+    let messages = $feed.children('.message');
+    if (messages.length > listLength) {
+      messages.slice(0, -listLength).remove();
+    }
   }
-
-
-  pagline.animate(curList.length / listLength); 
+  pagline.animate(curList.length / listLength);
   //  reloc('#feed', type);
   cb();
   NProgress.done();
@@ -222,29 +230,16 @@ function messageListUpdate(direction = 'up', limit = 100, newlist) {
   console.log("更新消息列表");
   // Not update list, if no scrolling
   if (direction == 'init') return;
-
-  if (direction == 'up' && curList.length > 0) {
-    // to check if this init up list can concat with previous curList?
-    const existingIds = new Set(curList.slice(0, newlist.length).map(item => item.id));
-    originalLength = newlist.length;
-    newlist = newlist.filter(item => !existingIds.has(item.id));
-    // Not connected with orginal curList, then override it totally
-    if (newlist.length == originalLength && originalLength > 0) {
-      curList = newlist;
-    } else {
-      curList = newlist.concat(curList);
-      if (curList.length > limit)
-        curList = curList.slice(0, limit);
-    }
-  } else if (direction == 'up') {
-    curList = newlist;
+  if (direction == 'up') {
+    curList = newlist.concat(curList);
+    if (curList.length > limit)
+      curList = curList.slice(0, limit);
   }
-
   if (direction == 'down') {
     curList = curList.concat(newlist);
     if (curList.length > limit)
-      curList = curList.slice(Math.max(0, curList.length - limit));
-  };
+      curList = curList.slice(-limit); // 取后limit个元素
+  }
 }
 
 /**

@@ -2,7 +2,7 @@ let validToken = null;
 
 // local list max as 100 msb
 let curList = [];
-let listLength = 1000;
+let listLength = 100;
 let fetchCnt = 20;
 
 var lastReadInd = 0;
