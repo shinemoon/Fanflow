@@ -1,6 +1,7 @@
 let validToken = null;
 // local list max as 100 msb
 let curList = [];
+let mentionList= [];
 let listLength = 1000;
 let fetchCnt = 60;
 var lastReadInd = 0;
@@ -96,6 +97,9 @@ function bindClickActions() {
       console.log("home clicked");
       $('#feed').scrollTop(0);
       buildHomePage("forceRefresh",bindClickActions);
+    } else if ($(this).prop('id') == 'mentions') {
+      console.log("mentions clicked");
+      buildMentionListPage("forceRefresh",bindClickActions);
     }
   });
   // For img 
