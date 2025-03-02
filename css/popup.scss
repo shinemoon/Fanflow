@@ -3,6 +3,14 @@ $message-font-size: 12px;
 $mainback: #f9f9f9;
 $mainfore: #f1f1f1;
 
+$content-normal-size:12px;
+$content-small-size:11px;
+$meta-normal-size:12px;
+$meta-small-size:8px;
+
+$icon-big-size:14px;
+$icon-normal-size:12px;
+
 
 /* 定义闪烁动画 */
 @keyframes slow-blink {
@@ -83,7 +91,7 @@ body {
             .pop-controls {
                 display: flex;
                 gap: 2px;
-                font-size: 14px;
+                font-size: $icon-big-size;
                 color: #81b7ce;
                 cursor: pointer;
                 position: relative;
@@ -124,6 +132,7 @@ body {
                     filter: blur(0px);
                 }
             }
+
             img {
                 position: absolute;
                 top: 50%;
@@ -167,7 +176,8 @@ body {
 .message {
     margin-bottom: 15px;
     padding: 10px;
-    border-radius: 3px 3px 0px 0px;;
+    border-radius: 3px 3px 0px 0px;
+    ;
     background: #f1f1f1;
     display: flex;
     flex-direction: column;
@@ -178,22 +188,36 @@ body {
     }
 
     &.same-author {
-        margin-top:-15px;
+        margin-top: -15px;
         border-radius: 0px;
-        border-top:1px dotted #ccc;
+        border-top: 1px dotted #ccc;
         background: #eaeaea;
 
+        &.unread {
+            background: rgb(219 227 238 / 57%);
+        }
+
+        .content {
+            color: #555;
+            font-size: $content-small-size;
+        }
+
         .message-meta {
-            font-size:10px;
+            justify-content: flex-end;
+            font-size: $meta-small-size;
+
+            .msg-avator {
+                display: none;
+            }
+
+            .msg-nickname {
+                color: #81b7ce;
+                font-size: $meta-small-size;
+            }
+
         }
 
-        .msg-nickname{
-            display:none;
-        }   
 
-        .msg-avator{
-            display:none;
-        }
     }
 
     .message-meta {
@@ -221,7 +245,7 @@ body {
         }
 
         .msg-nickname {
-            font-size: 11px;
+            font-size: $meta-normal-size;
             color: cornflowerblue;
             margin-right: 5px;
             white-space: nowrap;
@@ -256,15 +280,20 @@ body {
         text-overflow: ellipsis;
 
         .info-highlight {
-            color:#0056b3
+            color: #0056b3
         }
 
         .name-highlight {
             color: #28a745;
-        };
+        }
+
+        ;
+
         .content-highlight {
             background-color: #f2eed7;
-        };
+        }
+
+        ;
 
         img.content-img {
             position: relative;
@@ -292,7 +321,7 @@ body {
     position: absolute;
     bottom: 4px;
     right: 6px;
-    font-size: 12px;
+    font-size: $icon-normal-size;
     //    color: #007bff;
     color: #81b7ce;
     cursor: pointer;
