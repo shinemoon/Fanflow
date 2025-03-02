@@ -157,9 +157,17 @@ function buildHtmlFromMessages({
   let i = showInd;
   let messagesHtml = ''; // 初始化一个空字符串用于存储所有消息的HTML
 
+  let prev_author = null;
   sortedList.forEach(function (message) {
     // 创建消息容器
     let $messageDiv = $('<div>').addClass('message');
+    // same author judgement
+    if(message.raw.user.id == prev_author){
+      $messageDiv.addClass('same-author');
+    } else {
+      prev_author = message.raw.user.id;
+    }
+
     if (type != "init") $messageDiv.addClass("unread");
 
     let localTime = convertToLocalTime(message.time);
@@ -171,25 +179,37 @@ function buildHtmlFromMessages({
     $metaDiv.append($('<span>').addClass('msg-time').text(localTime.localTime));
     $metaDiv.append($('<span>').addClass('msg-source').text(message.source));
     // TODO: 优化显示
-    // 提取用户
-
+    // 创建内容容器
     //if there is message.raw.repost_status in message, then to fetch message.raw.repost_status.repost_screen_name/ repost_status_id / repost_user_id and text , combine with one dict repost_details, and then , try to show match the repost_screen_name & text in message.content, use <span class='content-highlight'> to mark those and be one new 'highlight-content' var
+    let contentDiv = "";
     if (message.raw && message.raw.repost_status) {
       const repostDetails = {
-        screen_name: message.raw.repost_status.repost_screen_name,
-        status_id: message.raw.repost_status.repost_status_id,
-        user_id: message.raw.repost_status.repost_user_id,
+        screen_name: message.raw.repost_status.user.screen_name,
+        status_id: message.raw.repost_status.id,
+        user_id: message.raw.repost_status.user.id,
         text: message.raw.repost_status.text
       };
 
       // Create a regular expression to find mentions of the repost screen name in the content
-      const regex = new RegExp(`@${repostDetails.screen_name}\\b`, 'g');
-
+      const regex = new RegExp(`@${repostDetails.screen_name} `, 'g');
       // Replace mentions in the content with highlighted text
-      const highlightedContent = message.content.replace(regex, '<span class="content-highlight">@$&</span>');
+      const highlightedName = message.content.replace(regex, '<span class="name-highlight">$&</span>');
+      // Create a regular expression to find mentions of the repost text in the content
+      const textRegex = new RegExp(repostDetails.text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
+      // Replace mentions in the content with highlighted text
+      const highlightedContent = highlightedName.replace(textRegex, '<span class="content-highlight">$&</span>');
+      // Highlight other mentions in the content that are not the repost screen name
+      // 高亮内容中的其他提及（非转发用户名）
+      const mentionRegex = /@(\p{L}+) /gu;
+      const highlightedContentWithMentions = highlightedContent.replace(mentionRegex, (match, p1) => {
+        return p1 === repostDetails.screen_name ? match : `<span class="info-highlight">${match}</span>`;
+      });
 
-      // Create a new content container with the highlighted content
-      let $contentDiv = $('<div>').addClass('content').html(highlightedContent);
+
+      // Create a new content container with the fully highlighted content
+      $contentDiv = $('<div>').addClass('content').html(highlightedContentWithMentions);
+
+
       if (message.hasImage) {
         let $img = $('<img>').addClass('content-img').attr('src', message.image).attr('largeurl', message.largeimage);
         $contentDiv.append($img);
@@ -198,23 +218,22 @@ function buildHtmlFromMessages({
       // Append the new content container to the message div
       $messageDiv.append($contentDiv);
     } else {
-      // If there is no repost status, proceed as before
-      let $contentDiv = $('<div>').addClass('content').text(message.content);
+      // Highlight other mentions in the content that are not the repost screen name
+
+      // 高亮内容中的所有提及
+      const mentionRegex = /@(\p{L}+) /gu; // 使用 Unicode 属性转义以支持中文
+
+      const highlightedContentWithMentions = message.content.replace(mentionRegex, '<span class="info-highlight">$&</span>');
+
+      // Create a new content container with the fully highlighted content
+      $contentDiv = $('<div>').addClass('content').html(highlightedContentWithMentions);
+
       if (message.hasImage) {
         let $img = $('<img>').addClass('content-img').attr('src', message.image).attr('largeurl', message.largeimage);
         $contentDiv.append($img);
       }
       $messageDiv.append($contentDiv);
     }
-
-
-    // 创建内容容器
-    let $contentDiv = $('<div>').addClass('content').text(message.content);
-    if (message.hasImage) {
-      let $img = $('<img>').addClass('content-img').attr('src', message.image).attr('largeurl', message.largeimage);
-      $contentDiv.append($img);
-    }
-
     // 创建操作容器
     let $actionsDiv = $('<div>').addClass('actions');
     $actionsDiv.append($('<span>').addClass('icon-star'));
@@ -223,7 +242,6 @@ function buildHtmlFromMessages({
     if (message.hasLinkIcon) {
       $actionsDiv.append($('<span>').addClass('icon-link'));
     }
-
     // 拼装消息HTML
     $messageDiv.append($metaDiv);
     $messageDiv.append($contentDiv);

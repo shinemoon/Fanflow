@@ -141,19 +141,31 @@ body {
 }
 
 .message {
-  margin-bottom: 12px;
+  margin-bottom: 15px;
   padding: 10px;
-  border-radius: 6px;
+  border-radius: 3px 3px 0px 0px;
   background: #f1f1f1;
   display: flex;
   flex-direction: column;
   position: relative;
 }
-.message.last-read {
-  box-shadow: lightblue 3px 0px 4px 0px;
-}
 .message.unread {
   background: rgba(219, 227, 238, 0.3803921569);
+}
+.message.same-author {
+  margin-top: -15px;
+  border-radius: 0px;
+  border-top: 1px dotted #ccc;
+  background: #eaeaea;
+}
+.message.same-author .message-meta {
+  font-size: 10px;
+}
+.message.same-author .msg-nickname {
+  display: none;
+}
+.message.same-author .msg-avator {
+  display: none;
 }
 .message .message-meta {
   display: flex;
@@ -204,6 +216,15 @@ body {
   overflow: hidden;
   /* 超出的内容显示省略号 */
   text-overflow: ellipsis;
+}
+.message .content .info-highlight {
+  color: #0056b3;
+}
+.message .content .name-highlight {
+  color: #28a745;
+}
+.message .content .content-highlight {
+  background-color: #f2eed7;
 }
 .message .content img.content-img {
   position: relative;
