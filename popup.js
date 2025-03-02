@@ -99,7 +99,7 @@ function bindClickActions() {
       buildHomePage("forceRefresh",bindClickActions);
     } else if ($(this).prop('id') == 'mentions') {
       console.log("mentions clicked");
-      buildMentionListPage("forceRefresh",bindClickActions);
+      //buildMentionListPage("forceRefresh",bindClickActions);
     }
   });
   // For img 
