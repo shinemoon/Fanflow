@@ -167,5 +167,6 @@ function constructPop(type, content) {
 
   }
   ctrl_buttons.forEach(btn => $('.' + btn).addClass("show"));
+  applyDarkMode();
 }
 

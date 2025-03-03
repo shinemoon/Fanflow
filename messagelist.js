@@ -252,6 +252,7 @@ function buildHtmlFromMessages({
     }
   }
   //  reloc('#feed', type);
+  applyDarkMode();
   cb();
 
 }
