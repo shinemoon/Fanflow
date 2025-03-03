@@ -1,4 +1,5 @@
 async function fanfouRequest(apiurl, fmode, params, cb) {
+    NProgress.start();
     const url = new URL(apiurl);
     // 生成签名
     const queryParams = params;
@@ -35,9 +36,11 @@ async function fanfouRequest(apiurl, fmode, params, cb) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
+        NProgress.done();
         cb(response);
     } catch (error) {
         console.error('Error:', error);
+        NProgress.done();
         return null;
     }
 }
@@ -56,12 +59,34 @@ async function getTimeline(since_id = null, max_id = null, cb) {
     try {
         fanfouRequest(url, 'GET', queryParams, async function (data) {
             var result = await data.json();
-            cb({msglist: result });
+            cb({ msglist: result });
         });
     } catch (error) {
         console.error('Error fetching timeline:', error);
     }
 }
+
+async function getMentions(since_id = null, max_id = null, cb) {
+    var url = new URL('http://api.fanfou.com/statuses/mentions.json');
+    const queryParams = {
+        count: fetchCnt,
+    };
+    if (since_id)
+        queryParams.since_id = since_id;
+
+    if (max_id)
+        queryParams.max_id = max_id;
+
+    try {
+        fanfouRequest(url, 'GET', queryParams, async function (data) {
+            var result = await data.json();
+            cb({ msglist: result }); // 使用 remapMessage 处理返回的数据
+        });
+    } catch (error) {
+        console.error('Error fetching mentions:', error);
+    }
+}
+
 
 
 // Remap the info
@@ -76,13 +101,13 @@ function remapMessage(msgs) {
             content: v.text,
             hasImage: 'photo' in v,
             image: ('photo' in v) ? v.photo.imageurl : null,
-            largeimage: ('photo' in v) ? v.photo.largeurl: null,
+            largeimage: ('photo' in v) ? v.photo.largeurl : null,
             hasLinkIcon: (v.in_reply_to_status_id != ""),
             id: v.id,
             userid: v.user.id,
             usergender: v.user.gender,
             favorited: v.favorited,
-            raw:v,
+            raw: v,
         }
         retArr.push(curmsg);
     });
@@ -90,8 +115,8 @@ function remapMessage(msgs) {
 }
 
 // Debug /background cli
-function clearCache (){
-        chrome.storage.local.set({ msglist: []}, function () {
-            console.log("Clear Local MsgList");
-        });
+function clearCache() {
+    chrome.storage.local.set({ homelist: [], mentionlist: [] }, function () {
+        console.log("Clear Local MsgList");
+    });
 }

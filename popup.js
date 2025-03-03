@@ -1,12 +1,14 @@
 let validToken = null;
 // local list max as 100 msb
 let curList = [];
-let mentionList= [];
-let listLength = 1000;
-let fetchCnt = 60;
+let mentionList = [];
+let listLength = 400;
+let fetchCnt = 20;
 var lastReadInd = 0;
 let pagline = null;
 let initRrefresh = false;
+
+let curTab = 'home';
 
 
 // Default Stub
@@ -52,7 +54,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Default: same as strokeWidth
     trailWidth: 0.1,
   });
-  pagline.animate(1);
+  pagline.animate(0);
 
   buildHomePage("init", bindClickActions);
   // Bind page listener
@@ -66,13 +68,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (event.originalEvent.deltaY > 0 && toBottom <= 10) {
       if (NProgress.status == null) {
         console.log('Reached bottom');
-        buildHomePage("down", bindClickActions);
+        if (curTab === 'home')
+          buildHomePage("down", bindClickActions);
+        else if (curTab === 'mention')
+          buildMentionListPage('down', bindClickActions);
       }
     } else if (event.originalEvent.deltaY < 0 && scrollTop === 0) {
       // Check if scrolled to bottom (with 50px threshold)
       console.log('Reached top');
       if (NProgress.status == null) {
-        buildHomePage("up", bindClickActions);
+        if (curTab === 'home')
+          buildHomePage("up", bindClickActions);
+        else if (curTab === 'mention')
+          buildMentionListPage('up', bindClickActions);
       }
     }
   }, 200));
@@ -93,13 +101,27 @@ function bindClickActions() {
   $('.tab').click(function () {
     $('.tab.active').removeClass('active');
     $(this).addClass('active');
+    let ntype = 'init';
     if ($(this).prop('id') == 'home') {
       console.log("home clicked");
-      $('#feed').scrollTop(0);
-      buildHomePage("forceRefresh",bindClickActions);
+      if (curTab != "home" && curList.length > 0) {
+        curTab = 'home';
+        $('#feed').empty();
+      } else {
+        $('#feed').scrollTop(0);
+        ntype = 'forceRefresh';
+      }
+      buildHomePage(ntype, bindClickActions);
     } else if ($(this).prop('id') == 'mentions') {
       console.log("mentions clicked");
-      //buildMentionListPage("forceRefresh",bindClickActions);
+      if (curTab != "mention" && mentionList.length > 0) {
+        curTab = 'mention';
+        $('#feed').empty();
+      } else {
+        $('#feed').scrollTop(0);
+        ntype = 'forceRefresh';
+      }
+      buildMentionListPage(ntype, bindClickActions);
     }
   });
   // For img 

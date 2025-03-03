@@ -31,15 +31,3 @@ function convertToLocalTime(dateString) {
     localTimeOnly // 本地时间
   };
 }
-
-function cleanCurrentPageStatus() {
-  // 提取所有 .msg-nickname 元素的 value 值作为索引队列
-  const indexQueue = $('#feed .message .message-meta .msg-nickname').map(function () {
-    return $(this).attr('value'); // 获取 value 值
-  }).get(); // 将 jQuery 对象转换为普通数组
-
-  // Store for local save
-  chrome.storage.local.set({ msglist: curList }, function () {
-    console.log("Local Save Msgs");
-  });
-}

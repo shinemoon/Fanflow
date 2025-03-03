@@ -14,10 +14,13 @@
 async function buildHomePage(type = "up", cb) {
   console.log("认证成功，页面构建开始:" + type);
   // To load local store firstly
-  chrome.storage.local.get({ userinfo: userInfo, msglist: [] }, function (r) {
+  // Because home is init page, so it will also get mention or other list if possible from local
+  chrome.storage.local.get({ userinfo: userInfo, homelist: [], mentionlist:[], }, function (r) {
     // Restore local list firstly , waiting for fetching
     updateUserInfo(r.userinfo);
-    curList = r.msglist;
+    curList = r.homelist;
+    mentionList = r.mentionlist;
+    pagline.animate(curList.length / listLength);
   })
   const token = await getStoredToken();
   if (token) {
@@ -59,9 +62,6 @@ async function buildHomePage(type = "up", cb) {
             buildHtmlFromMessages({
               type: type,
               messageList: curList,
-              showInd: 0,
-              max_id: null,
-              since_id: null,
               cb: cb
             });
             return;
@@ -77,7 +77,6 @@ async function buildHomePage(type = "up", cb) {
 
       }
       //      $('.ajax').addClass('loading');
-      NProgress.start();
       result = getTimeline(since_id, max_id, function (res) {
         console.log("获得" + res.msglist.length + "条新消息")
 
@@ -89,17 +88,13 @@ async function buildHomePage(type = "up", cb) {
         }
         // Construct the full list
         // Store for local save
-        chrome.storage.local.set({ msglist: curList }, function () {
+        chrome.storage.local.set({ homelist: curList }, function () {
           console.log("Local Save Msgs");
         });
         // Need to handle the index of showing
         buildHtmlFromMessages({
           type: type,
-          //messageList: curList,
           messageList: res.msglist,
-          showInd: 0,
-          max_id: max_id,
-          since_id: since_id,
           cb: cb,
         });
       });
@@ -117,9 +112,6 @@ async function buildHomePage(type = "up", cb) {
  * @param {Object} options - 配置选项。
  * @param {string} [options.type="up"] - 消息显示类型。
  * @param {Array} [options.messageList=[]] - 消息列表数组。
- * @param {number} [options.showInd=0] - 显示的起始索引。// 目前倾向于恒为0
- * @param {string|null} [options.max_id=null] - 最大消息ID（可选）。
- * @param {string|null} [options.since_id=null] - 最小消息ID（可选）。
  * @param {Function} [options.cb=function(){}] - 回调函数，在完成后调用。
  *
  * @returns {void}
@@ -128,7 +120,6 @@ async function buildHomePage(type = "up", cb) {
  * buildHtmlFromMessages({
  *   type: "down",
  *   messageList: messages,
- *   showInd: 0,
  *   cb: function() {
  *     console.log("消息加载完成");
  *   }
@@ -137,24 +128,18 @@ async function buildHomePage(type = "up", cb) {
 function buildHtmlFromMessages({
   type = "up",
   messageList = [],
-  showInd = 0,
-  max_id = null,
-  since_id = null,
   cb = function () { }
 } = {}) {
-  // Clean current page's status;
-  cleanCurrentPageStatus();
-  showInd = 0; // Override the showInd!
 
   var feed = $('#feed');
   // 似乎就不该清空了，而是永远附加(除了up) - forceRefresh 除外
-  if (type == "forceRefresh") {
+  if (type == "forceRefresh" || type === "init") {
     feed.empty();
   }
   // clean all 'unread'
   $('.message').removeClass('unread');
   sortedList = remapMessage(messageList);
-  let i = showInd;
+  let i = 0;
   let messagesHtml = ''; // 初始化一个空字符串用于存储所有消息的HTML
 
   let prev_author = null;
@@ -162,7 +147,7 @@ function buildHtmlFromMessages({
     // 创建消息容器
     let $messageDiv = $('<div>').addClass('message');
     // same author judgement
-    if(message.raw.user.id == prev_author){
+    if (message.raw.user.id == prev_author) {
       $messageDiv.addClass('same-author');
     } else {
       prev_author = message.raw.user.id;
@@ -181,7 +166,6 @@ function buildHtmlFromMessages({
     // TODO: 优化显示
     // 创建内容容器
     //if there is message.raw.repost_status in message, then to fetch message.raw.repost_status.repost_screen_name/ repost_status_id / repost_user_id and text , combine with one dict repost_details, and then , try to show match the repost_screen_name & text in message.content, use <span class='content-highlight'> to mark those and be one new 'highlight-content' var
-    let contentDiv = "";
     if (message.raw && message.raw.repost_status) {
       const repostDetails = {
         screen_name: message.raw.repost_status.user.screen_name,
@@ -267,10 +251,8 @@ function buildHtmlFromMessages({
       messages.slice(0, -listLength).remove();
     }
   }
-  pagline.animate(curList.length / listLength);
   //  reloc('#feed', type);
   cb();
-  NProgress.done();
 
 }
 
@@ -309,6 +291,7 @@ function messageListUpdate(direction = 'up', limit = 100, newlist) {
     if (curList.length > limit)
       curList = curList.slice(-limit); // 取后limit个元素
   }
+  pagline.animate(curList.length / listLength);
 }
 
 /**
