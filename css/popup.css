@@ -217,6 +217,7 @@ body {
   word-wrap: break-word;
   /* 限制在一个块元素中显示的最大行数 */
   -webkit-line-clamp: 5;
+  line-clamp: 5;
   /* 指定块元素的布局方式 */
   display: -webkit-box;
   /* 指定行的垂直方向 */
@@ -250,6 +251,9 @@ body {
   border-radius: 4px;
   cursor: pointer;
 }
+.message.reply .actions span.reply-src {
+  display: block;
+}
 
 .actions {
   display: flex;
@@ -265,6 +269,9 @@ body {
 .actions span {
   display: inline-block;
   margin-left: 8px;
+}
+.actions span.reply-src {
+  display: none;
 }
 
 .actions span:hover {
