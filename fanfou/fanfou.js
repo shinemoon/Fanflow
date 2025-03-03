@@ -49,6 +49,7 @@ async function getTimeline(since_id = null, max_id = null, cb) {
     var url = new URL('http://api.fanfou.com/statuses/home_timeline.json');
     const queryParams = {
         format:'html',
+        mode:'lite',
         count: fetchCnt,
     }
     if (since_id)
@@ -70,6 +71,8 @@ async function getTimeline(since_id = null, max_id = null, cb) {
 async function getMentions(since_id = null, max_id = null, cb) {
     var url = new URL('http://api.fanfou.com/statuses/mentions.json');
     const queryParams = {
+        format:'html',
+        mode:'lite',
         count: fetchCnt,
     };
     if (since_id)
