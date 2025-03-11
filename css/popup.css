@@ -149,6 +149,19 @@ body {
   flex-direction: column;
   position: relative;
 }
+.message .content {
+  font-size: 13px;
+}
+.message a {
+  color: #5761d6 !important;
+  text-decoration: none;
+  background-color: #cae6d1;
+  padding: 3px;
+  border-radius: 5px;
+}
+.message a:hover {
+  color: #5761d6 !important;
+}
 .message.unread {
   background: rgba(219, 227, 238, 0.3803921569);
 }
@@ -163,7 +176,7 @@ body {
 }
 .message.same-author .content {
   color: #555;
-  font-size: 11px;
+  font-size: 12px;
 }
 .message.same-author .message-meta {
   justify-content: flex-end;
@@ -211,7 +224,7 @@ body {
 .message .content {
   margin: 5px;
   margin-bottom: 10px;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.4em;
   color: #333;
   word-wrap: break-word;

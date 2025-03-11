@@ -1,15 +1,18 @@
 $content-line-max: 5;
-$message-font-size: 12px;
+$message-font-size: 13px;
 $mainback: #f9f9f9;
 $mainfore: #f1f1f1;
 
-$content-normal-size: 12px;
-$content-small-size: 11px;
+$content-normal-size: $message-font-size;
+$content-small-size: 12px;
 $meta-normal-size: 12px;
 $meta-small-size: 8px;
 
 $icon-big-size: 14px;
 $icon-normal-size: 12px;
+
+$link-backcolor: #cae6d1;
+$link-color: #5761d6;
 
 
 /* 定义闪烁动画 */
@@ -177,7 +180,26 @@ body {
     margin-bottom: 15px;
     padding: 10px;
     border-radius: 3px 3px 0px 0px;
-    ;
+
+    .content {
+        font-size: $content-normal-size;
+    }
+
+
+
+    a {
+        // 你可以根据需要添加更多样式
+        color: $link-color !important;
+        text-decoration: none;
+        background-color: $link-backcolor;
+        padding: 3px;
+        border-radius: 5px;
+
+        &:hover {
+            color: $link-color !important;
+        }
+    }
+
     background: #f1f1f1;
     display: flex;
     flex-direction: column;
@@ -200,6 +222,8 @@ body {
         .content {
             color: #555;
             font-size: $content-small-size;
+
+
         }
 
         .message-meta {
