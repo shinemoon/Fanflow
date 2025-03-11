@@ -11,8 +11,12 @@ $meta-small-size: 8px;
 $icon-big-size: 14px;
 $icon-normal-size: 12px;
 
-$link-backcolor: #cae6d1;
-$link-color: #5761d6;
+$name-backcolor: #82d497;
+$name-color: #fff;
+
+$link-backcolor: #c8ceedaa;
+$link-color: #666;
+
 
 
 /* 定义闪烁动画 */
@@ -189,15 +193,19 @@ body {
 
     a {
         // 你可以根据需要添加更多样式
-        color: $link-color !important;
         text-decoration: none;
-        background-color: $link-backcolor;
+
         padding: 3px;
         border-radius: 5px;
+        color: $link-color !important;
+       background-color: $link-backcolor;
 
-        &:hover {
-            color: $link-color !important;
+        &.former {
+            color: $name-color !important;
+            background-color: $name-backcolor;
         }
+
+
     }
 
     background: #f1f1f1;

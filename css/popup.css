@@ -153,14 +153,15 @@ body {
   font-size: 13px;
 }
 .message a {
-  color: #5761d6 !important;
   text-decoration: none;
-  background-color: #cae6d1;
   padding: 3px;
   border-radius: 5px;
+  color: #666 !important;
+  background-color: rgba(200, 206, 237, 0.6666666667);
 }
-.message a:hover {
-  color: #5761d6 !important;
+.message a.former {
+  color: #fff !important;
+  background-color: #82d497;
 }
 .message.unread {
   background: rgba(219, 227, 238, 0.3803921569);
