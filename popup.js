@@ -124,6 +124,7 @@ function bindClickActions() {
       buildMentionListPage(ntype, bindClickActions);
     }
   });
+
   // For img 
   $('.content-img').off('click');
   $('.content-img').click(function () {
@@ -142,7 +143,23 @@ function bindClickActions() {
       $('#popmask').removeClass('show');
     }
   });
+
+
+  // For name & link in message
+  $('a').off("click");
+  $('a').on('click', function (event) {
+    event.preventDefault(); // 阻止默认跳转行为
+    //Name
+    if ($(this).hasClass('former')) {
+      //
+    } else {
+      let targetUrl = new URL($(this).attr('href'), 'https://fanfou.com');
+      window.open(targetUrl);
+    }
+  });
+
 }
+
 
 function constructPop(type, content) {
   var $popframe = $('#popframe');

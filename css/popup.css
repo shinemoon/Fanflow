@@ -154,9 +154,9 @@ body {
 }
 .message a {
   text-decoration: none;
-  padding: 0px 3px 0px 3px;
+  padding: 1px 3px 1px 3px;
   margin: 3px;
-  border-radius: 5px;
+  border-radius: 2px;
   color: #666 !important;
   background-color: rgba(200, 206, 237, 0.6666666667);
 }
