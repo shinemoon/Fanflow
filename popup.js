@@ -87,6 +87,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 
+/**
+ * 更新用户信息到页面 UI 元素
+ * @param {Object} usr - 用户信息对象
+ * @param {string} usr.profile_image_url - 用户头像 URL
+ * @param {string} usr.screen_name - 用户昵称
+ * @param {string} usr.description - 用户简介
+ * @param {number} usr.followers_count - 粉丝数量
+ * @param {number} usr.friends_count - 关注数量
+ */
 function updateUserInfo(usr) {
   $('#user-avator img').prop("src", usr.profile_image_url);
   $('#user-name').text(usr.screen_name);
@@ -155,12 +164,13 @@ function bindClickActions() {
       $('#userinfo').addClass("background");
       $('#user-description').addClass("background");
       $('#switchLayer').removeClass("background");
+      buildUserListPage($(this).attr('href').split('/').pop(), 'init',bindClickActions);
     } else {
       let targetUrl = new URL($(this).attr('href'), 'https://fanfou.com');
       window.open(targetUrl);
     }
   });
-
+  // 处理分页返回
   $("#switchLayer").on('click', function (event) {
     $('#userinfo').removeClass("background");
     $('#user-description').removeClass("background");
