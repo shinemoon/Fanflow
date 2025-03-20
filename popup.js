@@ -151,12 +151,24 @@ function bindClickActions() {
     event.preventDefault(); // 阻止默认跳转行为
     //Name
     if ($(this).hasClass('former')) {
-      //
+      //切换信息
+      $('#userinfo').addClass("background");
+      $('#user-description').addClass("background");
+      $('#switchLayer').removeClass("background");
     } else {
       let targetUrl = new URL($(this).attr('href'), 'https://fanfou.com');
       window.open(targetUrl);
     }
   });
+
+  $("#switchLayer").on('click', function (event) {
+    $('#userinfo').removeClass("background");
+    $('#user-description').removeClass("background");
+    $(this).addClass("background");
+  });
+
+
+
 
 }
 
