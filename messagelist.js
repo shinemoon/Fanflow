@@ -77,7 +77,7 @@ async function buildHomePage(type = "up", cb) {
 
       }
       //      $('.ajax').addClass('loading');
-      result = getTimeline(since_id, max_id, function (res) {
+      result = getTimeline(null, since_id, max_id, function (res) {
         console.log("获得" + res.msglist.length + "条新消息")
 
         // only if older ones, those will be append at end of previous list, other is in revered direction

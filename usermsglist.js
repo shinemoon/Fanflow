@@ -16,47 +16,45 @@ async function buildUserListPage(user_id, type = "up", cb) {
       console.log(user_id);
       // TODO：获取用户信息，并且更新信息界面
 
-      /*
-            // 根据类型加载提及列表
-            let since_id = null;
-            let max_id = null;
-            if (type === "up") {
-              since_id = mentionList[0].id;
-              console.log("向顶部滚动: 在线获取信息流,pullin更新的Mention消息");
-            } else if (type === "down") {
-              max_id = mentionList[mentionList.length - 1].id;
-              console.log("向底部滚动，在线获取信息流,pullin 更旧的Mention消息");
-            } else if (type === "init") {
-              //Get first page to show
-              buildHtmlFromMessages({
-                type: type,
-                messageList: mentionList,
-                cb: cb
-              });
-              return;
-            } else if (type === "forceRefresh") {
-              mentionList = [];
-            }
-      
-            await getMentions(since_id, max_id, function (res) {
-              // only if older ones, those will be append at end of previous list, other is in revered direction
-              if (max_id != null) {
-                userMsgListUpdate("down", listLength, res.msglist);
-              } else {
-                userMsgListUpdate("up", listLength, res.msglist);
-              }
-              // Construct the full list
-              chrome.storage.local.set({ mentionlist: mentionList }, function () {
-                console.log("Local Save Mentions Msgs");
-              });
-              buildHtmlFromMessages({
-                type: type,
-                messageList: res.msglist,
-                cb: cb
-              });
-            });
-            // 处理加载后的提及列表，例如更新页面显示
-      */
+      // 根据类型加载提及列表
+      let since_id = null;
+      let max_id = null;
+      if (type === "up") {
+        since_id = showList[0].id;
+        console.log("向顶部滚动: 在线获取信息流,pullin更新的Mention消息");
+      } else if (type === "down") {
+        max_id = showList[showList.length - 1].id;
+        console.log("向底部滚动，在线获取信息流,pullin 更旧的Mention消息");
+      } else if (type === "init") {
+        //Get first page to show
+        showList = [];
+      } else if (type === "forceRefresh") {
+        showList = [];
+      }
+
+      result = getTimeline(user_id, since_id, max_id, function (res) {
+        console.log("获得" + res.msglist.length + "条新消息")
+
+        // only if older ones, those will be append at end of previous list, other is in revered direction
+        if (max_id != null) {
+          messageListUpdate("down", listLength, res.msglist);
+        } else {
+          messageListUpdate("up", listLength, res.msglist);
+        }
+        // Construct the full list
+        // Store for local save
+        chrome.storage.local.set({ homelist: curList }, function () {
+          console.log("Local Save Msgs");
+        });
+        // Need to handle the index of showing
+        buildHtmlFromMessages({
+          type: type,
+          messageList: res.msglist,
+          cb: cb,
+        });
+      });
+
+      // 处理加载后的提及列表，例如更新页面显示
     } else {
       openAuthPage();
     }
@@ -64,21 +62,4 @@ async function buildUserListPage(user_id, type = "up", cb) {
     openAuthPage();
   }
   if (cb) cb();
-}
-
-function userMsgListUpdate(direction = 'up', limit = 100, newlist) {
-  console.log("更新Mention消息列表");
-  // Not update list, if no scrolling
-  if (direction == 'init') return;
-  if (direction == 'up') {
-    mentionList = newlist.concat(mentionList);
-    if (mentionList.length > limit)
-      mentionList = mentionList.slice(0, limit);
-  }
-  if (direction == 'down') {
-    mentionList = mentionList.concat(newlist);
-    if (mentionList.length > limit)
-      mentionList = mentionList.slice(-limit); // 取后limit个元素
-  }
-  pagline.animate(mentionList.length / listLength);
 }

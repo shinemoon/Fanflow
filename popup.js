@@ -2,6 +2,10 @@ let validToken = null;
 // local list max as 100 msb
 let curList = [];
 let mentionList = [];
+// This is for the 'switch showing' list
+let showList = [];
+let showid = null; //curshow userid
+
 let listLength = 400;
 let fetchCnt = 20;
 var lastReadInd = 0;
@@ -72,6 +76,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           buildHomePage("down", bindClickActions);
         else if (curTab === 'mention')
           buildMentionListPage('down', bindClickActions);
+        else if (curTab === 'showUser')
+          buildUserListPage(showid, 'down', bindClickActions);
       }
     } else if (event.originalEvent.deltaY < 0 && scrollTop === 0) {
       // Check if scrolled to bottom (with 50px threshold)
@@ -81,6 +87,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           buildHomePage("up", bindClickActions);
         else if (curTab === 'mention')
           buildMentionListPage('up', bindClickActions);
+        else if (curTab === 'showUser')
+          buildUserListPage(showid, 'up', bindClickActions);
+
       }
     }
   }, 200));
@@ -160,11 +169,16 @@ function bindClickActions() {
     event.preventDefault(); // 阻止默认跳转行为
     //Name
     if ($(this).hasClass('former')) {
+      // 切换Tab形态
+      curTab = "showUser";
+      showid = $(this).attr('href').split('/').pop();
+      // 并且，每次切进来都必重刷（毕竟是个临时性的显示层）
+      $('#feed').empty();
       //切换信息
       $('#userinfo').addClass("background");
       $('#user-description').addClass("background");
       $('#switchLayer').removeClass("background");
-      buildUserListPage($(this).attr('href').split('/').pop(), 'init',bindClickActions);
+      buildUserListPage(showid, 'init', bindClickActions);
     } else {
       let targetUrl = new URL($(this).attr('href'), 'https://fanfou.com');
       window.open(targetUrl);
@@ -176,10 +190,6 @@ function bindClickActions() {
     $('#user-description').removeClass("background");
     $(this).addClass("background");
   });
-
-
-
-
 }
 
 

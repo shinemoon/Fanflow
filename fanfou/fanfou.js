@@ -45,13 +45,19 @@ async function fanfouRequest(apiurl, fmode, params, cb) {
     }
 }
 
-async function getTimeline(since_id = null, max_id = null, cb) {
+//请注意这个是获取Home，而不是消息
+
+async function getTimeline(user_id = null, since_id = null, max_id = null, cb) {
     var url = new URL('http://api.fanfou.com/statuses/home_timeline.json');
     const queryParams = {
         format:'html',
         mode:'lite',
         count: fetchCnt,
     }
+    if (user_id) {
+        queryParams.user_id = user_id;
+    }
+
     if (since_id)
         queryParams.since_id = since_id;
 
@@ -67,6 +73,9 @@ async function getTimeline(since_id = null, max_id = null, cb) {
         console.error('Error fetching timeline:', error);
     }
 }
+
+
+
 
 async function getMentions(since_id = null, max_id = null, cb) {
     var url = new URL('http://api.fanfou.com/statuses/mentions.json');
