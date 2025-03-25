@@ -76,6 +76,34 @@ async function getTimeline(user_id = null, since_id = null, max_id = null, cb) {
 
 
 
+async function getStatus(user_id = null, since_id = null, max_id = null, cb) {
+    var url = new URL('http://api.fanfou.com/statuses/user_timeline.json');
+    const queryParams = {
+        format:'html',
+        mode:'lite',
+        count: fetchCnt,
+    }
+    if (user_id) {
+        queryParams.user_id = user_id;
+    }
+
+    if (since_id)
+        queryParams.since_id = since_id;
+
+    if (max_id)
+        queryParams.max_id = max_id;
+
+    try {
+        fanfouRequest(url, 'GET', queryParams, async function (data) {
+            var result = await data.json();
+            cb({ msglist: result });
+        });
+    } catch (error) {
+        console.error('Error fetching timeline:', error);
+    }
+}
+
+
 
 async function getMentions(since_id = null, max_id = null, cb) {
     var url = new URL('http://api.fanfou.com/statuses/mentions.json');

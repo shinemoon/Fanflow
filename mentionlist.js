@@ -48,6 +48,7 @@ async function buildMentionListPage(type = "up", cb) {
         //Get first page to show
         buildHtmlFromMessages({
           type: type,
+          container:'#mentioned',
           messageList: mentionList,
           cb: cb
         });
@@ -69,6 +70,7 @@ async function buildMentionListPage(type = "up", cb) {
         });
         buildHtmlFromMessages({
           type: type,
+          container:'#mentioned',
           messageList: res.msglist,
           cb: cb
         });

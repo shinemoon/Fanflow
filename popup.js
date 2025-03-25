@@ -122,24 +122,31 @@ function bindClickActions() {
     let ntype = 'init';
     if ($(this).prop('id') == 'home') {
       console.log("home clicked");
+      $('.feed').addClass('background');
+      $('#feed').removeClass('background');
+
       if (curTab != "home" && curList.length > 0) {
+        // If just swtich layers, no need to change content
         curTab = 'home';
-        $('#feed').empty();
+//        $('#feed').empty();
       } else {
         $('#feed').scrollTop(0);
         ntype = 'forceRefresh';
+        buildHomePage(ntype, bindClickActions);
       }
-      buildHomePage(ntype, bindClickActions);
     } else if ($(this).prop('id') == 'mentions') {
       console.log("mentions clicked");
+      $('.feed').addClass('background');
+      $('#mentioned').removeClass('background');
+
       if (curTab != "mention" && mentionList.length > 0) {
         curTab = 'mention';
-        $('#feed').empty();
+        //$('#mentioned').empty();
       } else {
-        $('#feed').scrollTop(0);
+        $('#mentioned').scrollTop(0);
         ntype = 'forceRefresh';
+        buildMentionListPage(ntype, bindClickActions);
       }
-      buildMentionListPage(ntype, bindClickActions);
     }
   });
 

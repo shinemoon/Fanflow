@@ -32,23 +32,21 @@ async function buildUserListPage(user_id, type = "up", cb) {
         showList = [];
       }
 
-      result = getTimeline(user_id, since_id, max_id, function (res) {
+      //result = getTimeline(user_id, since_id, max_id, function (res) {
+      result = getStatus(user_id, since_id, max_id, function (res) {
         console.log("获得" + res.msglist.length + "条新消息")
 
         // only if older ones, those will be append at end of previous list, other is in revered direction
         if (max_id != null) {
-          messageListUpdate("down", listLength, res.msglist);
+          userListUpdate("down", listLength, res.msglist);
         } else {
-          messageListUpdate("up", listLength, res.msglist);
+          userListUpdate("up", listLength, res.msglist);
         }
-        // Construct the full list
-        // Store for local save
-        chrome.storage.local.set({ homelist: curList }, function () {
-          console.log("Local Save Msgs");
-        });
+        // Will not store any local but just for one-time showing
         // Need to handle the index of showing
         buildHtmlFromMessages({
           type: type,
+          container:'#switchshow',
           messageList: res.msglist,
           cb: cb,
         });
@@ -63,3 +61,21 @@ async function buildUserListPage(user_id, type = "up", cb) {
   }
   if (cb) cb();
 }
+
+function userListUpdate(direction = 'up', limit = 100, newlist) {
+  console.log("更新消息列表");
+  // Not update list, if no scrolling
+  if (direction == 'init') return;
+  if (direction == 'up') {
+    showList = newlist.concat(showList);
+    if (showList.length > limit)
+      showList = showList.slice(0, limit);
+  }
+  if (direction == 'down') {
+    showList = showList.concat(newlist);
+    if (showList.length > limit)
+      showList = showList.slice(-limit); // 取后limit个元素
+  }
+  pagline.animate(showList.length / listLength);
+}
+

@@ -161,6 +161,9 @@ body {
     padding: 10px;
     scrollbar-width: thin;
     scrollbar-color: #ccc transparent;
+    &.background {
+        display:none;
+    }
 }
 
 .feed::-webkit-scrollbar {

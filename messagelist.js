@@ -128,10 +128,11 @@ async function buildHomePage(type = "up", cb) {
 function buildHtmlFromMessages({
   type = "up",
   messageList = [],
+  container = "#feed",
   cb = function () { }
 } = {}) {
 
-  var feed = $('#feed');
+  var feed = $(container);
   // 似乎就不该清空了，而是永远附加(除了up) - forceRefresh 除外
   if (type == "forceRefresh" || type === "init") {
     feed.empty();
