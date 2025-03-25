@@ -178,9 +178,12 @@ function bindClickActions() {
     if ($(this).hasClass('former')) {
       // 切换Tab形态
       curTab = "showUser";
+      $('.feed').addClass('background');
+      $('#switchshow').removeClass('background');
+
       showid = $(this).attr('href').split('/').pop();
       // 并且，每次切进来都必重刷（毕竟是个临时性的显示层）
-      $('#feed').empty();
+      $('#swichshow').empty();
       //切换信息
       $('#userinfo').addClass("background");
       $('#user-description').addClass("background");
