@@ -12,6 +12,12 @@ var lastReadInd = 0;
 let pagline = null;
 let initRrefresh = false;
 
+let preTab = '';
+// Possible values for curTab: 
+// 'home'
+// 'mention'
+// 'showUser'
+
 let curTab = 'home';
 
 
@@ -74,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.log('Reached bottom');
         if (curTab === 'home')
           buildHomePage("down", bindClickActions);
-        else if (curTab === 'mention')
+        else if (curTab === 'mentions')
           buildMentionListPage('down', bindClickActions);
         else if (curTab === 'showUser')
           buildUserListPage(showid, 'down', bindClickActions);
@@ -85,7 +91,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (NProgress.status == null) {
         if (curTab === 'home')
           buildHomePage("up", bindClickActions);
-        else if (curTab === 'mention')
+        else if (curTab === 'mentions')
           buildMentionListPage('up', bindClickActions);
         else if (curTab === 'showUser')
           buildUserListPage(showid, 'up', bindClickActions);
@@ -127,26 +133,27 @@ function bindClickActions() {
 
       if (curTab != "home" && curList.length > 0) {
         // If just swtich layers, no need to change content
+        preTab = curTab;
         curTab = 'home';
-//        $('#feed').empty();
+        //        $('#feed').empty();
       } else {
         $('#feed').scrollTop(0);
         ntype = 'forceRefresh';
-        buildHomePage(ntype, bindClickActions);
       }
+      buildHomePage(ntype, bindClickActions);
     } else if ($(this).prop('id') == 'mentions') {
       console.log("mentions clicked");
       $('.feed').addClass('background');
       $('#mentioned').removeClass('background');
-
-      if (curTab != "mention" && mentionList.length > 0) {
-        curTab = 'mention';
+      if (curTab != "mentions" && mentionList.length > 0) {
+        preTab = curTab;
+        curTab = 'mentions';
         //$('#mentioned').empty();
       } else {
         $('#mentioned').scrollTop(0);
         ntype = 'forceRefresh';
-        buildMentionListPage(ntype, bindClickActions);
       }
+      buildMentionListPage(ntype, bindClickActions);
     }
   });
 
@@ -177,16 +184,21 @@ function bindClickActions() {
     //Name
     if ($(this).hasClass('former')) {
       // 切换Tab形态
+      preTab = curTab;
       curTab = "showUser";
       $('.feed').addClass('background');
+      // 并且，每次切进来都必重刷（毕竟是个临时性的显示层）
+      showList = [];
+      $('#switchshow').empty();
       $('#switchshow').removeClass('background');
+      $('.button-array').addClass('background');
 
       showid = $(this).attr('href').split('/').pop();
-      // 并且，每次切进来都必重刷（毕竟是个临时性的显示层）
-      $('#swichshow').empty();
+
       //切换信息
       $('#userinfo').addClass("background");
       $('#user-description').addClass("background");
+      $('#switch-description').removeClass("background");
       $('#switchLayer').removeClass("background");
       buildUserListPage(showid, 'init', bindClickActions);
     } else {
@@ -195,10 +207,20 @@ function bindClickActions() {
     }
   });
   // 处理分页返回
+  $('#switchLayer').off("click");
   $("#switchLayer").on('click', function (event) {
     $('#userinfo').removeClass("background");
     $('#user-description').removeClass("background");
+    $('#switch-description').addClass("background");
     $(this).addClass("background");
+    $('.button-array').removeClass('background');
+    if (preTab == "home") {
+      $('#home').click();
+    } else if (preTab == "mentions") {
+      $('#mentions').click();
+    } else if (preTab == "showUser") {
+      $('#home').click();
+    };
   });
 }
 

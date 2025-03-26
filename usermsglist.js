@@ -15,9 +15,22 @@ async function buildUserListPage(user_id, type = "up", cb) {
       // 刷新User信息部分
       console.log(user_id);
       // TODO：获取用户信息，并且更新信息界面
+      // 试图确认能否读取，根据这个显示是否显示或者建议Follow
+      result = getUserInfo(user_id, function (res) {
+        console.log("获得用户信息");
+        console.log(res);
+        //填充用户面板
+        if(res){
+          $('#switch-name').text(res.name);
+          $('#switch-following .value').text(res.followers_count);
+          $('#switch-follower .value').text(res.friends_count);
+          $('#switch-description .value').text(res.description);
+        }
+      });
 
       // 根据类型加载提及列表
       let since_id = null;
+
       let max_id = null;
       if (type === "up") {
         since_id = showList[0].id;
@@ -46,7 +59,7 @@ async function buildUserListPage(user_id, type = "up", cb) {
         // Need to handle the index of showing
         buildHtmlFromMessages({
           type: type,
-          container:'#switchshow',
+          container: '#switchshow',
           messageList: res.msglist,
           cb: cb,
         });

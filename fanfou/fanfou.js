@@ -50,8 +50,8 @@ async function fanfouRequest(apiurl, fmode, params, cb) {
 async function getTimeline(user_id = null, since_id = null, max_id = null, cb) {
     var url = new URL('http://api.fanfou.com/statuses/home_timeline.json');
     const queryParams = {
-        format:'html',
-        mode:'lite',
+        format: 'html',
+        mode: 'lite',
         count: fetchCnt,
     }
     if (user_id) {
@@ -79,8 +79,8 @@ async function getTimeline(user_id = null, since_id = null, max_id = null, cb) {
 async function getStatus(user_id = null, since_id = null, max_id = null, cb) {
     var url = new URL('http://api.fanfou.com/statuses/user_timeline.json');
     const queryParams = {
-        format:'html',
-        mode:'lite',
+        format: 'html',
+        mode: 'lite',
         count: fetchCnt,
     }
     if (user_id) {
@@ -103,13 +103,34 @@ async function getStatus(user_id = null, since_id = null, max_id = null, cb) {
     }
 }
 
+async function getUserInfo(user_id = null, cb) {
+    var url = new URL('http://api.fanfou.com/users/show.json');
+    const queryParams = {
+        format: 'html',
+        mode: 'lite',
+    };
+    if (user_id) {
+        queryParams.id = user_id;
+    } else {
+        throw new Error('User ID is required');
+    }
+
+    try {
+        fanfouRequest(url, 'GET', queryParams, async function (data) {
+            var result = await data.json();
+            cb(result);
+        });
+    } catch (error) {
+        console.error('Error fetching user info:', error);
+    }
+}
 
 
 async function getMentions(since_id = null, max_id = null, cb) {
     var url = new URL('http://api.fanfou.com/statuses/mentions.json');
     const queryParams = {
-        format:'html',
-        mode:'lite',
+        format: 'html',
+        mode: 'lite',
         count: fetchCnt,
     };
     if (since_id)
