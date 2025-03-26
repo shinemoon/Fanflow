@@ -513,10 +513,10 @@ body {
     flex-wrap: wrap;
     flex-direction: row;
     align-items: flex-start;
-    background-color: #f9f9f9;
+    background-color: #e7f1ea94;
     padding: 5px 0px 2px 5px;
     border-radius: 5px;
-    box-shadow: inset #e6d9cc 0px 0px 5px 2px;
+    box-shadow: inset #cce6d1ab  0px 0px 5px 2px;
     cursor: pointer;
 
     &:hover {
@@ -593,7 +593,7 @@ body {
     opacity: 0.5;
     position: fixed;
     bottom: 15px;
-    left: 58px;
+    left: 63px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

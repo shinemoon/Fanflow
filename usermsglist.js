@@ -20,11 +20,12 @@ async function buildUserListPage(user_id, type = "up", cb) {
         console.log("获得用户信息");
         console.log(res);
         //填充用户面板
-        if(res){
+        if (res) {
           $('#switch-name').text(res.name);
           $('#switch-following .value').text(res.followers_count);
           $('#switch-follower .value').text(res.friends_count);
           $('#switch-description .value').text(res.description);
+          $('#switch-avator img').prop("src", res.profile_image_url);
         }
       });
 

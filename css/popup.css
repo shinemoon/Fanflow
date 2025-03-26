@@ -388,10 +388,10 @@ body {
   flex-wrap: wrap;
   flex-direction: row;
   align-items: flex-start;
-  background-color: #f9f9f9;
+  background-color: rgba(231, 241, 234, 0.5803921569);
   padding: 5px 0px 2px 5px;
   border-radius: 5px;
-  box-shadow: inset #e6d9cc 0px 0px 5px 2px;
+  box-shadow: inset rgba(204, 230, 209, 0.6705882353) 0px 0px 5px 2px;
   cursor: pointer;
 }
 #switchLayer:hover {
@@ -453,7 +453,7 @@ body {
   opacity: 0.5;
   position: fixed;
   bottom: 15px;
-  left: 58px;
+  left: 63px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
