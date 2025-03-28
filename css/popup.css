@@ -470,12 +470,11 @@ body {
   position: absolute;
   bottom: 70px;
   right: 10px;
-  background: rgba(141, 154, 141, 0.4588235294);
+  background: rgba(141, 154, 141, 0.3137254902);
   padding-top: 20px;
   padding-left: 4px;
   padding-right: 4px;
   border-radius: 8px;
-  box-shadow: rgba(144, 238, 144, 0.6509803922) 0px 0px 6px 1px;
 }
 #float-buttons span {
   display: block;
