@@ -610,16 +610,15 @@ body {
     position: absolute;
     bottom: 70px;
     right: 10px;
-    background: #8d9a8d50;
-    padding-top: 20px;
-    padding-left: 4px;
-    padding-right: 4px;
-    border-radius: 8px;
 
     span {
+        background: #8d9a8d50;
+        padding: 5px;
+        border-radius: 4px;
+
         display: block;
         font-size: 15px;
-        margin-bottom: 20px;
+        margin-bottom: 2px;
         color: $float-button-color;
         text-shadow: 2px 2px 4px #c6e7c6, 0 1px 0 #9bc296, -1px 0 0 #00000066, 0 -1px 0 #0000008a;
         cursor: pointer;
