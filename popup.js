@@ -222,6 +222,31 @@ function bindClickActions() {
       $('#home').click();
     };
   });
+
+
+  //float buttons actions:
+  // - top
+  $('#float-buttons span').off('click');
+  $("#float-buttons span").on('click', function (event) {
+    const spanId = $(this).attr('id');
+    switch (spanId) {
+      case 'top':
+        // 执行顶部按钮的操作
+        console.log('Top button clicked');
+        $('.feed:not(.background)').animate({ scrollTop: 0 }, 'slow');
+        break;
+      case 'add':
+        // 执行添加按钮的操作
+        console.log('Add button clicked');
+        break;
+      case 'remove':
+        // 执行移除按钮的操作
+        console.log('Remove button clicked');
+        break;
+      default:
+        console.log('Unknown button clicked');
+    }
+  });
 }
 
 

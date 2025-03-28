@@ -17,6 +17,9 @@ $name-color: #fff;
 $link-backcolor: #c8ceedaa;
 $link-color: #666;
 
+$float-button-color: #312e2e;
+$float-button-color-hover: rgb(245, 245, 245);
+
 
 
 /* 定义闪烁动画 */
@@ -161,8 +164,9 @@ body {
     padding: 10px;
     scrollbar-width: thin;
     scrollbar-color: #ccc transparent;
+
     &.background {
-        display:none;
+        display: none;
     }
 }
 
@@ -401,7 +405,7 @@ body {
         display: flex;
 
         &.background {
-            display:none;
+            display: none;
         }
 
         .post-span {
@@ -506,7 +510,7 @@ body {
 }
 
 #switchLayer {
-    width:100%;
+    width: 100%;
     //width: 250px;
     display: flex;
     gap: 5px;
@@ -516,12 +520,12 @@ body {
     background-color: #e7f1ea94;
     padding: 5px 0px 2px 5px;
     border-radius: 5px;
-    box-shadow: inset #cce6d1ab  0px 0px 5px 2px;
+    box-shadow: inset #cce6d1ab 0px 0px 5px 2px;
     cursor: pointer;
 
     &:hover {
-        background-color: #f3e2d294 ;
-        box-shadow: inset #f3e2d294 -5px -1px 13px 10px ;
+        background-color: #f3e2d294;
+        box-shadow: inset #f3e2d294 -5px -1px 13px 10px;
 
     }
 
@@ -581,7 +585,8 @@ body {
     z-index: 100;
 }
 
-#user-description , #switch-description{
+#user-description,
+#switch-description {
 
     &.background {
         display: none;
@@ -599,4 +604,34 @@ body {
     text-overflow: ellipsis;
     max-width: 200px;
     z-index: 100;
+}
+
+#float-buttons {
+    position: absolute;
+    bottom: 70px;
+    right: 10px;
+    background: #8d9a8d75;
+    padding-top: 20px;
+    padding-left: 4px;
+    padding-right: 4px;
+    border-radius: 8px;
+    box-shadow: #90ee90a6 0px 0px 6px 1px;
+
+    span {
+        display: block;
+        font-size: 15px;
+        margin-bottom: 20px;
+        color: $float-button-color;
+        text-shadow: 2px 2px 4px #c6e7c6, 0 1px 0 #9bc296, -1px 0 0 #00000066, 0 -1px 0 #0000008a;
+        cursor: pointer;
+
+        &:hover {
+            color: $float-button-color-hover;
+            text-shadow: 2px 3px 4px #c6e7c6, 0 1px 0 #9bc296, -1px 0 0 #00000066, 0 -1px 0 #0000008a;
+        }
+
+        &.background {
+            display: none;
+        }
+    }
 }

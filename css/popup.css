@@ -446,7 +446,8 @@ body {
   z-index: 100;
 }
 
-#user-description, #switch-description {
+#user-description,
+#switch-description {
   /* transform: rotate(5deg); */
   font-size: 12px;
   color: #28773c;
@@ -460,6 +461,34 @@ body {
   max-width: 200px;
   z-index: 100;
 }
-#user-description.background, #switch-description.background {
+#user-description.background,
+#switch-description.background {
+  display: none;
+}
+
+#float-buttons {
+  position: absolute;
+  bottom: 70px;
+  right: 10px;
+  background: rgba(141, 154, 141, 0.4588235294);
+  padding-top: 20px;
+  padding-left: 4px;
+  padding-right: 4px;
+  border-radius: 8px;
+  box-shadow: rgba(144, 238, 144, 0.6509803922) 0px 0px 6px 1px;
+}
+#float-buttons span {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 20px;
+  color: #312e2e;
+  text-shadow: 2px 2px 4px #c6e7c6, 0 1px 0 #9bc296, -1px 0 0 rgba(0, 0, 0, 0.4), 0 -1px 0 rgba(0, 0, 0, 0.5411764706);
+  cursor: pointer;
+}
+#float-buttons span:hover {
+  color: rgb(245, 245, 245);
+  text-shadow: 2px 3px 4px #c6e7c6, 0 1px 0 #9bc296, -1px 0 0 rgba(0, 0, 0, 0.4), 0 -1px 0 rgba(0, 0, 0, 0.5411764706);
+}
+#float-buttons span.background {
   display: none;
 }/*# sourceMappingURL=popup.css.map */
