@@ -178,11 +178,11 @@ function bindClickActions() {
 
 
   // For name & link in message
-  $('a').off("click");
-  $('a').on('click', function (event) {
+  $('a, span.msg-nickname').off("click");
+  $('a, span.msg-nickname').on('click', function (event) {
     event.preventDefault(); // 阻止默认跳转行为
     //Name
-    if ($(this).hasClass('former')) {
+    if ($(this).hasClass('former') || $(this).hasClass('msg-nickname')) {
       // 切换Tab形态
       preTab = curTab;
       curTab = "showUser";
@@ -193,7 +193,7 @@ function bindClickActions() {
       $('#switchshow').removeClass('background');
       $('.button-array').addClass('background');
 
-      showid = $(this).attr('href').split('/').pop();
+      showid = ($(this).hasClass('former')) ? $(this).attr('href').split('/').pop() : $(this).attr('usrid');
 
       //切换信息
       $('#userinfo').addClass("background");

@@ -161,7 +161,8 @@ function buildHtmlFromMessages({
     // 创建Meta容器
     let $metaDiv = $('<div>').addClass('message-meta');
     $metaDiv.append($('<img>').addClass('msg-avator').prop("src", message.avator));
-    $metaDiv.append($('<span value=' + i + '>').addClass('msg-nickname').text(message.nickname + " " + (i++)));
+    //$metaDiv.append($('<span value=' + i + ' usrid='+message.userid+'>').addClass('msg-nickname').text(message.nickname + " " + (i++)));
+    $metaDiv.append($('<span value=' + i + ' usrid='+message.userid+'>').addClass('msg-nickname').text(message.nickname ));
     $metaDiv.append($('<span>').addClass('msg-time').text(localTime.localTime));
     $metaDiv.append($('<span>').addClass('msg-source').text(message.source));
     // TODO: 优化显示

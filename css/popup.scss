@@ -253,6 +253,7 @@ body {
             .msg-nickname {
                 color: #81b7ce;
                 font-size: $meta-small-size;
+                cursor: pointer;
             }
 
         }
@@ -295,6 +296,7 @@ body {
             text-overflow: ellipsis;
             /* 显示省略号 */
             max-width: 80px;
+            cursor: pointer;
         }
     }
 

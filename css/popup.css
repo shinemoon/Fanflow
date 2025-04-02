@@ -193,6 +193,7 @@ body {
 .message.same-author .message-meta .msg-nickname {
   color: #81b7ce;
   font-size: 8px;
+  cursor: pointer;
 }
 .message .message-meta {
   display: flex;
@@ -225,6 +226,7 @@ body {
   text-overflow: ellipsis;
   /* 显示省略号 */
   max-width: 80px;
+  cursor: pointer;
 }
 .message .content {
   margin: 5px;
