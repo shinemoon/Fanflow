@@ -103,26 +103,34 @@ async function getStatus(user_id = null, since_id = null, max_id = null, cb) {
     }
 }
 
-async function getUserInfo(user_id = null, cb) {
-    var url = new URL('http://api.fanfou.com/users/show.json');
-    const queryParams = {
-        format: 'html',
-        mode: 'lite',
-    };
-    if (user_id) {
-        queryParams.id = user_id;
-    } else {
-        throw new Error('User ID is required');
-    }
+async function getUserInfo(user_id = null) {
+    return new Promise(async (resolve, reject) => {
+        var url = new URL('http://api.fanfou.com/users/show.json');
+        const queryParams = {
+            format: 'html',
+            mode: 'lite',
+        };
 
-    try {
-        fanfouRequest(url, 'GET', queryParams, async function (data) {
-            var result = await data.json();
-            cb(result);
-        });
-    } catch (error) {
-        console.error('Error fetching user info:', error);
-    }
+        if (user_id) {
+            queryParams.id = user_id;
+        } else {
+            reject(new Error('User ID is required'));
+            return;
+        }
+
+        try {
+            await fanfouRequest(url, 'GET', queryParams, async function (data) {
+                try {
+                    const result = await data.json();
+                    resolve(result);
+                } catch (parseError) {
+                    reject(new Error('Failed to parse user info: ' + parseError.message));
+                }
+            });
+        } catch (error) {
+            reject(new Error('Error fetching user info: ' + error.message));
+        }
+    });
 }
 
 
