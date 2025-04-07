@@ -99,6 +99,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
   }, 200));
+
+
+  // 效果
+  // Hover effect for span elements inside #float-buttons
+  $('#float-buttons>div').hover(
+    function () {
+      // Mouse enter
+      $(this).html("<div class='hint'>"+$(this).attr('value')+"</div>");
+    },
+    function () {
+      // Mouse leave
+      $(this).html(''); // Reset to original text if needed
+    }
+  );
+
 });
 
 
@@ -226,8 +241,8 @@ function bindClickActions() {
 
   //float buttons actions:
   // - top
-  $('#float-buttons span').off('click');
-  $("#float-buttons span").on('click', function (event) {
+  $('#float-buttons div').off('click');
+  $("#float-buttons div").on('click', function (event) {
     const spanId = $(this).attr('id');
     switch (spanId) {
       case 'top':

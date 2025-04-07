@@ -82,9 +82,39 @@ async function buildUserListPage(user_id, type = "up", cb) {
           // Add any error handling UI feedback here if needed
           if (cb) cb(error); // Pass error to callback if provided
         }
-
+        $('#follow').addClass('background');
+        $('#unfollow').removeClass('background');
+        $('#unfollow').on('click', function () {
+          // 这里添加关注用户的逻辑
+          // 例如，调用一个关注用户的API
+          // followUser(userId).then(response => {
+          //   if(response.success) {
+          //     // 更新UI，例如改变按钮状态
+          //   } else {
+          //     alert('关注失败，请重试。')
+          //   }
+          // }).catch(error => {
+          //   console.error('关注用户时出错:', error)
+          // })
+        });
       } else {
         console.log("Show applying lock");
+        $('#unfollow').addClass('background');
+        $('#follow').removeClass('background');
+        $('#follow').on('click', function () {
+          // 这里添加关注用户的逻辑
+          console.log('用户点击了关注按钮');
+          // 例如，调用一个关注用户的API
+          // followUser(userId).then(response => {
+          //   if(response.success) {
+          //     // 更新UI，例如改变按钮状态
+          //   } else {
+          //     alert('关注失败，请重试。')
+          //   }
+          // }).catch(error => {
+          //   console.error('关注用户时出错:', error)
+          // })
+        });
       };
       // 处理加载后的提及列表，例如更新页面显示
     } else {
