@@ -13,6 +13,8 @@
  */
 async function buildHomePage(type = "up", cb) {
   console.log("认证成功，页面构建开始:" + type);
+  $("#float-buttons>div").addClass('background');
+  $("#top").removeClass('background');
   // To load local store firstly
   // Because home is init page, so it will also get mention or other list if possible from local
   chrome.storage.local.get({ userinfo: userInfo, homelist: [], mentionlist: [], }, function (r) {
