@@ -1,88 +1,85 @@
-async function fanfouRequest(apiurl, fmode, params, cb) {
-    NProgress.start();
-    const url = new URL(apiurl);
-    // 生成签名
-    const queryParams = params;
-    const headerParams = {
-        oauth_consumer_key: CONSUMER_KEY,
-        oauth_token: validToken.oauthToken,
-        oauth_signature_method: "HMAC-SHA1",
-        oauth_timestamp: OAuth1.generateTimestamp(),
-        oauth_nonce: OAuth1.generateNonce(),
-        oauth_version: "1.0"
-    };
+async function fanfouRequest(apiurl, fmode, params) {
+    return new Promise(async (resolve, reject) => {
+        NProgress.start();
+        const url = new URL(apiurl);
 
-    const signature = generateOAuthSignature('GET', url, queryParams, headerParams, CONSUMER_SECRET, validToken.oauthTokenSecret);
-    headerParams.oauth_signature = signature;
-    authHeader = OAuth1.buildAuthHeader(headerParams);
+        // Generate OAuth signature
+        const queryParams = params;
+        const headerParams = {
+            oauth_consumer_key: CONSUMER_KEY,
+            oauth_token: validToken.oauthToken,
+            oauth_signature_method: "HMAC-SHA1",
+            oauth_timestamp: OAuth1.generateTimestamp(),
+            oauth_nonce: OAuth1.generateNonce(),
+            oauth_version: "1.0"
+        };
 
-    // 使用 forEach 遍历 queryParams 并添加到 url.searchParams
-    Object.entries(queryParams).forEach(([key, value]) => {
-        url.searchParams.append(key, value);
-    });
+        try {
+            const signature = generateOAuthSignature('GET', url, queryParams, headerParams, CONSUMER_SECRET, validToken.oauthTokenSecret);
+            headerParams.oauth_signature = signature;
+            const authHeader = OAuth1.buildAuthHeader(headerParams);
 
-    const headers = new Headers({
-        'Content-Type': 'application/json',
-    });
-    headers.append('Authorization', authHeader);
+            // Add query parameters to URL
+            Object.entries(queryParams).forEach(([key, value]) => {
+                url.searchParams.append(key, value);
+            });
 
-    try {
-        const response = await fetch(url, {
-            method: fmode,
-            headers: headers,
-        });
+            const headers = new Headers({
+                'Content-Type': 'application/json',
+                'Authorization': authHeader
+            });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const response = await fetch(url, {
+                method: fmode,
+                headers: headers
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            resolve(response);
+        } catch (error) {
+            console.error('Request failed:', error);
+            reject(error);
+        } finally {
+            NProgress.done();
         }
-
-        NProgress.done();
-        cb(response);
-    } catch (error) {
-        console.error('Error:', error);
-        NProgress.done();
-        return null;
-    }
+    });
 }
 
 //请注意这个是获取Home，而不是消息
 
-async function getTimeline(user_id = null, since_id = null, max_id = null, cb) {
-    var url = new URL('http://api.fanfou.com/statuses/home_timeline.json');
+async function getTimeline(user_id = null, since_id = null, max_id = null) {
+    const url = new URL('http://api.fanfou.com/statuses/home_timeline.json');
     const queryParams = {
         format: 'html',
         mode: 'lite',
         count: fetchCnt,
-    }
-    if (user_id) {
-        queryParams.user_id = user_id;
-    }
-
-    if (since_id)
-        queryParams.since_id = since_id;
-
-    if (max_id)
-        queryParams.max_id = max_id;
+        ...(user_id && { user_id: user_id }),
+        ...(since_id && { since_id: since_id }),
+        ...(max_id && { max_id: max_id })
+    };
 
     try {
-        fanfouRequest(url, 'GET', queryParams, async function (data) {
-            var result = await data.json();
-            cb({ msglist: result });
-        });
+        const response = await fanfouRequest(url, 'GET', queryParams);
+        return { msglist: await response.json() };
     } catch (error) {
         console.error('Error fetching timeline:', error);
+        throw error;
     }
 }
 
 
 
-async function getStatus(user_id = null, since_id = null, max_id = null, cb) {
-    var url = new URL('http://api.fanfou.com/statuses/user_timeline.json');
+async function getStatus(user_id = null, since_id = null, max_id = null) {
+    const url = new URL('http://api.fanfou.com/statuses/user_timeline.json');
     const queryParams = {
         format: 'html',
         mode: 'lite',
-        count: fetchCnt,
-    }
+        count: fetchCnt
+    };
+
     if (user_id) {
         queryParams.user_id = user_id;
     }
@@ -94,53 +91,45 @@ async function getStatus(user_id = null, since_id = null, max_id = null, cb) {
         queryParams.max_id = max_id;
 
     try {
-        fanfouRequest(url, 'GET', queryParams, async function (data) {
-            var result = await data.json();
-            cb({ msglist: result });
-        });
+        const response = await fanfouRequest(url, 'GET', queryParams);
+        return { msglist: await response.json() };
     } catch (error) {
         console.error('Error fetching timeline:', error);
+        throw error;
     }
 }
 
 async function getUserInfo(user_id = null) {
-    return new Promise(async (resolve, reject) => {
-        var url = new URL('http://api.fanfou.com/users/show.json');
-        const queryParams = {
-            format: 'html',
-            mode: 'lite',
-        };
+    const url = new URL('http://api.fanfou.com/users/show.json');
+    const queryParams = {
+        format: 'html',
+        mode: 'lite'
+    };
 
-        if (user_id) {
-            queryParams.id = user_id;
-        } else {
-            reject(new Error('User ID is required'));
-            return;
-        }
+    if (user_id) {
+        queryParams.id = user_id;
+    } else {
+        throw new Error('User ID is required');
+    }
 
-        try {
-            await fanfouRequest(url, 'GET', queryParams, async function (data) {
-                try {
-                    const result = await data.json();
-                    resolve(result);
-                } catch (parseError) {
-                    reject(new Error('Failed to parse user info: ' + parseError.message));
-                }
-            });
-        } catch (error) {
-            reject(new Error('Error fetching user info: ' + error.message));
-        }
-    });
+    try {
+        const response = await fanfouRequest(url, 'GET', queryParams);
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching user info:', error);
+        throw error;
+    }
 }
 
 
-async function getMentions(since_id = null, max_id = null, cb) {
-    var url = new URL('http://api.fanfou.com/statuses/mentions.json');
+async function getMentions(since_id = null, max_id = null) {
+    const url = new URL('http://api.fanfou.com/statuses/mentions.json');
     const queryParams = {
         format: 'html',
         mode: 'lite',
-        count: fetchCnt,
+        count: fetchCnt
     };
+
     if (since_id)
         queryParams.since_id = since_id;
 
@@ -148,12 +137,12 @@ async function getMentions(since_id = null, max_id = null, cb) {
         queryParams.max_id = max_id;
 
     try {
-        fanfouRequest(url, 'GET', queryParams, async function (data) {
-            var result = await data.json();
-            cb({ msglist: result }); // 使用 remapMessage 处理返回的数据
-        });
+        const response = await fanfouRequest(url, 'GET', queryParams);
+        const result = await response.json();
+        return { msglist: result };
     } catch (error) {
         console.error('Error fetching mentions:', error);
+        throw error;
     }
 }
 

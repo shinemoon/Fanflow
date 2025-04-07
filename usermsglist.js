@@ -60,24 +60,29 @@ async function buildUserListPage(user_id, type = "up", cb) {
         } else if (type === "forceRefresh") {
           showList = [];
         }
-        result = getStatus(user_id, since_id, max_id, function (res) {
-          console.log("获得" + res.msglist.length + "条新消息")
+        try {
+          // Using await with the Promise-based getStatus
+          const result = await getStatus(user_id, since_id, max_id);
+          console.log(`获得 ${result.msglist.length} 条新消息`);
 
-          // only if older ones, those will be append at end of previous list, other is in revered direction
-          if (max_id != null) {
-            userListUpdate("down", listLength, res.msglist);
-          } else {
-            userListUpdate("up", listLength, res.msglist);
-          }
-          // Will not store any local but just for one-time showing
-          // Need to handle the index of showing
+          // Determine update direction based on max_id
+          const direction = max_id != null ? "down" : "up";
+          userListUpdate(direction, listLength, result.msglist);
+
+          // Build HTML from messages (one-time showing)
           buildHtmlFromMessages({
             type: type,
             container: '#switchshow',
-            messageList: res.msglist,
-            cb: cb,
+            messageList: result.msglist,
+            cb: cb
           });
-        });
+
+        } catch (error) {
+          console.error("加载用户消息失败:", error);
+          // Add any error handling UI feedback here if needed
+          if (cb) cb(error); // Pass error to callback if provided
+        }
+
       } else {
         console.log("Show applying lock");
       };

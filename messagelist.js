@@ -77,32 +77,35 @@ async function buildHomePage(type = "up", cb) {
 
       }
       //      $('.ajax').addClass('loading');
-      result = getTimeline(null, since_id, max_id, function (res) {
-        console.log("获得" + res.msglist.length + "条新消息")
+      let result=[];
+      try {
+        // 使用 await 调用新的 getTimeline
+        result = await getTimeline(null, since_id, max_id);
+        console.log(`获得 ${result.msglist.length} 条新消息`);
 
-        // only if older ones, those will be append at end of previous list, other is in revered direction
-        if (max_id != null) {
-          messageListUpdate("down", listLength, res.msglist);
-        } else {
-          messageListUpdate("up", listLength, res.msglist);
-        }
-        // Construct the full list
-        // Store for local save
-        chrome.storage.local.set({ homelist: curList }, function () {
-          console.log("Local Save Msgs");
-        });
-        // Need to handle the index of showing
-        buildHtmlFromMessages({
-          type: type,
-          messageList: res.msglist,
-          cb: cb,
-        });
+        // 根据 max_id 判断加载方向
+        const direction = max_id != null ? "down" : "up";
+        messageListUpdate(direction, listLength, result.msglist);
+
+        // 构造完整列表并本地存储
+        await chrome.storage.local.set({ homelist: curList });
+        console.log("Local Save Msgs");
+
+      } catch (error) {
+        console.error("加载时间线失败:", error);
+        // 可以在这里添加错误处理 UI 反馈
+      }
+      // Need to handle the index of showing
+      buildHtmlFromMessages({
+        type: type,
+        messageList: result.msglist,
+        cb: cb,
       });
-    }
-  } else {
-    // If no valid token, then creat auth html
-    chrome.tabs.create({ url: "auth.html" });
   }
+} else {
+  // If no valid token, then creat auth html
+  chrome.tabs.create({ url: "auth.html" });
+}
 };
 
 
@@ -162,7 +165,7 @@ function buildHtmlFromMessages({
     let $metaDiv = $('<div>').addClass('message-meta');
     $metaDiv.append($('<img>').addClass('msg-avator').prop("src", message.avator));
     //$metaDiv.append($('<span value=' + i + ' usrid='+message.userid+'>').addClass('msg-nickname').text(message.nickname + " " + (i++)));
-    $metaDiv.append($('<span value=' + i + ' usrid='+message.userid+'>').addClass('msg-nickname').text(message.nickname ));
+    $metaDiv.append($('<span value=' + i + ' usrid=' + message.userid + '>').addClass('msg-nickname').text(message.nickname));
     $metaDiv.append($('<span>').addClass('msg-time').text(localTime.localTime));
     $metaDiv.append($('<span>').addClass('msg-source').text(message.source));
     // TODO: 优化显示

@@ -57,24 +57,31 @@ async function buildMentionListPage(type = "up", cb) {
         mentionList = [];
       }
 
-      await getMentions(since_id, max_id, function (res) {
-        // only if older ones, those will be append at end of previous list, other is in revered direction
-        if (max_id != null) {
-          mentionListUpdate("down", listLength, res.msglist);
-        } else {
-          mentionListUpdate("up", listLength, res.msglist);
-        }
-        // Construct the full list
-        chrome.storage.local.set({ mentionlist: mentionList }, function () {
-          console.log("Local Save Mentions Msgs");
-        });
+      try {
+        // Using await with the Promise-based getMentions
+        const res = await getMentions(since_id, max_id);
+
+        // Update mention list direction based on max_id
+        const direction = max_id != null ? "down" : "up";
+        mentionListUpdate(direction, listLength, res.msglist);
+
+        // Save to local storage (using Promise version)
+        await chrome.storage.local.set({ mentionlist: mentionList });
+        console.log("Local Save Mentions Msgs");
+
+        // Build HTML from messages
         buildHtmlFromMessages({
           type: type,
-          container:'#mentioned',
+          container: '#mentioned',
           messageList: res.msglist,
           cb: cb
         });
-      });
+
+      } catch (error) {
+        console.error("加载提及消息失败:", error);
+        // Handle error in UI if needed
+        if (cb) cb(error); // Pass error to callback if provided
+      }
       // 处理加载后的提及列表，例如更新页面显示
     } else {
       openAuthPage();
