@@ -43,6 +43,10 @@ async function buildUserListPage(user_id, type = "up", cb) {
             console.log('用户点击了关注按钮');
           });
         } else {
+          toastr.options.timeOut = "3000";
+          toastr.options.extendedTimeOut = "1000";
+          toastr.warning('未关注用户');
+
           $('#unfollow').addClass('background');
           $('#follow').removeClass('background');
           $('#follow').on('click', function () {
@@ -94,6 +98,10 @@ async function buildUserListPage(user_id, type = "up", cb) {
         }
       } else {
         console.log("Show applying lock");
+        toastr.options.timeOut = "0";
+        toastr.options.extendedTimeOut = "0";
+        toastr.error('用户设置消息保护，请申请关注。');
+
 
       };
       // 处理加载后的提及列表，例如更新页面显示

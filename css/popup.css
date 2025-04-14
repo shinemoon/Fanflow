@@ -279,7 +279,7 @@ body {
   display: flex;
   gap: 2px;
   position: absolute;
-  bottom: 4px;
+  bottom: 6px;
   right: 6px;
   font-size: 12px;
   color: #81b7ce;
@@ -500,4 +500,8 @@ body {
 }
 #float-buttons > div.background {
   display: none;
+}
+
+#toast-container.toast-bottom-center > div, #toast-container.toast-top-center > div {
+  margin-top: 40px;
 }/*# sourceMappingURL=popup.css.map */

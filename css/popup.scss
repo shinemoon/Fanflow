@@ -371,7 +371,7 @@ body {
     display: flex;
     gap: 2px;
     position: absolute;
-    bottom: 4px;
+    bottom: 6px; 
     right: 6px;
     font-size: $icon-normal-size;
     //    color: #007bff;
@@ -646,4 +646,9 @@ body {
         display: none;
     }
 }
+}
+
+// Notification 
+#toast-container.toast-bottom-center>div, #toast-container.toast-top-center>div {
+    margin-top:40px ;
 }

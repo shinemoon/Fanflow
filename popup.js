@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   $('#float-buttons>div').hover(
     function () {
       // Mouse enter
-      $(this).html("<div class='hint'>"+$(this).attr('value')+"</div>");
+      $(this).html("<div class='hint'>" + $(this).attr('value') + "</div>");
     },
     function () {
       // Mouse leave
@@ -289,5 +289,24 @@ function constructPop(type, content) {
   }
   ctrl_buttons.forEach(btn => $('.' + btn).addClass("show"));
   applyDarkMode();
+}
+
+// Other initilaization
+toastr.options = {
+  "closeButton": false,
+  "debug": false,
+  "newestOnTop": false,
+  "progressBar": false,
+  "positionClass": "toast-top-center",
+  "preventDuplicates": true,
+  "onclick": null,
+  "showDuration": "300",
+  "hideDuration": "1000",
+  "timeOut": "5000",
+  "extendedTimeOut": "1000",
+  "showEasing": "swing",
+  "hideEasing": "linear",
+  "showMethod": "fadeIn",
+  "hideMethod": "fadeOut"
 }
 
