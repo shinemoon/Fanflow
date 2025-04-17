@@ -80,7 +80,7 @@ async function buildHomePage(type = "up", cb) {
 
       }
       //      $('.ajax').addClass('loading');
-      let result=[];
+      let result = [];
       try {
         // 使用 await 调用新的 getTimeline
         result = await getTimeline(null, since_id, max_id);
@@ -104,11 +104,11 @@ async function buildHomePage(type = "up", cb) {
         messageList: result.msglist,
         cb: cb,
       });
+    }
+  } else {
+    // If no valid token, then creat auth html
+    chrome.tabs.create({ url: "auth.html" });
   }
-} else {
-  // If no valid token, then creat auth html
-  chrome.tabs.create({ url: "auth.html" });
-}
 };
 
 

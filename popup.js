@@ -177,7 +177,6 @@ function bindClickActions() {
   $('.content-img').click(function () {
     console.log("switchMask");
     constructPop("img", [$(this).attr("src"), $(this).attr('largeurl')]);
-    $('.mask').addClass('show');
   });
 
 
@@ -275,7 +274,6 @@ function constructPop(type, content) {
   $controls.append($('<span class="retweet">').addClass('icon-retweet'));
   $controls.append($('<span class="reply">').addClass('icon-reply'));
   $controls.append($('<span class="star">').addClass('icon-star'));
-
   // for pic
   $controls.append($('<span class="resize">').addClass('icon-resize'));
   $controls.append($('<span class="download">').addClass('icon-download2'));
@@ -285,10 +283,10 @@ function constructPop(type, content) {
   if (type == "img") {
     ctrl_buttons = ['resize', 'download'];
     buildPopImg(content[0], content[1]);
-
   }
   ctrl_buttons.forEach(btn => $('.' + btn).addClass("show"));
   applyDarkMode();
+  $('.mask').addClass('show');
 }
 
 // Other initilaization
