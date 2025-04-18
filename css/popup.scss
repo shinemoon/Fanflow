@@ -96,8 +96,11 @@ body {
         border-radius: 5px;
         background: $mainfore;
         margin-top: -30px;
+        display: flex;
+        flex-direction: column;
 
         &#popframe {
+            align-items: center;
             .pop-controls {
                 display: flex;
                 gap: 2px;
@@ -371,7 +374,7 @@ body {
     display: flex;
     gap: 2px;
     position: absolute;
-    bottom: 6px; 
+    bottom: 6px;
     right: 6px;
     font-size: $icon-normal-size;
     //    color: #007bff;
@@ -615,40 +618,41 @@ body {
     flex-direction: column;
     align-items: flex-end;
 
->div {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #8d9a8d50;
-    padding: 5px;
-    border-radius: 4px;
-    width: 15px;
+    >div {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #8d9a8d50;
+        padding: 5px;
+        border-radius: 4px;
+        width: 15px;
 
-    font-size: 15px;
-    margin-bottom: 2px;
-    color: $float-button-color;
-//    text-shadow: 2px 2px 4px #c6e7c6, 0 1px 0 #9bc296, -1px 0 0 #00000066, 0 -1px 0 #0000008a;
-    cursor: pointer;
+        font-size: 15px;
+        margin-bottom: 2px;
+        color: $float-button-color;
+        //    text-shadow: 2px 2px 4px #c6e7c6, 0 1px 0 #9bc296, -1px 0 0 #00000066, 0 -1px 0 #0000008a;
+        cursor: pointer;
 
-    &:hover {
-        width: 140px;
-        color: $float-button-color-hover;
-//       text-shadow: 2px 3px 4px #c6e7c6, 0 1px 0 #9bc296, -1px 0 0 #00000066, 0 -1px 0 #0000008a;
-        background: rgb(76 146 76 / 75%);
+        &:hover {
+            width: 140px;
+            color: $float-button-color-hover;
+            //       text-shadow: 2px 3px 4px #c6e7c6, 0 1px 0 #9bc296, -1px 0 0 #00000066, 0 -1px 0 #0000008a;
+            background: rgb(76 146 76 / 75%);
 
-        .hint {
-            font-size: 12px;
-            padding-right: 10px;
+            .hint {
+                font-size: 12px;
+                padding-right: 10px;
+            }
+        }
+
+        &.background {
+            display: none;
         }
     }
-
-    &.background {
-        display: none;
-    }
-}
 }
 
 // Notification 
-#toast-container.toast-bottom-center>div, #toast-container.toast-top-center>div {
-    margin-top:40px ;
+#toast-container.toast-bottom-center>div,
+#toast-container.toast-top-center>div {
+    margin-top: 40px;
 }
