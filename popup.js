@@ -172,6 +172,16 @@ function bindClickActions() {
     }
   });
 
+  // non-tab click
+
+  $('.button').off('click');
+  $('.button').click(function () {
+    if ($(this).prop('id') == 'editor') {
+      console.log("editor clicked");
+      constructPop("editor", null);
+    };
+  });
+
   // For img 
   $('.content-img').off('click');
   $('.content-img').click(function () {
@@ -277,12 +287,18 @@ function constructPop(type, content) {
   // for pic
   $controls.append($('<span class="resize">').addClass('icon-resize'));
   $controls.append($('<span class="download">').addClass('icon-download2'));
+  // for writer
+
+
   $popframe.append($controls);
   var ctrl_buttons = ['retweet', 'reply', 'star', 'resize', 'download'];
   // For img display
   if (type == "img") {
     ctrl_buttons = ['resize', 'download'];
     buildPopImg(content[0], content[1]);
+  } else if (type == "editor") {
+    ctrl_buttons = [];
+    buildPopEditor();
   }
   ctrl_buttons.forEach(btn => $('.' + btn).addClass("show"));
   applyDarkMode();
