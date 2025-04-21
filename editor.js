@@ -17,10 +17,17 @@ function buildPopEditor() {
 
 
     // 图片占位符
-    var $picframe= $('<div>', {
+    // 图片占位符
+    var $picframe = $('<div>', {
         id: 'fanfou-picframe'
     }).appendTo($editorContainer);
 
+    // 插入图片元素
+    $('<img>', {
+        id: 'fanfou-image',
+        src: '/images/background.png', // 默认图片路径
+        alt: 'Uploaded Image'
+    }).appendTo($picframe);
 
 
     $editorContainer.appendTo($popframe);

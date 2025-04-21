@@ -10,8 +10,9 @@
   display: flex;
   gap: 10px;
   padding: 12px;
-  background: #ecf0f1;
-  border-radius: 4px;
+  background: rgba(216, 217, 216, 0.1490196078);
+  border-top: 1px dotted #555;
+  border-bottom: 1px dotted #555;
   margin-top: 8px;
 }
 #fanfou-editor #fanfou-toolbar button {
@@ -37,11 +38,13 @@
   color: #507192;
   font-size: 0.9em;
   align-self: center;
+  width: 25px;
+  text-align: center;
 }
 #fanfou-editor textarea {
   height: 160px;
   padding: 12px;
-  border: 1px solid #ecf0f1;
+  border: 1px solid rgba(216, 217, 216, 0.1490196078);
   border-radius: 4px;
   resize: none;
   font-family: inherit;
@@ -56,4 +59,11 @@
 #fanfou-editor #fanfou-picframe {
   height: 100px;
   border: 1px dotted #ddd;
+  margin-top: 10px;
+}
+#fanfou-editor #fanfou-picframe img {
+  position: relative;
+  max-width: 362px;
+  max-height: 100px;
+  opacity: 50%;
 }/*# sourceMappingURL=editor.css.map */
