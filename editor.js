@@ -36,11 +36,18 @@ function buildPopEditor() {
     // 发布按钮
     $('<button>', {
         text: '发布',
-        click: function () {
-            var tweetText = $textarea.val();
-            if (tweetText.trim() !== "") {
+        click: async function () {
+            var fanfouText = $textarea.val();
+            if (fanfouText.trim() !== "") {
                 // 这里可以添加发布推特的逻辑
-                console.log("发布推特: " + tweetText);
+                console.log("发布: " + fanfouText);
+                try {
+                    await postStatus(fanfouText);
+                    toastr.success('发布成功');
+                    $('#fanfou-textarea').val(''); // 清空输入框
+                } catch (error) {
+                    toastr.error(error.message);
+                }
             } else {
                 toastr.options.timeOut = "3000";
                 toastr.options.extendedTimeOut = "1000";

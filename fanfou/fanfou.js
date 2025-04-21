@@ -1,3 +1,91 @@
+// 修改fanfou.js中的fanfouRequest函数
+async function fanfouRequest(apiurl, fmode, params, formData = null) {
+    return new Promise(async (resolve, reject) => {
+        NProgress.start();
+        const url = new URL(apiurl);
+
+        // 生成OAuth签名
+        const queryParams = params || {};
+        const headerParams = {
+            oauth_consumer_key: CONSUMER_KEY,
+            oauth_token: validToken.oauthToken,
+            oauth_signature_method: "HMAC-SHA1",
+            oauth_timestamp: OAuth1.generateTimestamp(),
+            oauth_nonce: OAuth1.generateNonce(),
+            oauth_version: "1.0"
+        };
+
+        try {
+            const signature = generateOAuthSignature(
+                fmode,
+                url,
+                formData ? {} : queryParams, // 如果是formData则不签名字段参数
+                headerParams,
+                CONSUMER_SECRET,
+                validToken.oauthTokenSecret
+            );
+
+            headerParams.oauth_signature = signature;
+            const authHeader = OAuth1.buildAuthHeader(headerParams);
+
+            // 构造请求头
+            const headers = new Headers({
+                'Authorization': authHeader
+            });
+
+            // 根据请求类型设置Content-Type
+            if (formData) {
+                // 不设置Content-Type头，浏览器会自动处理multipart边界
+            } else {
+                headers.append('Content-Type', 'application/json');
+                // 添加查询参数到URL
+                Object.entries(queryParams).forEach(([key, value]) => {
+                    url.searchParams.append(key, value);
+                });
+            }
+
+            const fetchOptions = {
+                method: fmode,
+                headers: headers,
+                body: formData || (fmode !== 'GET' ? JSON.stringify(queryParams) : null)
+            };
+
+            const response = await fetch(url, fetchOptions);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        } finally {
+            NProgress.done();
+        }
+    });
+}
+
+// 修改后的postStatus函数
+async function postStatus(statusText, imageFile = null) {
+    try {
+        const url = 'http://api.fanfou.com/statuses/update.json';
+        let response;
+        const formData = new FormData();
+        formData.append('status', statusText);
+        if (imageFile) {
+            formData.append('photo', imageFile);
+        }
+        response = await fanfouRequest(url, 'POST', null, formData);
+
+        return await response.json();
+    } catch (error) {
+        console.error('发布失败:', error);
+        throw error;
+    }
+}
+
+
+/*
+
 async function fanfouRequest(apiurl, fmode, params) {
     return new Promise(async (resolve, reject) => {
         NProgress.start();
@@ -15,7 +103,7 @@ async function fanfouRequest(apiurl, fmode, params) {
         };
 
         try {
-            const signature = generateOAuthSignature('GET', url, queryParams, headerParams, CONSUMER_SECRET, validToken.oauthTokenSecret);
+            const signature = generateOAuthSignature(fmode, url, queryParams, headerParams, CONSUMER_SECRET, validToken.oauthTokenSecret);
             headerParams.oauth_signature = signature;
             const authHeader = OAuth1.buildAuthHeader(headerParams);
 
@@ -47,6 +135,7 @@ async function fanfouRequest(apiurl, fmode, params) {
         }
     });
 }
+    */
 
 //请注意这个是获取Home，而不是消息
 
