@@ -17,9 +17,9 @@ $border-radius: 4px;
         gap: 10px;
         padding: 12px;
         background: $secondary-color;
-        border-top:1px dotted #555;
-        border-bottom:1px dotted #555;
-    //    border-radius: $border-radius;
+        border-top: 1px dotted #555;
+        border-bottom: 1px dotted #555;
+        //    border-radius: $border-radius;
         margin-top: 8px;
 
         button {
@@ -49,8 +49,8 @@ $border-radius: 4px;
         color: lighten($text-color, 20%);
         font-size: 0.9em;
         align-self: center;
-        width:25px;
-        text-align:center;
+        width: 25px;
+        text-align: center;
     }
 
     textarea {
@@ -74,15 +74,37 @@ $border-radius: 4px;
     #fanfou-picframe {
         height: 100px;
         border: 1px dotted #ddd;
-        margin-top:10px;
-        img{
-                position: relative;
-//                transform: translate(-50%, -50%); // 居中
-                max-width: 362px; // 最小宽度为父容器的 100%
-                max-height: 100px; // 最小高度为父容器的 100%
-//                object-fit: cover; // 按比例缩放，撑满父容器
-                opacity:50%;
+        margin-top: 10px;
+        display: flex;
+        cursor:default;
 
+        #fanfou-image-container {
+            width: 180px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+
+            img {
+                min-width: 100%;
+                min-height: 100%;
+                object-fit: scale-down;
+                cursor:pointer;
+            }
+        }
+
+        #fanfou-image-info {
+            width: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+
+            div {
+                margin-left: 20px;
+                border-left: 2px solid #aaa;
+                padding-left: 10px;
+            }
         }
     }
-}  
+}

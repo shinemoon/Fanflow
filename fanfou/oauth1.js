@@ -243,11 +243,10 @@ function createBaseString(httpMethod, baseUrl, queryParams = {}, headerParams = 
  */
 function generateOAuthSignature(httpMethod, baseUrl, queryParams, headerParams, consumerSecret, tokenSecret = '') {
   // 创建签名基字符串
-  // 创建签名基字符串
-  const baseString = createBaseString(httpMethod, baseUrl.replace(/^https/, 'http'), queryParams, headerParams);
+  //  const baseString = createBaseString(httpMethod, baseUrl.replace(/^https/, 'http'), queryParams, headerParams);
 
 
-//  const baseString = createBaseString(httpMethod, baseUrl, queryParams, headerParams);
+  const baseString = createBaseString(httpMethod, baseUrl, queryParams, headerParams);
   console.log(baseString);
 
   // 创建签名

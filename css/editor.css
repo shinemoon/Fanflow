@@ -60,10 +60,32 @@
   height: 100px;
   border: 1px dotted #ddd;
   margin-top: 10px;
+  display: flex;
+  cursor: default;
 }
-#fanfou-editor #fanfou-picframe img {
-  position: relative;
-  max-width: 362px;
-  max-height: 100px;
-  opacity: 50%;
+#fanfou-editor #fanfou-picframe #fanfou-image-container {
+  width: 180px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+#fanfou-editor #fanfou-picframe #fanfou-image-container img {
+  min-width: 100%;
+  min-height: 100%;
+  -o-object-fit: scale-down;
+     object-fit: scale-down;
+  cursor: pointer;
+}
+#fanfou-editor #fanfou-picframe #fanfou-image-info {
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+#fanfou-editor #fanfou-picframe #fanfou-image-info div {
+  margin-left: 20px;
+  border-left: 2px solid #aaa;
+  padding-left: 10px;
 }/*# sourceMappingURL=editor.css.map */

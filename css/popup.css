@@ -110,7 +110,7 @@ body {
 .mask .frame#popframe .img-container.clean {
   filter: blur(0px);
 }
-.mask .frame#popframe img {
+.mask .frame#popframe img.popimg {
   position: absolute;
   top: 50%;
   left: 50%;

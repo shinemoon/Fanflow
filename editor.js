@@ -9,28 +9,39 @@ function buildPopEditor() {
         placeholder: 'What\'s happening?',
         rows: 4
     }).appendTo($editorContainer);
-
     // 创建工具栏
     var $toolbar = $('<div>', {
         id: 'fanfou-toolbar'
     }).appendTo($editorContainer);
-
-
-    // 图片占位符
     // 图片占位符
     var $picframe = $('<div>', {
-        id: 'fanfou-picframe'
+        id: 'fanfou-picframe',
     }).appendTo($editorContainer);
-
+    // 插入图片元素
+    var $piccontainer = $('<div>', {
+        id: 'fanfou-image-container',
+    }).appendTo($picframe);
     // 插入图片元素
     $('<img>', {
         id: 'fanfou-image',
         src: '/images/background.png', // 默认图片路径
-        alt: 'Uploaded Image'
+        click: function () {
+            $('#upload-btn').click(); // 触发隐藏的file input
+        },
+        alt: 'Uploaded Image',
+    }).appendTo($piccontainer);
+    // 插入图片元素信息控制
+    $('<div>', {
+        id: 'fanfou-image-info',
     }).appendTo($picframe);
 
-
     $editorContainer.appendTo($popframe);
+
+    //细节控制
+    $('#fanfou-image-info').append('<div>图片名称</div>');
+    $('#fanfou-image-info').append('<div>图片尺寸</div>');
+    $('#fanfou-image-info').append('<div>图片大小</div>');
+    $('#fanfou-image-info').append('<div>去除图片</div>');
 
 
     // 发布按钮
@@ -62,19 +73,6 @@ function buildPopEditor() {
 
 
 
-
-    // 替换原有的label方式，改为按钮触发
-    $('<button>', {
-        type: 'button',
-        class: 'upload-btn',
-        title: '上传图片',
-        text: '上传图片',
-        css: {
-        },
-        click: function () {
-            $('#upload-btn').click(); // 触发隐藏的file input
-        }
-    }).appendTo($toolbar);
 
     // 保持原有的file input（需确保在DOM中）
     $('<input>', {
