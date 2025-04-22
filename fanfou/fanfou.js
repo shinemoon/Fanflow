@@ -22,8 +22,8 @@ async function fanfouRequest(apiurl, fmode, params, formData = null) {
         try {
             const signature = generateOAuthSignature(
                 fmode,
-                url.href,
-                signParams, // 如果是formData则不签名字段参数
+                url,
+                formData ? {} : queryParams, // 如果是formData则不签名字
                 headerParams,
                 CONSUMER_SECRET,
                 validToken.oauthTokenSecret
@@ -78,9 +78,9 @@ async function postStatus(statusText, imageFile = null) {
     try {
         var url = null;
         if (imageFile == null)
-            url = FANFOU_API_BASE+'/statuses/update.json';
+            url = FANFOU_API_BASE + '/statuses/update.json';
         else
-            url = FANFOU_API_BASE+'/photos/upload.json';
+            url = FANFOU_API_BASE + '/photos/upload.json';
         let response;
         const formData = new FormData();
         formData.append('status', statusText);
@@ -178,7 +178,7 @@ async function fanfouRequest(apiurl, fmode, params) {
 //请注意这个是获取Home，而不是消息
 
 async function getTimeline(user_id = null, since_id = null, max_id = null) {
-    const url = new URL(FANFOU_API_BASE+'/statuses/home_timeline.json');
+    const url = new URL(FANFOU_API_BASE + '/statuses/home_timeline.json');
     const queryParams = {
         format: 'html',
         mode: 'lite',
@@ -200,7 +200,7 @@ async function getTimeline(user_id = null, since_id = null, max_id = null) {
 
 
 async function getStatus(user_id = null, since_id = null, max_id = null) {
-    const url = new URL(FANFOU_API_BASE+'/statuses/user_timeline.json');
+    const url = new URL(FANFOU_API_BASE + '/statuses/user_timeline.json');
     const queryParams = {
         format: 'html',
         mode: 'lite',
@@ -227,7 +227,7 @@ async function getStatus(user_id = null, since_id = null, max_id = null) {
 }
 
 async function getUserInfo(user_id = null) {
-    const url = new URL(FANFOU_API_BASE+'/users/show.json');
+    const url = new URL(FANFOU_API_BASE + '/users/show.json');
     const queryParams = {
         format: 'html',
         mode: 'lite'
@@ -250,7 +250,7 @@ async function getUserInfo(user_id = null) {
 
 
 async function getMentions(since_id = null, max_id = null) {
-    const url = new URL(FANFOU_API_BASE+'/statuses/mentions.json');
+    const url = new URL(FANFOU_API_BASE + '/statuses/mentions.json');
     const queryParams = {
         format: 'html',
         mode: 'lite',
