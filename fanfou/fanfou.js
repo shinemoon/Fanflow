@@ -15,14 +15,8 @@ async function fanfouRequest(apiurl, fmode, params, formData = null) {
             oauth_version: "1.0"
         };
 
-        //const headerParams = (fmode == 'POST') ? {} : signParams;
-        const headerParams = signParams;
-
-        if (fmode === 'POST' && formData) {
-            Object.entries(signParams).forEach(([key, value]) => {
-                formData.append(key, value);
-            });
-        }
+        //var headerParams = (fmode == 'POST') ? {} : signParams;
+        var headerParams = signParams;
 
 
         try {
@@ -36,6 +30,11 @@ async function fanfouRequest(apiurl, fmode, params, formData = null) {
             );
 
             headerParams.oauth_signature = signature;
+            if (fmode === 'POST' && formData) {
+                Object.entries(signParams).forEach(([key, value]) => {
+                    formData.append(key, value);
+                });
+            }
             const authHeader = OAuth1.buildAuthHeader(headerParams);
 
             // 构造请求头
