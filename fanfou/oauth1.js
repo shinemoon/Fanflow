@@ -213,19 +213,19 @@ function createBaseString(httpMethod, baseUrl, queryParams = {}, headerParams = 
 
   // 将URL中的查询参数合并到allParams中
   urlObj.searchParams.forEach((value, key) => {
-      allParams[key] = value;
+    allParams[key] = value;
   });
 
   // 合并头部参数（如果需要）
   for (const [key, value] of Object.entries(headerParams)) {
-      allParams[key] = value;
+    allParams[key] = value;
   }
 
   // 按照参数名称字典序排序
   const sortedParams = Object.keys(allParams)
-      .sort()
-      .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(allParams[key])}`)
-      .join('&');
+    .sort()
+    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(allParams[key])}`)
+    .join('&');
 
   // 构造签名基字符串
   return `${httpMethod.toUpperCase()}&${encodeURIComponent(urlObj.origin + urlObj.pathname)}&${encodeURIComponent(sortedParams)}`;
@@ -243,8 +243,12 @@ function createBaseString(httpMethod, baseUrl, queryParams = {}, headerParams = 
  */
 function generateOAuthSignature(httpMethod, baseUrl, queryParams, headerParams, consumerSecret, tokenSecret = '') {
   // 创建签名基字符串
-  const baseString = createBaseString(httpMethod, baseUrl, queryParams, headerParams);
-  //console.log(baseString);
+  // 创建签名基字符串
+  const baseString = createBaseString(httpMethod, baseUrl.replace(/^https/, 'http'), queryParams, headerParams);
+
+
+//  const baseString = createBaseString(httpMethod, baseUrl, queryParams, headerParams);
+  console.log(baseString);
 
   // 创建签名
   return createSignature(baseString, consumerSecret, tokenSecret);

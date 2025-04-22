@@ -6,20 +6,30 @@ async function fanfouRequest(apiurl, fmode, params, formData = null) {
 
         // 生成OAuth签名
         const queryParams = params || {};
-        const headerParams = {
+        const signParams = {
             oauth_consumer_key: CONSUMER_KEY,
-            oauth_token: validToken.oauthToken,
+            oauth_nonce: OAuth1.generateNonce(),
             oauth_signature_method: "HMAC-SHA1",
             oauth_timestamp: OAuth1.generateTimestamp(),
-            oauth_nonce: OAuth1.generateNonce(),
+            oauth_token: validToken.oauthToken,
             oauth_version: "1.0"
         };
+
+        //const headerParams = (fmode == 'POST') ? {} : signParams;
+        const headerParams = signParams;
+
+        if (fmode === 'POST' && formData) {
+            Object.entries(signParams).forEach(([key, value]) => {
+                formData.append(key, value);
+            });
+        }
+
 
         try {
             const signature = generateOAuthSignature(
                 fmode,
-                url,
-                formData ? {} : queryParams, // 如果是formData则不签名字段参数
+                url.href,
+                signParams, // 如果是formData则不签名字段参数
                 headerParams,
                 CONSUMER_SECRET,
                 validToken.oauthTokenSecret
@@ -67,13 +77,42 @@ async function fanfouRequest(apiurl, fmode, params, formData = null) {
 // 修改后的postStatus函数
 async function postStatus(statusText, imageFile = null) {
     try {
-        const url = 'http://api.fanfou.com/statuses/update.json';
+        var url = null;
+        if (imageFile == null)
+            url = 'https://api.fanfou.com/statuses/update.json';
+        else
+            url = 'https://api.fanfou.com/photos/upload.json';
         let response;
         const formData = new FormData();
         formData.append('status', statusText);
+        // 修改后的图片处理逻辑（替换原91行附近代码）
         if (imageFile) {
-            formData.append('photo', imageFile);
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!validTypes.includes(imageFile.type)) {
+                throw new Error('仅支持JPEG/PNG/GIF格式');
+            }
+            if (imageFile.size > 5 * 1024 * 1024) {
+                throw new Error('图片大小不能超过5MB');
+            }
+
+            // 新增二进制处理
+            try {
+                const blob = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        resolve(new Blob([reader.result], { type: imageFile.type }));
+                    };
+                    reader.readAsArrayBuffer(imageFile);
+                });
+
+                formData.append('photo', blob, imageFile.name);
+                formData.append('mode', "lite");
+                formData.append('format', "html");
+            } catch (e) {
+                throw new Error('文件处理失败: ' + e.message);
+            }
         }
+
         response = await fanfouRequest(url, 'POST', null, formData);
 
         return await response.json();

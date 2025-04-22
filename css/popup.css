@@ -82,6 +82,7 @@ body {
   flex-direction: row;
   justify-content: space-around;
   align-items: flex-start;
+  width: 100%;
 }
 .mask .frame#popframe .pop-controls span {
   display: none;

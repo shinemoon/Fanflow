@@ -34,17 +34,20 @@ function buildPopEditor() {
 
 
     // 发布按钮
-    $('<button>', {
+    $('<button >', {
+        id: "publish-btn",
         text: '发布',
         click: async function () {
             var fanfouText = $textarea.val();
-            if (fanfouText.trim() !== "") {
+            const imageFile = $('#upload-btn')[0].files[0];
+            if (fanfouText.trim() !== "" || imageFile !== null) {
                 // 这里可以添加发布推特的逻辑
                 console.log("发布: " + fanfouText);
                 try {
-                    await postStatus(fanfouText);
+                    await postStatus(fanfouText, imageFile);
                     toastr.success('发布成功');
                     $('#fanfou-textarea').val(''); // 清空输入框
+                    $('#popmask').click();
                 } catch (error) {
                     toastr.error(error.message);
                 }
@@ -56,14 +59,40 @@ function buildPopEditor() {
         }
     }).appendTo($toolbar);
 
-    // 图片上传按钮
+
+
+
+
+    // 替换原有的label方式，改为按钮触发
     $('<button>', {
+        type: 'button',
+        class: 'upload-btn',
+        title: '上传图片',
         text: '上传图片',
+        css: {
+        },
         click: function () {
-            // 这里可以添加图片上传的逻辑
-            console.log("图片上传功能尚未实现");
+            $('#upload-btn').click(); // 触发隐藏的file input
         }
     }).appendTo($toolbar);
+
+    // 保持原有的file input（需确保在DOM中）
+    $('<input>', {
+        type: 'file',
+        id: 'upload-btn',
+        accept: 'image/*',
+        css: { display: 'none' }
+    }).appendTo($toolbar);
+
+    // 图片选择处理逻辑保持不变
+    $('#upload-btn').change(function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            const previewUrl = URL.createObjectURL(file);
+            $('#fanfou-image').attr('src', previewUrl).show();
+        }
+    });
+
 
     // 字数计数器
     var $charCount = $('<span>', {
@@ -79,6 +108,6 @@ function buildPopEditor() {
             $textarea.val($textarea.val().substring(0, 140));
             $charCount.text(0);
         }
-
     });
+
 }
