@@ -170,6 +170,8 @@ function bindClickActions() {
       }
       buildMentionListPage(ntype, bindClickActions);
     }
+
+
   });
 
   // non-tab click

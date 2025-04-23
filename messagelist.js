@@ -214,9 +214,14 @@ function buildHtmlFromMessages({
     $messageDiv.append($contentDiv);
     // 创建操作容器
     let $actionsDiv = $('<div>').addClass('actions');
-    $actionsDiv.append($('<span>').addClass('icon-star'));
-    $actionsDiv.append($('<span>').addClass('icon-quote1'));
-    $actionsDiv.append($('<span>').addClass('icon-reply'));
+    $actionsDiv.attr('msgid', message.id);
+    if (message.favorited)
+      $actionsDiv.append($('<span>').addClass('star added').addClass('icon-heart'));
+    else
+      $actionsDiv.append($('<span>').addClass('star').addClass('icon-heart3'));
+
+    $actionsDiv.append($('<span>').addClass('quote').addClass('icon-quote1'));
+    $actionsDiv.append($('<span>').addClass('reply').addClass('icon-reply'));
     $actionsDiv.append($('<span>').addClass('icon-link').addClass('reply-src'));
     // 拼装消息HTML
     $messageDiv.append($metaDiv);
@@ -243,9 +248,66 @@ function buildHtmlFromMessages({
       messages.slice(0, -listLength).remove();
     }
   }
-  //  reloc('#feed', type);
+  bindMsgAction();
   applyDarkMode();
   cb();
+}
+
+/**
+ * 绑定消息列表中各个操作按钮的点击事件处理
+ * - 收藏按钮点击事件
+ * - 引用按钮点击事件  
+ * - 回复按钮点击事件
+ * - 跳转原文按钮点击事件
+ * 
+ * 每次调用前会先解绑之前的事件处理器,避免重复绑定
+ */
+function bindMsgAction() {
+  $('.star').off('click');
+  $('.star').click(async function () {
+    let res;
+    let curid = $(this).parent().attr('msgid');
+    console.log("Star: " + curid);
+    try {
+      res = await toggleFavorite(curid, !$(this).hasClass('added'));
+    } catch (err) {
+      toastr.error(err.message);
+    }
+    if (res) {
+      /*
+      //临时 - 临时 : 实际需要根据页面的当前状况决定是更新哪个表。
+      homelist / mentionlist => 但是临时的userlist不需要保存，所以仅需要修改当前的list即可
+      */
+      $(this).toggleClass('added');
+      if($(this).hasClass('added'))
+        $(this).removeClass('icon-heart3').addClass('icon-heart1');
+      else
+        $(this).removeClass('icon-heart1').addClass('icon-heart3');
+      // 刷新本地messageList的favorite状态
+      let message = curList.find(function (message) {
+        return message.id == curid;
+      });
+      message.favorited = !message.favorited;
+      await chrome.storage.local.set({ homelist: curList });
+    }
+  })
+
+  $('.quote').off('click');
+  $('.quote').click(function () {
+    console.log("Quote: " + $(this).parent().attr('msgid'));
+  });
+
+  $('.reply').off('click');
+  $('.reply').click(function () {
+    console.log("Reply: " + $(this).parent().attr('msgid'));
+  });
+
+  $('.reply-src').off('click');
+  $('.reply-src').click(function () {
+    console.log("Link: " + $(this).parent().attr('msgid'));
+  });
+
+
 
 }
 

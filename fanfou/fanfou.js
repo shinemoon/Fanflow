@@ -247,9 +247,30 @@ function remapMessage(msgs) {
     return retArr;
 }
 
+async function toggleFavorite(status_id, favorite = true) {
+    const url = new URL(FANFOU_API_BASE + '/favorites/create/'+status_id+'.json');
+    const queryParams = {
+        id: status_id
+    };
+
+    if (!favorite) {
+        url.pathname = '/favorites/destroy/'+status_id+'.json';
+    }
+
+    try {
+        const response = await fanfouRequest(url, 'POST', queryParams);
+        return await response.json();
+    } catch (error) {
+        console.error('Error toggling favorite:', error);
+        throw error;
+    }
+}
+
+
 // Debug /background cli
 function clearCache() {
     chrome.storage.local.set({ homelist: [], mentionlist: [] }, function () {
         console.log("Clear Local MsgList");
     });
 }
+
