@@ -185,7 +185,7 @@ function bindClickActions() {
   // For img 
   $('.content-img').off('click');
   $('.content-img').click(function () {
-    console.log("switchMask");
+    console.log("content-img switchMask");
     constructPop("img", [$(this).attr("src"), $(this).attr('largeurl')]);
   });
 
@@ -196,6 +196,7 @@ function bindClickActions() {
     // 检查点击的目标是否是 #popframe 或其子元素
     if (!$(event.target).closest('#popframe').length) {
       // 在这里执行你希望在 #popframe 之外点击时触发的操作
+      console.log("popmask switchMask");
       $('#popmask').removeClass('show');
     }
   });

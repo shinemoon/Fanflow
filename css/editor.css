@@ -88,4 +88,25 @@
   margin-left: 20px;
   border-left: 2px solid #aaa;
   padding-left: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 140px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+#fanfou-editor #fanfou-picframe #fanfou-image-info div.action {
+  background: #ecdac2;
+  text-align: center;
+  padding-right: 0px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  border-right: 2px solid #aaa;
+  font-size: 10px;
+}
+#fanfou-editor #fanfou-picframe #fanfou-image-info div.action:hover {
+  background: #e0c29b;
+  color: black;
 }/*# sourceMappingURL=editor.css.map */

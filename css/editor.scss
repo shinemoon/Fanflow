@@ -76,7 +76,7 @@ $border-radius: 4px;
         border: 1px dotted #ddd;
         margin-top: 10px;
         display: flex;
-        cursor:default;
+        cursor: default;
 
         #fanfou-image-container {
             width: 180px;
@@ -90,7 +90,7 @@ $border-radius: 4px;
                 min-width: 100%;
                 min-height: 100%;
                 object-fit: scale-down;
-                cursor:pointer;
+                cursor: pointer;
             }
         }
 
@@ -104,6 +104,30 @@ $border-radius: 4px;
                 margin-left: 20px;
                 border-left: 2px solid #aaa;
                 padding-left: 10px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                width: 140px;
+
+                height: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+
+                &.action {
+                    background: #ecdac2;
+                    text-align: center;
+                    padding-right: 0px;
+                    letter-spacing: 2px;
+                    cursor: pointer;
+                    border-right: 2px solid #aaa;
+                    font-size: 10px;
+
+                    &:hover {
+                        background: darken(#ecdac2, 10%);
+                        color: darken(#000, 10%);
+                    }
+                }
             }
         }
     }

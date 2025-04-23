@@ -122,59 +122,6 @@ async function postStatus(statusText, imageFile = null) {
 }
 
 
-/*
-
-async function fanfouRequest(apiurl, fmode, params) {
-    return new Promise(async (resolve, reject) => {
-        NProgress.start();
-        const url = new URL(apiurl);
-
-        // Generate OAuth signature
-        const queryParams = params;
-        const headerParams = {
-            oauth_consumer_key: CONSUMER_KEY,
-            oauth_token: validToken.oauthToken,
-            oauth_signature_method: "HMAC-SHA1",
-            oauth_timestamp: OAuth1.generateTimestamp(),
-            oauth_nonce: OAuth1.generateNonce(),
-            oauth_version: "1.0"
-        };
-
-        try {
-            const signature = generateOAuthSignature(fmode, url, queryParams, headerParams, CONSUMER_SECRET, validToken.oauthTokenSecret);
-            headerParams.oauth_signature = signature;
-            const authHeader = OAuth1.buildAuthHeader(headerParams);
-
-            // Add query parameters to URL
-            Object.entries(queryParams).forEach(([key, value]) => {
-                url.searchParams.append(key, value);
-            });
-
-            const headers = new Headers({
-                'Content-Type': 'application/json',
-                'Authorization': authHeader
-            });
-
-            const response = await fetch(url, {
-                method: fmode,
-                headers: headers
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            resolve(response);
-        } catch (error) {
-            console.error('Request failed:', error);
-            reject(error);
-        } finally {
-            NProgress.done();
-        }
-    });
-}
-    */
-
 //请注意这个是获取Home，而不是消息
 
 async function getTimeline(user_id = null, since_id = null, max_id = null) {

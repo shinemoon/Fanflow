@@ -38,10 +38,7 @@ function buildPopEditor() {
     $editorContainer.appendTo($popframe);
 
     //细节控制
-    $('#fanfou-image-info').append('<div>图片名称</div>');
-    $('#fanfou-image-info').append('<div>图片尺寸</div>');
-    $('#fanfou-image-info').append('<div>图片大小</div>');
-    $('#fanfou-image-info').append('<div>去除图片</div>');
+    $('#fanfou-image-info').append('<div class="tipinfo">请点击上传图片</div>');
 
 
     // 发布按钮
@@ -51,7 +48,7 @@ function buildPopEditor() {
         click: async function () {
             var fanfouText = $textarea.val();
             const imageFile = $('#upload-btn')[0].files[0];
-            if (fanfouText.trim() !== "" || imageFile !== null) {
+            if (fanfouText.trim() !== "" || imageFile) {
                 // 这里可以添加发布推特的逻辑
                 console.log("发布: " + fanfouText);
                 try {
@@ -88,6 +85,30 @@ function buildPopEditor() {
         if (file) {
             const previewUrl = URL.createObjectURL(file);
             $('#fanfou-image').attr('src', previewUrl).show();
+            // 获取图片信息并显示
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const img = new Image();
+                img.onload = function () {
+                    $('#fanfou-image-info').empty(); // 清空之前的信息
+                    $('#fanfou-image-info').append(`<div class="picdetails">${file.name}</div>`);
+                    $('#fanfou-image-info').append(`<div class="picdetails">${img.width} x ${img.height}</div>`);
+                    $('#fanfou-image-info').append(`<div class="picdetails">${(file.size / 1024).toFixed(2)} KB</div>`);
+                    $('#fanfou-image-info').append(`<div class="action " id="reset-pic">    重 置    </div>`);
+                    $('#reset-pic').click(function () {
+                        $('#upload-btn').val('');
+                        $('#fanfou-image-info div.picdetails').text(" ").hide(); // 清空之前的信息
+                        $('#fanfou-image-info div.picdetails').eq(0).text("请点击上传图片").show(); // 清空之前的信息
+                        $('#fanfou-image-info div.action').eq(0).hide(); // 
+                        $('#fanfou-image').attr('src', '/images/background.png');
+                        // 创建一个空的FileList对象
+                    });
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+            $PLACEHOLDER$ = ''; // 清空占位符
+
         }
     });
 
