@@ -301,7 +301,10 @@ function constructPop(type, content) {
     buildPopImg(content[0], content[1]);
   } else if (type == "editor") {
     ctrl_buttons = [];
-    buildPopEditor();
+    buildPopEditor('new');
+  } else if (type == "retweet" || type == "reply") {
+    ctrl_buttons = [];
+    buildPopEditor(type, content);
   }
   ctrl_buttons.forEach(btn => $('.' + btn).addClass("show"));
   applyDarkMode();

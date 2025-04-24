@@ -263,6 +263,7 @@ function buildHtmlFromMessages({
  * 每次调用前会先解绑之前的事件处理器,避免重复绑定
  */
 function bindMsgAction() {
+  // 收藏
   $('.star').off('click');
   $('.star').click(async function () {
     let res;
@@ -305,9 +306,28 @@ function bindMsgAction() {
     }
   })
 
+
+  // 转发
   $('.quote').off('click');
   $('.quote').click(function () {
-    console.log("Quote: " + $(this).parent().attr('msgid'));
+    let curid = $(this).parent().attr('msgid');
+    console.log("Quote: " + curid);
+    let message = null;
+    switch (curTab) {
+      case 'home':
+        message = curList.find(function (message) {
+          return message.id == curid;
+        });
+        break;
+      case 'mentions':
+        message = mentionList.find(function (message) {
+          return message.id == curid;
+        });
+        break;
+      default:
+        break;
+    }
+    constructPop("retweet", message);
   });
 
   $('.reply').off('click');

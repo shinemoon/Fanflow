@@ -1,4 +1,5 @@
-function buildPopEditor() {
+function buildPopEditor(type='new', content=null) {
+    if(content) console.log(content);
     console.log("Build Pop Editor")
     var $popframe = $('#popframe');
     var $editorContainer = $('<div id="fanfou-editor"></div>');
@@ -7,6 +8,7 @@ function buildPopEditor() {
     var $textarea = $('<textarea>', {
         id: 'fanfou-textarea',
         placeholder: 'What\'s happening?',
+        text:type=='retweet'?content.text:null,
         rows: 4
     }).appendTo($editorContainer);
     // 创建工具栏
@@ -128,5 +130,4 @@ function buildPopEditor() {
             $charCount.text(0);
         }
     });
-
 }
