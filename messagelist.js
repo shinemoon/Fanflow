@@ -279,16 +279,29 @@ function bindMsgAction() {
       homelist / mentionlist => 但是临时的userlist不需要保存，所以仅需要修改当前的list即可
       */
       $(this).toggleClass('added');
-      if($(this).hasClass('added'))
-        $(this).removeClass('icon-heart3').addClass('icon-heart1');
+      if ($(this).hasClass('added'))
+        $(this).removeClass('icon-heart3').addClass('icon-heart');
       else
-        $(this).removeClass('icon-heart1').addClass('icon-heart3');
+        $(this).removeClass('icon-heart').addClass('icon-heart3');
       // 刷新本地messageList的favorite状态
-      let message = curList.find(function (message) {
-        return message.id == curid;
-      });
-      message.favorited = !message.favorited;
-      await chrome.storage.local.set({ homelist: curList });
+      let message = null;
+      switch (curTab) {
+        case 'home':
+          message = curList.find(function (message) {
+            return message.id == curid;
+          });
+          message.favorited = !message.favorited;
+          break;
+        case 'mentions':
+          message = mentionList.find(function (message) {
+            return message.id == curid;
+          });
+          message.favorited = !message.favorited;
+          break;
+        default:
+          break;
+      }
+      await chrome.storage.local.set({ homelist: curList, mentionlist: mentionList });
     }
   })
 
