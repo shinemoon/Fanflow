@@ -1,5 +1,12 @@
-function buildPopEditor(type='new', content=null) {
-    if(content) console.log(content);
+function buildPopEditor(type = 'new', content = null) {
+    if (content) console.log(content);
+    // Remove HTML tags from content.text using regex
+    if (content && content.text) {
+        content.text = content.text.replace(/<[^>]*>/g, '');
+    }
+    let in_reply_user_id = null;
+    let in_reply_msg_id =null;
+
     console.log("Build Pop Editor")
     var $popframe = $('#popframe');
     var $editorContainer = $('<div id="fanfou-editor"></div>');
