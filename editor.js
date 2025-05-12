@@ -1,21 +1,32 @@
 function buildPopEditor(type = 'new', content = null) {
     if (content) console.log(content);
+    let in_repost_user_id = null;
+    let in_repost_msg_id = null;
+
+
     // Remove HTML tags from content.text using regex
     if (content && content.text) {
-        content.text = content.text.replace(/<[^>]*>/g, '');
+        in_repost_user_id = content.user.id;
+        in_repost_msg_id = content.id;
+        content.text = "转@" + content.user.id + " " + content.text.replace(/<[^>]*>/g, '');
     }
-    let in_reply_user_id = null;
-    let in_reply_msg_id =null;
 
     console.log("Build Pop Editor")
     var $popframe = $('#popframe');
     var $editorContainer = $('<div id="fanfou-editor"></div>');
+    if (in_repost_msg_id !== null) {
+        $editorContainer.attr('in_repost_user_id', in_repost_user_id);
+        $editorContainer.attr('in_repost_msg_id', in_repost_msg_id);
+    } else {
+        $editorContainer.attr('in_repost_user_id', "0");
+        $editorContainer.attr('in_repost_msg_id', "0");
+    }
 
     // 创建文本输入区域
     var $textarea = $('<textarea>', {
         id: 'fanfou-textarea',
         placeholder: 'What\'s happening?',
-        text:type=='retweet'?content.text:null,
+        text: type == 'retweet' ? content.text : null,
         rows: 4
     }).appendTo($editorContainer);
     // 创建工具栏
@@ -61,7 +72,14 @@ function buildPopEditor(type = 'new', content = null) {
                 // 这里可以添加发布推特的逻辑
                 console.log("发布: " + fanfouText);
                 try {
-                    await postStatus(fanfouText, imageFile);
+                    //TODO : to add reply id in
+                    let meta = null;
+                    meta = {
+                        in_repost_user_id: $editorContainer.attr('in_repost_user_id'),
+                        in_repost_msg_id: $editorContainer.attr('in_repost_msg_id')
+                    };
+
+                    await postStatus(fanfouText, imageFile, meta);
                     toastr.success('发布成功');
                     $('#fanfou-textarea').val(''); // 清空输入框
                     $('#popmask').click();

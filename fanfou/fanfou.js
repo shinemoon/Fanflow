@@ -74,7 +74,8 @@ async function fanfouRequest(apiurl, fmode, params, formData = null) {
 }
 
 // 修改后的postStatus函数
-async function postStatus(statusText, imageFile = null) {
+async function postStatus(statusText, imageFile = null, meta=null) {
+    console.log(meta);
     try {
         var url = null;
         if (imageFile == null)

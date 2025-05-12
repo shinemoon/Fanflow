@@ -319,6 +319,11 @@ function bindMsgAction() {
           return message.id == curid;
         });
         break;
+      case 'showUser':
+        message = showList.find(function (message) {
+          return message.id == curid;
+        });
+        break;
       case 'mentions':
         message = mentionList.find(function (message) {
           return message.id == curid;

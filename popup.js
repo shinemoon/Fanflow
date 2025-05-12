@@ -15,7 +15,7 @@ let initRrefresh = false;
 let preTab = '';
 // Possible values for curTab: 
 // 'home'
-// 'mention'
+// 'mentions'
 // 'showUser'
 
 let curTab = 'home';
