@@ -197,11 +197,11 @@ function buildHtmlFromMessages({
       // Highlight other mentions in the content that are not the repost screen name
       // 高亮内容中的其他提及（非转发用户名）
       highlightedContentWithMentions = highlightedContent;
-      $messageDiv.addClass("reply").attr('srcid', repostDetails.status_id);
+      $messageDiv.addClass("in-reply").attr('srcid', repostDetails.status_id);
     } else if (message.raw && message.raw.in_reply_to_status_id) {
       // 非rt，纯reply
       highlightedContentWithMentions = message.content;
-      $messageDiv.addClass("reply").attr('srcid', message.raw.in_reply_to_status_id);
+      $messageDiv.addClass("in-reply").attr('srcid', message.raw.in_reply_to_status_id);
     } else {
       highlightedContentWithMentions = message.content;
     }
@@ -336,8 +336,30 @@ function bindMsgAction() {
   });
 
   $('.reply').off('click');
-  $('.reply').click(function () {
+  $('.reply').on('click',function () {
     console.log("Reply: " + $(this).parent().attr('msgid'));
+    let curid = $(this).parent().attr('msgid');
+    let message = null;
+    switch (curTab) {
+      case 'home':
+        message = curList.find(function (message) {
+          return message.id == curid;
+        });
+        break;
+      case 'showUser':
+        message = showList.find(function (message) {
+          return message.id == curid;
+        });
+        break;
+      case 'mentions':
+        message = mentionList.find(function (message) {
+          return message.id == curid;
+        });
+        break;
+      default:
+        break;
+    }
+    constructPop("reply", message);
   });
 
   $('.reply-src').off('click');

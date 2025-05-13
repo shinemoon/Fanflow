@@ -31,9 +31,11 @@ async function fanfouRequest(apiurl, fmode, params, formData = null) {
 
             headerParams.oauth_signature = signature;
             if (fmode === 'POST' && formData) {
+                /* // Remove header
                 Object.entries(signParams).forEach(([key, value]) => {
                     formData.append(key, value);
                 });
+                */
             }
             const authHeader = OAuth1.buildAuthHeader(headerParams);
 
@@ -106,9 +108,6 @@ async function postStatus(statusText, imageFile = null, meta = null) {
                 });
 
                 formData.append('photo', blob, imageFile.name);
-                formData.append('mode', "lite");
-                formData.append('format', "html");
-
             } catch (e) {
                 throw new Error('文件处理失败: ' + e.message);
             }
@@ -116,6 +115,13 @@ async function postStatus(statusText, imageFile = null, meta = null) {
         if (meta && meta.in_repost_msg_id && meta.in_repost_msg_id !== '0') {
             formData.append('repost_status_id', meta.in_repost_msg_id);
         }
+        formData.append('mode', "lite");
+        formData.append('format', "html");
+        if (meta && meta.in_reply_msg_id && meta.in_reply_msg_id !== '0') {
+            formData.append('in_reply_to_status_id', meta.in_reply_msg_id);
+// /            formData.append('in_reply_to_user_id', meta.in_reply_user_id);
+        }
+
         response = await fanfouRequest(url, 'POST', null, formData);
 
         return await response.json();

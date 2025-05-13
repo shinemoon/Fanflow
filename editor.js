@@ -2,26 +2,40 @@ function buildPopEditor(type = 'new', content = null) {
     if (content) console.log(content);
     let in_repost_user_id = null;
     let in_repost_msg_id = null;
+    let in_reply_user_id = null;
+    let in_reply_msg_id = null;
+
     let repost_photo = null;
 
 
     // Remove HTML tags from content.text using regex
-    if (content && content.text) {
+    if (content && content.text && type == "retweet") {
         in_repost_user_id = content.user.id;
         in_repost_msg_id = content.id;
-        content.text = "转@" + content.user.id + " " + content.text.replace(/<[^>]*>/g, '');
+        content.text = "转@" + content.user.screen_name + " " + content.text.replace(/<[^>]*>/g, '');
     }
+    if (type == "reply") {
+        in_reply_user_id = content.user.id;
+        in_reply_msg_id = content.id;
+        content.text = "@" + content.user.screen_name + " ";
+    }
+
 
     console.log("Build Pop Editor")
     var $popframe = $('#popframe');
     var $editorContainer = $('<div id="fanfou-editor"></div>');
+    $editorContainer.attr('in_repost_user_id', "0");
+    $editorContainer.attr('in_repost_msg_id', "0");
+    $editorContainer.attr('in_reply_user_id', "0");
+    $editorContainer.attr('in_reply_msg_id', "0");
+
     if (in_repost_msg_id !== null) {
         $editorContainer.attr('in_repost_user_id', in_repost_user_id);
         $editorContainer.attr('in_repost_msg_id', in_repost_msg_id);
-    } else {
-        $editorContainer.attr('in_repost_user_id', "0");
-        $editorContainer.attr('in_repost_msg_id', "0");
-    }
+    } else if (in_reply_msg_id !== null) {
+        $editorContainer.attr('in_reply_user_id', in_reply_user_id);
+        $editorContainer.attr('in_reply_msg_id', in_reply_msg_id);
+    } 
     //Repost Img handling:
     // Repost image handling
     if (content && content.photo) {
@@ -33,7 +47,7 @@ function buildPopEditor(type = 'new', content = null) {
     var $textarea = $('<textarea>', {
         id: 'fanfou-textarea',
         placeholder: 'What\'s happening?',
-        text: type == 'retweet' ? content.text : null,
+        text: type=='retweet' || type=='reply' ? content.text : null,
         rows: 4
     }).appendTo($editorContainer);
     // 创建工具栏
@@ -55,7 +69,7 @@ function buildPopEditor(type = 'new', content = null) {
         id: 'fanfou-image',
         src: repost_photo ? repost_photo.imageurl : '/images/background.png',
         click: function () {
-            if(!repost_photo)
+            if (!repost_photo)
                 $('#upload-btn').click(); // 触发隐藏的file input
         },
         alt: 'Uploaded Image',
@@ -91,7 +105,9 @@ function buildPopEditor(type = 'new', content = null) {
                     let meta = null;
                     meta = {
                         in_repost_user_id: $editorContainer.attr('in_repost_user_id'),
-                        in_repost_msg_id: $editorContainer.attr('in_repost_msg_id')
+                        in_repost_msg_id: $editorContainer.attr('in_repost_msg_id'),
+                        in_reply_user_id: $editorContainer.attr('in_reply_user_id'),
+                        in_reply_msg_id: $editorContainer.attr('in_reply_msg_id')
                     };
 
                     await postStatus(fanfouText, imageFile, meta);
