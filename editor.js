@@ -2,6 +2,7 @@ function buildPopEditor(type = 'new', content = null) {
     if (content) console.log(content);
     let in_repost_user_id = null;
     let in_repost_msg_id = null;
+    let repost_photo = null;
 
 
     // Remove HTML tags from content.text using regex
@@ -21,6 +22,12 @@ function buildPopEditor(type = 'new', content = null) {
         $editorContainer.attr('in_repost_user_id', "0");
         $editorContainer.attr('in_repost_msg_id', "0");
     }
+    //Repost Img handling:
+    // Repost image handling
+    if (content && content.photo) {
+        repost_photo = content.photo;
+    }
+
 
     // 创建文本输入区域
     var $textarea = $('<textarea>', {
@@ -45,11 +52,15 @@ function buildPopEditor(type = 'new', content = null) {
     $('<img>', {
         id: 'fanfou-image',
         src: '/images/background.png', // 默认图片路径
+        id: 'fanfou-image',
+        src: repost_photo ? repost_photo.imageurl : '/images/background.png',
         click: function () {
-            $('#upload-btn').click(); // 触发隐藏的file input
+            if(!repost_photo)
+                $('#upload-btn').click(); // 触发隐藏的file input
         },
         alt: 'Uploaded Image',
     }).appendTo($piccontainer);
+
     // 插入图片元素信息控制
     $('<div>', {
         id: 'fanfou-image-info',
@@ -59,6 +70,10 @@ function buildPopEditor(type = 'new', content = null) {
 
     //细节控制
     $('#fanfou-image-info').append('<div class="tipinfo">请点击上传图片</div>');
+    if (repost_photo && repost_photo.imageurl !== '/images/background.png') {
+        $('#fanfou-image-info').html('<div class="tipinfo">转发图片</div>');
+    }
+
 
 
     // 发布按钮
@@ -67,7 +82,7 @@ function buildPopEditor(type = 'new', content = null) {
         text: '发布',
         click: async function () {
             var fanfouText = $textarea.val();
-            const imageFile = $('#upload-btn')[0].files[0];
+            const imageFile = $('#upload-btn')[0].files[0]; // This will only be treated in upload case (i.e. null still if overided by repost)
             if (fanfouText.trim() !== "" || imageFile) {
                 // 这里可以添加发布推特的逻辑
                 console.log("发布: " + fanfouText);

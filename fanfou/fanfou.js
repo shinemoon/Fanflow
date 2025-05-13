@@ -74,7 +74,7 @@ async function fanfouRequest(apiurl, fmode, params, formData = null) {
 }
 
 // 修改后的postStatus函数
-async function postStatus(statusText, imageFile = null, meta=null) {
+async function postStatus(statusText, imageFile = null, meta = null) {
     console.log(meta);
     try {
         var url = null;
@@ -108,11 +108,14 @@ async function postStatus(statusText, imageFile = null, meta=null) {
                 formData.append('photo', blob, imageFile.name);
                 formData.append('mode', "lite");
                 formData.append('format', "html");
+
             } catch (e) {
                 throw new Error('文件处理失败: ' + e.message);
             }
         }
-
+        if (meta && meta.in_repost_msg_id && meta.in_repost_msg_id !== '0') {
+            formData.append('repost_status_id', meta.in_repost_msg_id);
+        }
         response = await fanfouRequest(url, 'POST', null, formData);
 
         return await response.json();
@@ -249,13 +252,13 @@ function remapMessage(msgs) {
 }
 
 async function toggleFavorite(status_id, favorite = true) {
-    const url = new URL(FANFOU_API_BASE + '/favorites/create/'+status_id+'.json');
+    const url = new URL(FANFOU_API_BASE + '/favorites/create/' + status_id + '.json');
     const queryParams = {
         id: status_id
     };
 
     if (!favorite) {
-        url.pathname = '/favorites/destroy/'+status_id+'.json';
+        url.pathname = '/favorites/destroy/' + status_id + '.json';
     }
 
     try {
