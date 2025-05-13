@@ -6,18 +6,19 @@ function buildPopEditor(type = 'new', content = null) {
     let in_reply_msg_id = null;
 
     let repost_photo = null;
+    let post_text = "";
 
 
     // Remove HTML tags from content.text using regex
     if (content && content.text && type == "retweet") {
         in_repost_user_id = content.user.id;
         in_repost_msg_id = content.id;
-        content.text = "转@" + content.user.screen_name + " " + content.text.replace(/<[^>]*>/g, '');
+        post_text = "转@" + content.user.screen_name + " " + content.text.replace(/<[^>]*>/g, '');
     }
     if (type == "reply") {
         in_reply_user_id = content.user.id;
         in_reply_msg_id = content.id;
-        content.text = "@" + content.user.screen_name + " ";
+        post_text = "@" + content.user.screen_name + " ";
     }
 
 
@@ -47,7 +48,7 @@ function buildPopEditor(type = 'new', content = null) {
     var $textarea = $('<textarea>', {
         id: 'fanfou-textarea',
         placeholder: 'What\'s happening?',
-        text: type=='retweet' || type=='reply' ? content.text : null,
+        text: type=='retweet' || type=='reply' ? post_text: null,
         rows: 4
     }).appendTo($editorContainer);
     // 创建工具栏

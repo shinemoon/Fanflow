@@ -265,7 +265,7 @@ function buildHtmlFromMessages({
 function bindMsgAction() {
   // 收藏
   $('.star').off('click');
-  $('.star').click(async function () {
+  $('.star').on('click', async function () {
     let res;
     let curid = $(this).parent().attr('msgid');
     console.log("Star: " + curid);
@@ -309,7 +309,7 @@ function bindMsgAction() {
 
   // 转发
   $('.quote').off('click');
-  $('.quote').click(function () {
+  $('.quote').on('click', function () {
     let curid = $(this).parent().attr('msgid');
     console.log("Quote: " + curid);
     let message = null;
