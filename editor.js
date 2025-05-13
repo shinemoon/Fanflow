@@ -36,7 +36,7 @@ function buildPopEditor(type = 'new', content = null) {
     } else if (in_reply_msg_id !== null) {
         $editorContainer.attr('in_reply_user_id', in_reply_user_id);
         $editorContainer.attr('in_reply_msg_id', in_reply_msg_id);
-    } 
+    }
     //Repost Img handling:
     // Repost image handling
     if (content && content.photo) {
@@ -48,7 +48,7 @@ function buildPopEditor(type = 'new', content = null) {
     var $textarea = $('<textarea>', {
         id: 'fanfou-textarea',
         placeholder: 'What\'s happening?',
-        text: type=='retweet' || type=='reply' ? post_text: null,
+        text: type == 'retweet' || type == 'reply' ? post_text : null,
         rows: 4
     }).appendTo($editorContainer);
     // 创建工具栏
@@ -125,6 +125,15 @@ function buildPopEditor(type = 'new', content = null) {
             }
         }
     }).appendTo($toolbar);
+    // Bind Ctrl+Enter shortcut to trigger publish button click
+    $(document).on('keydown', function (e) {
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            $('#publish-btn').click();
+        }
+    });
+
+
 
 
 
