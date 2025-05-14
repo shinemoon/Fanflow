@@ -1,14 +1,14 @@
-$content-line-max: 5;
+$content-line-max: 6;
 $message-font-size: 13px;
 $mainback: #f9f9f9;
 $mainfore: #f1f1f1;
 
 $content-normal-size: $message-font-size;
-$content-small-size: 12px;
+$content-small-size: 13px;
 $meta-normal-size: 12px;
-$meta-small-size: 8px;
+$meta-small-size: 10px;
 
-$icon-big-size: 14px;
+$icon-big-size: 13px;
 $icon-normal-size: 12px;
 
 $name-backcolor: #82d497;
@@ -19,7 +19,6 @@ $link-color: #666;
 
 $float-button-color: #312e2e;
 $float-button-color-hover: rgb(245, 245, 245);
-
 
 
 /* 定义闪烁动画 */
@@ -359,7 +358,7 @@ body {
         }
     }
 
-    &.reply {
+    &.in-reply {
         .actions span {
             &.reply-src {
                 display: block;

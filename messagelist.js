@@ -336,7 +336,7 @@ function bindMsgAction() {
   });
 
   $('.reply').off('click');
-  $('.reply').on('click',function () {
+  $('.reply').on('click', function () {
     console.log("Reply: " + $(this).parent().attr('msgid'));
     let curid = $(this).parent().attr('msgid');
     let message = null;
@@ -363,8 +363,10 @@ function bindMsgAction() {
   });
 
   $('.reply-src').off('click');
-  $('.reply-src').click(function () {
-    console.log("Link: " + $(this).parent().attr('msgid'));
+  $('.reply-src').on('click', function () {
+    console.log("Link: " + $(this).parent().parent().attr('srcid'));
+    let srcurl = "https://fanfou.com/statuses/" + $(this).parent().parent().attr('srcid');
+    window.open(srcurl, '_blank');
   });
 
 

@@ -74,7 +74,7 @@ body {
 .mask .frame#popframe .pop-controls {
   display: flex;
   gap: 2px;
-  font-size: 14px;
+  font-size: 13px;
   color: #81b7ce;
   cursor: pointer;
   position: relative;
@@ -187,18 +187,18 @@ body {
 }
 .message.same-author .content {
   color: #555;
-  font-size: 12px;
+  font-size: 13px;
 }
 .message.same-author .message-meta {
   justify-content: flex-end;
-  font-size: 8px;
+  font-size: 10px;
 }
 .message.same-author .message-meta .msg-avator {
   display: none;
 }
 .message.same-author .message-meta .msg-nickname {
   color: #81b7ce;
-  font-size: 8px;
+  font-size: 10px;
   cursor: pointer;
 }
 .message .message-meta {
@@ -242,8 +242,8 @@ body {
   color: #333;
   word-wrap: break-word;
   /* 限制在一个块元素中显示的最大行数 */
-  -webkit-line-clamp: 5;
-  line-clamp: 5;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
   /* 指定块元素的布局方式 */
   display: -webkit-box;
   /* 指定行的垂直方向 */
@@ -277,7 +277,7 @@ body {
   border-radius: 4px;
   cursor: pointer;
 }
-.message.reply .actions span.reply-src {
+.message.in-reply .actions span.reply-src {
   display: block;
 }
 
