@@ -2,6 +2,8 @@ let validToken = null;
 // local list max as 100 msb
 let curList = [];
 let mentionList = [];
+
+let dmList = [];
 // This is for the 'switch showing' list
 let showList = [];
 let showid = null; //curshow userid
@@ -17,6 +19,7 @@ let preTab = '';
 // 'home'
 // 'mentions'
 // 'showUser'
+// 'dm'
 
 let curTab = 'home';
 
@@ -84,6 +87,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           buildMentionListPage('down', bindClickActions);
         else if (curTab === 'showUser')
           buildUserListPage(showid, 'down', bindClickActions);
+        else if (curTab === 'dm')
+          buildDMListPage(null, 'down', function () { });
       }
     } else if (event.originalEvent.deltaY < 0 && scrollTop === 0) {
       // Check if scrolled to bottom (with 50px threshold)
@@ -95,7 +100,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           buildMentionListPage('up', bindClickActions);
         else if (curTab === 'showUser')
           buildUserListPage(showid, 'up', bindClickActions);
-
+        else if (curTab === 'dm')
+          buildDMListPage(null, 'up', function () { });
       }
     }
   }, 200));
@@ -169,8 +175,19 @@ function bindClickActions() {
         ntype = 'forceRefresh';
       }
       buildMentionListPage(ntype, bindClickActions);
+    } else if ($(this).prop('id') == 'dm') {
+      console.log("dm clicked");
+      $('.feed').addClass('background');
+      $('#dmview').removeClass('background');
+      if (curTab != "dm" && dmList.length > 0) {
+        preTab = curTab;
+        curTab = 'dm';
+      } else {
+        $('#dmview').scrollTop(0);
+        ntype = 'forceRefresh';
+      }
+      buildDMListPage(null, ntype, bindClickActions);
     }
-
 
   });
 
