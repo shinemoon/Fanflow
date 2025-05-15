@@ -204,6 +204,30 @@ async function getUserInfo(user_id = null) {
         throw error;
     }
 }
+/**
+ * Fetches direct message conversations.
+ * @param since_id - The minimum message ID to fetch.
+ * @param max_id - The maximum message ID to fetch.
+ * @returns An object containing a list of conversations.
+ */
+async function getDMConversation(page= 1, count= 4 ) {
+    const url = new URL(FANFOU_API_BASE + '/direct_messages/conversation_list.json');
+    const queryParams = {
+        format: 'html',
+        mode: 'lite',
+        count: fetchCnt,
+        ...(page && { page : page }),
+        ...(count && { count: count })
+    };
+
+    try {
+        const response = await fanfouRequest(url, 'GET', queryParams);
+        return { conversations: await response.json() };
+    } catch (error) {
+        console.error('Error fetching direct message conversations:', error);
+        throw error;
+    }
+}
 
 
 async function getMentions(since_id = null, max_id = null) {
