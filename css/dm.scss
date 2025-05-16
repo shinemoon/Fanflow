@@ -1,76 +1,76 @@
 // dm.scss
+.dm-list-container {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 
-.conversation-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+    .conversation-item {
+        display: flex;
+        align-items: center;
+        border-top: 1px solid #888;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
 
-  .conversation-item {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid #eee;
+        &:hover {
+            background-color: #f5f5f5;
+        }
 
-    &:hover {
-      background-color: #f5f5f5;
+        &.unread {
+            .unread-indicator {
+                display: inline-block;
+            }
+        }
     }
-
-    &.unread {
-      .unread-indicator {
-        display: inline-block;
-      }
-    }
-  }
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
-  margin-right: 10px;
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
 
-  img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-  }
+    img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+    }
 }
 
 .message-content {
-  flex: 1;
+    flex: 1;
 
-  .sender-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 4px;
+    .sender-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px;
 
-    .sender-name {
-      font-weight: bold;
-      font-size: 14px;
+        .sender-name {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .message-time {
+            color: #999;
+            font-size: 12px;
+        }
     }
 
-    .message-time {
-      color: #999;
-      font-size: 12px;
+    .message-preview {
+        color: #333;
+        font-size: 14px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 70%;
     }
-  }
 
-  .message-preview {
-    color: #333;
-    font-size: 14px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 70%;
-  }
-
-  .unread-indicator {
-    display: none;
-    background-color: #07c160;
-    color: white;
-    padding: 2px 6px;
-    border-radius: 10px;
-    font-size: 12px;
-    margin-top: 4px;
-  }
+    .unread-indicator {
+        display: none;
+        background-color: #07c160;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 12px;
+        margin-top: 4px;
+    }
 }

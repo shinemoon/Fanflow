@@ -16,18 +16,28 @@ async function buildDMListPage(user_id, type = "up", cb) {
       // 刷新User信息部分
       console.log(user_id);
       // 获取用户信息并更新界面-No need in DM page
+      // Get local
+      chrome.storage.local.get({ dmlist: [] }, async function (r) {
+        dmList = r.dmlist;
+        // 处理加载后的提及列表，例如更新页面显示
+        // to fetch list from server
+        if (dmList.length == 0) {
+          result = await getDMConversation();
+        } else {
+          result = dmList;
+        }
+        console.log(result);
 
-      // 处理加载后的提及列表，例如更新页面显示
-      // to fetch list from server
-      result = await getDMConversation();
-      console.log(result);
+        // to list /sort data
+        result = await dmListUpdate(
+          {
+            newlist : result,
+          });
 
-      // to list /sort data
-      //dmListUpdate();
+        // To build UI & list
+        showDMList(result, '#dmview');
 
-
-      // To build UI & list
-      showDMList(result, '#dmview');
+      });
 
     } else {
       openAuthPage();
@@ -39,12 +49,18 @@ async function buildDMListPage(user_id, type = "up", cb) {
   if (cb) cb();
 }
 
-function dmListUpdate(direction = 'up', limit = 100, newlist) {
+async function dmListUpdate({
+  direction = 'up',
+  limit = 100,
+  newlist = [],
+} = {}) {
   console.log("更新消息列表");
+  await chrome.storage.local.set({ dmlist: newlist });
+  return newlist;
 }
 
 
-function showDMList(dmlist, containerid){
+function showDMList(dmlist, containerid) {
   const container = $(containerid);
   container.addClass('dm-list-container');
   dmlist.conversations.forEach(conversation => {
