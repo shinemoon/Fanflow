@@ -166,7 +166,8 @@ function bindClickActions() {
       console.log("mentions clicked");
       $('.feed').addClass('background');
       $('#mentioned').removeClass('background');
-      if (curTab != "mentions" && mentionList.length > 0) {
+      //if (curTab != "mentions" && mentionList.length > 0) {
+      if (curTab != "mentions" ) {
         preTab = curTab;
         curTab = 'mentions';
         //$('#mentioned').empty();
@@ -179,9 +180,11 @@ function bindClickActions() {
       console.log("dm clicked");
       $('.feed').addClass('background');
       $('#dmview').removeClass('background');
-      if (curTab != "dm" && dmList.length > 0) {
+      //if (curTab != "dm" && dmList.length > 0) {
+      if (curTab != "dm") {
         preTab = curTab;
         curTab = 'dm';
+        ntype = "init";
       } else {
         $('#dmview').scrollTop(0);
         ntype = 'forceRefresh';

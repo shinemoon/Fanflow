@@ -1,3 +1,5 @@
+let curDmPage = 1;
+let dmPageCnt = 8;
 async function buildDMListPage(user_id, type = "up", cb) {
   console.log("To show DM");
   const token = await getStoredToken();
@@ -21,8 +23,14 @@ async function buildDMListPage(user_id, type = "up", cb) {
         dmList = r.dmlist;
         // 处理加载后的提及列表，例如更新页面显示
         // to fetch list from server
-        if (dmList.length == 0) {
-          result = await getDMConversation();
+        if (dmList.length == 0 || type === "forceRefresh") {
+          result = await getDMConversation(curDmPage, dmPageCnt);
+        } else if (type === "down") {
+          curDmPage = curDmPage + 1;
+          result = await getDMConversation(curDmPage, dmPageCnt);
+        } else if (type === "up") {
+          curDmPage = 1;
+          result = await getDMConversation(curDmPage, dmPageCnt);
         } else {
           result = dmList;
         }
@@ -31,7 +39,7 @@ async function buildDMListPage(user_id, type = "up", cb) {
         // to list /sort data
         result = await dmListUpdate(
           {
-            newlist : result,
+            newlist: result,
           });
 
         // To build UI & list
@@ -54,7 +62,7 @@ async function dmListUpdate({
   limit = 100,
   newlist = [],
 } = {}) {
-  console.log("更新消息列表");
+  console.log("更新DM列表");
   await chrome.storage.local.set({ dmlist: newlist });
   return newlist;
 }

@@ -171,7 +171,6 @@ function buildHtmlFromMessages({
     $metaDiv.append($('<span value=' + i + ' usrid=' + message.userid + '>').addClass('msg-nickname').text(message.nickname));
     $metaDiv.append($('<span>').addClass('msg-time').text(localTime.localTime));
     $metaDiv.append($('<span>').addClass('msg-source').text(message.source));
-    // TODO: 优化显示
     // 创建内容容器
     //if there is message.raw.repost_status in message, then to fetch message.raw.repost_status.repost_screen_name/ repost_status_id / repost_user_id and text , combine with one dict repost_details, and then , try to show match the repost_screen_name & text in message.content, use <span class='content-highlight'> to mark those and be one new 'highlight-content' var
     let highlightedContentWithMentions = '';

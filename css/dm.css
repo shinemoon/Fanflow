@@ -6,12 +6,12 @@
 .dm-list-container .conversation-item {
   display: flex;
   align-items: center;
-  border-top: 1px solid #888;
+  border-bottom: 0.5px dotted rgba(136, 136, 136, 0.3607843137);
   padding: 10px;
-  border-bottom: 1px solid #eee;
+  cursor: pointer;
 }
 .dm-list-container .conversation-item:hover {
-  background-color: #f5f5f5;
+  background-color: #d6efcd;
 }
 .dm-list-container .conversation-item.unread .unread-indicator {
   display: inline-block;
@@ -40,7 +40,7 @@
 }
 .message-content .sender-info .sender-name {
   font-weight: bold;
-  font-size: 14px;
+  font-size: 12px;
 }
 .message-content .sender-info .message-time {
   color: #999;
@@ -48,7 +48,7 @@
 }
 .message-content .message-preview {
   color: #333;
-  font-size: 14px;
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
