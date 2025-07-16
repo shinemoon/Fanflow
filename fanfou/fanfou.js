@@ -228,6 +228,37 @@ async function getDMConversation(page= 1, count= 4 ) {
         throw error;
     }
 }
+/**
+ * Fetches direct message inbox messages.
+ * @param since_id - The minimum message ID to fetch (messages newer than this ID).
+ * @param max_id - The maximum message ID to fetch (messages older than this ID).
+ * @param count - Number of messages to fetch (default: 20, max: 200).
+ * @param page - Page number for pagination (default: 1).
+ * @returns An object containing a list of inbox messages.
+ */
+async function getDMInbox(since_id = null, max_id = null, count = 20, page = 1) {
+
+    since_id=null;
+    max_id = null;
+    const url = new URL(FANFOU_API_BASE + '/direct_messages/inbox.json');
+    const queryParams = {
+        format: 'html',
+        mode: 'lite',
+        count: count,
+        ...(since_id && { since_id: since_id }),
+        ...(max_id && { max_id: max_id }),
+        ...(page && { page: page })
+    };
+
+    try {
+        const response = await fanfouRequest(url, 'GET', queryParams);
+        return { messages: await response.json() };
+    } catch (error) {
+        console.error('Error fetching direct message inbox:', error);
+        throw error;
+    }
+}
+
 
 
 async function getMentions(since_id = null, max_id = null) {

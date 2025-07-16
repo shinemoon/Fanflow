@@ -24,13 +24,13 @@ async function buildDMListPage(user_id, type = "up", cb) {
         // 处理加载后的提及列表，例如更新页面显示
         // to fetch list from server
         if (dmList.length == 0 || type === "forceRefresh") {
-          result = await getDMConversation(curDmPage, dmPageCnt);
+          result = await getDMInbox(curDmPage, dmPageCnt);
         } else if (type === "down") {
           curDmPage = curDmPage + 1;
-          result = await getDMConversation(curDmPage, dmPageCnt);
+          result = await getDMInbox(curDmPage, dmPageCnt);
         } else if (type === "up") {
           curDmPage = 1;
-          result = await getDMConversation(curDmPage, dmPageCnt);
+          result = await getDMInbox(curDmPage, dmPageCnt);
         } else {
           result = dmList;
         }
@@ -71,19 +71,20 @@ async function dmListUpdate({
 function showDMList(dmlist, containerid) {
   const container = $(containerid);
   container.addClass('dm-list-container');
-  dmlist.conversations.forEach(conversation => {
+  //dmlist.conversations.forEach(conversation => {
+  dmlist.messages.forEach(conversation => {
     const conversationElement = document.createElement('div');
     conversationElement.classList.add('conversation-item');
     conversationElement.innerHTML = `
             <div class="avatar">
-                <img src="${conversation.dm.sender.profile_image_url}" alt="${conversation.dm.sender.screen_name}">
+                <img src="${conversation.sender.profile_image_url}" alt="${conversation.sender.screen_name}">
             </div>
             <div class="message-content">
                 <div class="sender-info">
-                    <span class="sender-name">${conversation.dm.sender.screen_name}</span>
-                    <span class="message-time">${new Date(conversation.dm.created_at).toLocaleString()}</span>
+                    <span class="sender-name">${conversation.sender.screen_name}</span>
+                    <span class="message-time">${new Date(conversation.created_at).toLocaleString()}</span>
                 </div>
-                <div class="message-preview">${conversation.dm.text}</div>
+                <div class="message-preview">${conversation.text}</div>
                 <div class="unread-indicator" style="display: ${conversation.new_conv ? 'block' : 'none'};">New</div>
             </div>
         `;
