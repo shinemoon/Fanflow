@@ -19,9 +19,10 @@ async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
       console.log(user_id);
       // 获取用户信息并更新界面-No need in DM page
       // Get local
-      chrome.storage.local.get({ dmlist: [] }, async function (r) {
+      await chrome.storage.local.get({ dmlist: [] }, async function (r) {
         dmList = r.dmlist;
         if (dmList.length == 0 || type === "forceRefresh") {
+//          dmList=[];  //Clean history
           if (mode === "inbox") {
             result = await getDMInbox(curDmPage, dmPageCnt);
           } else if (mode === "conversation") {
@@ -44,7 +45,7 @@ async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
             result = await getDMConversation(curDmPage, dmPageCnt);
           }
         } else {
-          result = mode === "inbox" ? dmList : []; // 默认返回空数组或现有列表
+          result = mode === "conversation" ? dmList : []; // 默认返回空数组或现有列表// TODO: to have inbox version
         }
 
         console.log(result);

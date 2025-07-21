@@ -102,8 +102,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           buildMentionListPage('up', bindClickActions);
         else if (curTab === 'showUser')
           buildUserListPage(showid, 'up', bindClickActions);
-        else if (curTab === 'dm')
-          buildDMListPage(null, 'up', dmmode, function () { });
+        else if (curTab === 'dm') // For dm , no need so complicateed handling, must force refresh
+          buildDMListPage(null, 'forceRefresh', dmmode, function () { });
       }
     }
   }, 200));

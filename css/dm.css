@@ -33,6 +33,7 @@
 
 .message-content {
   flex: 1;
+  width: 90%;
 }
 .message-content .sender-info {
   display: flex;
