@@ -37,7 +37,7 @@ let userInfo = {
   description: "有目的地生活"
 };
 
-let dmmode="inbox";
+let dmmode="conversation";
 
 // Page Init
 

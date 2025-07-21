@@ -20,33 +20,7 @@ async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
       // 获取用户信息并更新界面-No need in DM page
       // Get local
       chrome.storage.local.get({ dmlist: [] }, async function (r) {
-
-        // 处理加载后的提及列表，例如更新页面显示
-        // to fetch list from server
-        /*
         dmList = r.dmlist;
-        if (dmList.length == 0 || type === "forceRefresh") {
-          result = await getDMInbox(curDmPage, dmPageCnt);
-        } else if (type === "down") {
-          curDmPage = curDmPage + 1;
-          result = await getDMInbox(curDmPage, dmPageCnt);
-        } else if (type === "up") {
-          curDmPage = 1;
-          result = await getDMInbox(curDmPage, dmPageCnt);
-        } else {
-          result = dmList;
-        }
-        console.log(result);
-
-        // to list /sort data
-        result = await dmListUpdate(
-          {
-            newlist: result,
-          });
-
-        // To build UI & list
-        showDMList(result, '#dmview');
-        */
         if (dmList.length == 0 || type === "forceRefresh") {
           if (mode === "inbox") {
             result = await getDMInbox(curDmPage, dmPageCnt);

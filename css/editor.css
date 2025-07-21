@@ -27,7 +27,7 @@
   font-weight: 500;
 }
 #fanfou-editor #fanfou-toolbar button:hover {
-  background: #217dbb;
+  background: rgb(33.1380753138, 125.1882845188, 186.8619246862);
   transform: translateY(-1px);
 }
 #fanfou-editor #fanfou-toolbar button:active {
@@ -35,7 +35,7 @@
 }
 #fanfou-editor #char-count {
   margin-left: auto;
-  color: #507192;
+  color: rgb(80.1935483871, 113, 145.8064516129);
   font-size: 0.9em;
   align-self: center;
   width: 25px;
@@ -107,6 +107,6 @@
   font-size: 10px;
 }
 #fanfou-editor #fanfou-picframe #fanfou-image-info div.action:hover {
-  background: #e0c29b;
+  background: rgb(223.8875, 194.4125, 155.1125);
   color: black;
 }/*# sourceMappingURL=editor.css.map */

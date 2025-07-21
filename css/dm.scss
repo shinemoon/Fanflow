@@ -1,10 +1,9 @@
 // dm.scss
 $dm-primary-border-color:#8888885c;
 $dm-hover-color:#d6efcd;
-
 .dm-list-container {
-    list-style: none;
-    padding: 0;
+    overflow-x: hidden;
+    list-style: none;padding: 0;
     margin: 0;
 
     .conversation-item {
@@ -32,8 +31,8 @@ $dm-hover-color:#d6efcd;
     margin-right: 10px;
 
     img {
-        width: 100%;
-        height: 100%;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         object-fit: cover;
     }
