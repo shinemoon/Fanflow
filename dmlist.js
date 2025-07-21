@@ -1,6 +1,6 @@
 let curDmPage = 1;
 let dmPageCnt = 8;
-async function buildDMListPage(user_id, type = "up", cb) {
+async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
   console.log("To show DM");
   const token = await getStoredToken();
   if (token) {
@@ -20,9 +20,11 @@ async function buildDMListPage(user_id, type = "up", cb) {
       // 获取用户信息并更新界面-No need in DM page
       // Get local
       chrome.storage.local.get({ dmlist: [] }, async function (r) {
-        dmList = r.dmlist;
+
         // 处理加载后的提及列表，例如更新页面显示
         // to fetch list from server
+        /*
+        dmList = r.dmlist;
         if (dmList.length == 0 || type === "forceRefresh") {
           result = await getDMInbox(curDmPage, dmPageCnt);
         } else if (type === "down") {
@@ -44,6 +46,46 @@ async function buildDMListPage(user_id, type = "up", cb) {
 
         // To build UI & list
         showDMList(result, '#dmview');
+        */
+        if (dmList.length == 0 || type === "forceRefresh") {
+          if (mode === "inbox") {
+            result = await getDMInbox(curDmPage, dmPageCnt);
+          } else if (mode === "conversation") {
+            result = await getDMConversation(curDmPage, dmPageCnt);
+          } else {
+            throw new Error("无效的显示模式，请使用 'inbox' 或 'conversation'");
+          }
+        } else if (type === "down") {
+          curDmPage = curDmPage + 1;
+          if (mode === "inbox") {
+            result = await getDMInbox(curDmPage, dmPageCnt);
+          } else {
+            result = await getDMConversation(curDmPage, dmPageCnt);
+          }
+        } else if (type === "up") {
+          curDmPage = 1;
+          if (mode === "inbox") {
+            result = await getDMInbox(curDmPage, dmPageCnt);
+          } else {
+            result = await getDMConversation(curDmPage, dmPageCnt);
+          }
+        } else {
+          result = mode === "inbox" ? dmList : []; // 默认返回空数组或现有列表
+        }
+
+        console.log(result);
+
+        // 统一更新列表
+        result = await dmListUpdate({
+          newlist: result,
+        });
+
+        // 根据模式选择显示函数
+        if (mode === "inbox") {
+          showDMList(result, '#dmview');
+        } else {
+          showDMConversation(result, '#dmview');
+        }
 
       });
 
@@ -86,6 +128,29 @@ function showDMList(dmlist, containerid) {
                 </div>
                 <div class="message-preview">${conversation.text}</div>
                 <div class="unread-indicator" style="display: ${conversation.new_conv ? 'block' : 'none'};">New</div>
+            </div>
+        `;
+    container.append(conversationElement);
+  });
+}
+
+function showDMConversation(dmlist, containerid) {
+  const container = $(containerid);
+  container.addClass('dm-list-container');
+  dmlist.conversations.forEach(conversation => {
+    const conversationElement = document.createElement('div');
+    conversationElement.classList.add('conversation-item');
+    conversationElement.innerHTML = `
+            <div class="avatar">
+                <img src="${conversation.dm.sender.profile_image_url}" alt="${conversation.dm.sender.screen_name}">
+            </div>
+            <div class="message-content">
+                <div class="sender-info">
+                    <span class="sender-name">${conversation.dm.sender.screen_name}</span>
+                    <span class="message-time">${new Date(conversation.dm.created_at).toLocaleString()}</span>
+                </div>
+                <div class="message-preview">${conversation.dm.text}</div>
+                <div class="unread-indicator" style="display: ${conversation.dm.new_conv ? 'block' : 'none'};">New</div>
             </div>
         `;
     container.append(conversationElement);

@@ -37,6 +37,8 @@ let userInfo = {
   description: "有目的地生活"
 };
 
+let dmmode="inbox";
+
 // Page Init
 
 
@@ -88,7 +90,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         else if (curTab === 'showUser')
           buildUserListPage(showid, 'down', bindClickActions);
         else if (curTab === 'dm')
-          buildDMListPage(null, 'down', function () { });
+          buildDMListPage(null, 'down', dmmode, function () { });
       }
     } else if (event.originalEvent.deltaY < 0 && scrollTop === 0) {
       // Check if scrolled to bottom (with 50px threshold)
@@ -101,7 +103,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         else if (curTab === 'showUser')
           buildUserListPage(showid, 'up', bindClickActions);
         else if (curTab === 'dm')
-          buildDMListPage(null, 'up', function () { });
+          buildDMListPage(null, 'up', dmmode, function () { });
       }
     }
   }, 200));
@@ -189,7 +191,7 @@ function bindClickActions() {
         $('#dmview').scrollTop(0);
         ntype = 'forceRefresh';
       }
-      buildDMListPage(null, ntype, bindClickActions);
+      buildDMListPage(null, ntype, dmmode, bindClickActions);
     }
 
   });
