@@ -22,7 +22,7 @@ async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
       await chrome.storage.local.get({ dmlist: [] }, async function (r) {
         dmList = r.dmlist;
         if (dmList.length == 0 || type === "forceRefresh") {
-//          dmList=[];  //Clean history
+          //          dmList=[];  //Clean history
           if (mode === "inbox") {
             result = await getDMInbox(curDmPage, dmPageCnt);
           } else if (mode === "conversation") {
@@ -113,15 +113,20 @@ function showDMConversation(dmlist, containerid) {
   const container = $(containerid);
   container.addClass('dm-list-container');
   dmlist.conversations.forEach(conversation => {
+    const curusr = conversation.dm.sender.id === conversation.otherid
+      ? conversation.dm.sender
+      : conversation.dm.recipient;
+
     const conversationElement = document.createElement('div');
     conversationElement.classList.add('conversation-item');
     conversationElement.innerHTML = `
-            <div class="avatar">
-                <img src="${conversation.dm.sender.profile_image_url}" alt="${conversation.dm.sender.screen_name}">
+            <div class="avatar ${curusr.id === conversation.dm.sender.id ? 'rec' : 'to'}"></span>
+            
+                <img src="${curusr.profile_image_url}" alt="${curusr.screen_name}">
             </div>
             <div class="message-content">
                 <div class="sender-info">
-                    <span class="sender-name">${conversation.dm.sender.screen_name}</span>
+                    <span class="sender-name">${curusr.screen_name}</span>
                     <span class="message-time">${new Date(conversation.dm.created_at).toLocaleString()}</span>
                 </div>
                 <div class="message-preview">${conversation.dm.text}</div>
