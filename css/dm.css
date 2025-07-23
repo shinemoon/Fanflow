@@ -21,7 +21,17 @@
 .avatar {
   width: 40px;
   height: 40px;
-  margin-right: 10px;
+}
+.avatar.sender {
+  margin-right: -20px;
+  z-index: 30;
+}
+.avatar.sender img {
+  border: 2px solid white;
+}
+.avatar.rec {
+  margin-right: 20px;
+  z-index: 20;
 }
 .avatar img {
   width: 40px;

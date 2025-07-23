@@ -1,4 +1,5 @@
 let validToken = null;
+let curUsr = null;
 // local list max as 100 msb
 let curList = [];
 let mentionList = [];

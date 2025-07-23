@@ -1,9 +1,11 @@
 // dm.scss
-$dm-primary-border-color:#8888885c;
-$dm-hover-color:#d6efcd;
+$dm-primary-border-color: #8888885c;
+$dm-hover-color: #d6efcd;
+
 .dm-list-container {
     overflow-x: hidden;
-    list-style: none;padding: 0;
+    list-style: none;
+    padding: 0;
     margin: 0;
 
     .conversation-item {
@@ -15,7 +17,7 @@ $dm-hover-color:#d6efcd;
 
         &:hover {
             background-color: $dm-hover-color;
-        } 
+        }
 
         &.unread {
             .unread-indicator {
@@ -28,7 +30,23 @@ $dm-hover-color:#d6efcd;
 .avatar {
     width: 40px;
     height: 40px;
-    margin-right: 10px;
+
+    &.sender {
+        margin-right: -20px;
+        z-index: 30;
+
+        img {
+            border: 2px solid white;
+        }
+
+    }
+
+    &.rec {
+        margin-right: 20px;
+        z-index: 20;
+    }
+
+
 
     img {
         width: 40px;
@@ -40,7 +58,7 @@ $dm-hover-color:#d6efcd;
 
 .message-content {
     flex: 1;
-    width:90%;
+    width: 90%;
 
     .sender-info {
         display: flex;

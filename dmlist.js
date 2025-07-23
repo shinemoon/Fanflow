@@ -113,20 +113,23 @@ function showDMConversation(dmlist, containerid) {
   const container = $(containerid);
   container.addClass('dm-list-container');
   dmlist.conversations.forEach(conversation => {
-    const curusr = conversation.dm.sender.id === conversation.otherid
+    const otherusr = conversation.dm.sender.id === conversation.otherid
       ? conversation.dm.sender
       : conversation.dm.recipient;
 
     const conversationElement = document.createElement('div');
     conversationElement.classList.add('conversation-item');
     conversationElement.innerHTML = `
-            <div class="avatar ${curusr.id === conversation.dm.sender.id ? 'rec' : 'to'}"></span>
-            
-                <img src="${curusr.profile_image_url}" alt="${curusr.screen_name}">
+            <div class="avatar sender '}">
+                <img src="${otherusr.id === conversation.dm.sender.id ? otherusr.profile_image_url :curUsr.profile_image_url}" >
             </div>
+            <div class="avatar rec">
+                <img src="${otherusr.id === conversation.dm.sender.id ? curUsr.profile_image_url:otherusr.profile_image_url}" >
+            </div>
+ 
             <div class="message-content">
                 <div class="sender-info">
-                    <span class="sender-name">${curusr.screen_name}</span>
+                    <span class="sender-name">${otherusr.screen_name}</span>
                     <span class="message-time">${new Date(conversation.dm.created_at).toLocaleString()}</span>
                 </div>
                 <div class="message-preview">${conversation.dm.text}</div>

@@ -144,6 +144,7 @@ async function validateToken(oauthToken, oauthTokenSecret) {
     if (response.ok) {
       // 当response.ok为true时，处理response.json()，这里简单将解析后的数据打印出来，实际中可以按业务需求处理
       const jsonData = await response.json();
+      curUsr = jsonData;
       return jsonData;
     } else {
       // To clean the token, re-login
