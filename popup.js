@@ -1,3 +1,4 @@
+// banner切换封装
 let validToken = null;
 let curUsr = null;
 // local list max as 100 msb
@@ -148,6 +149,9 @@ function bindClickActions() {
   $('.tab').off('click');
   $('.tab').click(function () {
     $('.tab.active').removeClass('active');
+    //  Workaround，确保tab点击都会回到主界面
+    bannerToggle(showSelf = true);
+
     $(this).addClass('active');
     let ntype = 'init';
     if ($(this).prop('id') == 'home') {
@@ -244,16 +248,21 @@ function bindClickActions() {
   // 处理分页返回
   $('#switchLayer').off("click");
   $("#switchLayer").on('click', function (event) {
+    /*
     $('#userinfo').removeClass("background");
     $('#user-description').removeClass("background");
     $('#switch-description').addClass("background");
-    $(this).addClass("background");
     $('.button-array').removeClass('background');
+    */
+
+
     if (preTab == "home") {
       $('#home').click();
     } else if (preTab == "mentions") {
       $('#mentions').click();
     } else if (preTab == "showUser") {
+      $('#home').click();
+    } else {
       $('#home').click();
     };
   });
@@ -293,13 +302,9 @@ function switchToShowUserTab(userid) {
   showList = [];
   $('#switchshow').empty();
   $('#switchshow').removeClass('background');
-  $('.button-array').addClass('background');
   showid = userid;
   // 切换信息
-  $('#userinfo').addClass("background");
-  $('#user-description').addClass("background");
-  $('#switch-description').removeClass("background");
-  $('#switchLayer').removeClass("background");
+  bannerToggle(false);
   buildUserListPage(showid, 'init', bindClickActions);
 }
 
@@ -356,3 +361,30 @@ toastr.options = {
   "hideMethod": "fadeOut"
 }
 
+function bannerToggle(showSelf = true) {
+  if (showSelf == false)
+    $('#userinfo').addClass('background');
+  else
+    $('#userinfo').removeClass('background');
+
+  if (showSelf == false)
+    $('#user-description').addClass('background');
+  else
+    $('#user-description').removeClass('background');
+
+  if (showSelf == false)
+    $('.button-array').addClass('background');
+  else
+    $('.button-array').removeClass('background');
+
+
+  if (showSelf)
+    $('#switch-description').addClass('background');
+  else
+    $('#switch-description').removeClass('background');
+
+  if (showSelf)
+    $('#switchLayer').addClass('background');
+  else
+    $('#switchLayer').removeClass('background');
+}

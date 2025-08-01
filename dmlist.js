@@ -319,7 +319,7 @@ function showDMDetail(dmDetail, container, otherUserId) {
       // 标记已发送
       container.hasSentDM = true;
     } catch (e) {
-      alert('发送失败: ' + (e && e.message ? e.message : e));
+      toastr.error('发送失败: ' + (e && e.message ? e.message : e), '错误');
     } finally {
       sendBtn.disabled = false;
       sendBtn.textContent = '发送';

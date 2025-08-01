@@ -11,13 +11,19 @@ $dm-unread-color: #fff;
   top: 12px;
   right: 24px;
   color: #bbb;
-  font-size: 13px;
-  opacity: 0.5;
+  font-size: 14px;
+  font-style: italic;
+  opacity: 0.7;
   user-select: all;
   font-family: monospace;
   z-index: 1200;
   background: none;
   line-height: 1.5;
+  &:hover{
+    color:#aee1f9;
+  opacity: 0.9;
+  }
+
 }
 // 补充dmdetail全屏白底样式
 .dmdetail {
