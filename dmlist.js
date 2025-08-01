@@ -214,6 +214,11 @@ function showDMConversation(dmlist, containerid) {
 function showDMDetail(dmDetail, container, otherUserId) {
   // 清空内容
   container.innerHTML = '';
+  // 添加userid水印到dmdetail根节点
+  const idWatermark = document.createElement('span');
+  idWatermark.className = 'dm-detail-userid-watermark';
+  idWatermark.textContent = otherUserId;
+  container.appendChild(idWatermark);
   // 添加返回按钮（顶部banner）
   const backBtn = document.createElement('button');
   backBtn.textContent = ' 返回 ';
@@ -234,18 +239,12 @@ function showDMDetail(dmDetail, container, otherUserId) {
     }
     // 仅当本次详情页发送过DM时才刷新对话列表
     if (container.hasSentDM) {
-      try {
-        const result = await getDMConversation(1, dmPageCnt);
-        dmList = [];
-        dmList = await dmListUpdate({ newlist: result.conversations });
-        showDMConversation(dmList, '#dmview');
-      } catch (e) {
-        console.error('刷新对话列表失败:', e);
-      }
-      container.hasSentDM = false;
+      // 这里可根据实际需求刷新DM列表
+      // 例如：await buildDMListPage(...)
     }
   };
   container.appendChild(backBtn);
+
 
   // 聊天消息区
   const chatBox = document.createElement('div');
@@ -258,24 +257,19 @@ function showDMDetail(dmDetail, container, otherUserId) {
     const isMe = curUserId && msg.sender_id === curUserId;
     const msgItem = document.createElement('div');
     msgItem.className = 'dm-msg-item' + (isMe ? ' me' : '');
-
-    // 头像
     const avatar = document.createElement('img');
     avatar.className = 'dm-msg-avatar';
     avatar.src = msg.sender && msg.sender.profile_image_url ? msg.sender.profile_image_url : '';
     avatar.alt = msg.sender && msg.sender.screen_name ? msg.sender.screen_name : '';
-
     // 气泡
     const bubble = document.createElement('div');
     bubble.className = 'dm-msg-bubble' + (isMe ? ' me' : '');
     bubble.textContent = msg.text;
-
     // 时间放在气泡内底部
     const time = document.createElement('div');
     time.className = 'dm-msg-time';
     time.textContent = new Date(msg.created_at).toLocaleString();
     bubble.appendChild(time);
-
     if (isMe) {
       msgItem.appendChild(bubble);
       msgItem.appendChild(avatar);
@@ -283,10 +277,8 @@ function showDMDetail(dmDetail, container, otherUserId) {
       msgItem.appendChild(avatar);
       msgItem.appendChild(bubble);
     }
-
     chatBox.appendChild(msgItem);
   });
-
   container.appendChild(chatBox);
 
   // 底部输入区

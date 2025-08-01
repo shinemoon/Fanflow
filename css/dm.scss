@@ -1,3 +1,18 @@
+// 右上角固定水印
+.dm-detail-userid-watermark {
+  position: absolute;
+  top: 12px;
+  right: 24px;
+  color: #bbb;
+  font-size: 13px;
+  opacity: 0.5;
+  user-select: all;
+  font-family: monospace;
+  z-index: 1200;
+  pointer-events: none;
+  background: none;
+  line-height: 1.5;
+}
 // 补充dmdetail全屏白底样式
 .dmdetail {
   position: absolute;
@@ -7,7 +22,8 @@
   height: 100%;
   background: #fff;
   z-index: 999;
-  overflow: auto;
+  overflow-y:auto ;
+  overflow-x: hidden;
 }
 // 聊天详情页 Material Design 风格
 .dm-detail-back-btn {
