@@ -148,7 +148,7 @@ function showDMConversation(dmlist, containerid) {
             </div>
         `;
     // 增加点击事件，点击后获取该用户的私信详情
-    conversationElement.addEventListener('click', async function() {
+    conversationElement.addEventListener('click', async function () {
       const userid = this.getAttribute('data-userid');
       console.log(userid);
       if (typeof getDMDetails === 'function') {
@@ -162,6 +162,7 @@ function showDMConversation(dmlist, containerid) {
           if (!dmdetail) {
             dmdetail = document.createElement('div');
             dmdetail.id = 'dmdetail';
+            dmdetail.className = 'dmdetail';
             document.body.appendChild(dmdetail);
           } else {
             dmdetail.innerHTML = '';
@@ -225,7 +226,7 @@ function showDMDetail(dmDetail, container, otherUserId) {
   backBtn.className = 'dm-detail-back-btn';
   // 标记本次详情页是否发送过DM
   if (typeof container.hasSentDM === 'undefined') container.hasSentDM = false;
-  backBtn.onclick = async function() {
+  backBtn.onclick = async function () {
     container.style.display = 'none';
     const dmview = document.querySelector('#dmview');
     if (dmview) dmview.style.display = '';
@@ -317,7 +318,7 @@ function showDMDetail(dmDetail, container, otherUserId) {
     }
   }
   sendBtn.addEventListener('click', doSendDM);
-  input.addEventListener('keydown', function(e) {
+  input.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
       doSendDM();
     }
