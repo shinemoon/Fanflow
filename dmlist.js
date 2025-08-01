@@ -215,11 +215,19 @@ function showDMConversation(dmlist, containerid) {
 function showDMDetail(dmDetail, container, otherUserId) {
   // 清空内容
   container.innerHTML = '';
-  // 添加userid水印到dmdetail根节点
+  // 添加userid水印到dmdetail根节点，并绑定点击事件
   const idWatermark = document.createElement('span');
   idWatermark.className = 'dm-detail-userid-watermark';
   idWatermark.textContent = otherUserId;
+  idWatermark.title = '点击查看该用户消息';
+  idWatermark.style.cursor = 'pointer';
   container.appendChild(idWatermark);
+  $('.dm-detail-userid-watermark').off('click');
+  $('.dm-detail-userid-watermark').on('click', function (e) {
+    e.stopPropagation();
+      switchToShowUserTab(otherUserId);
+      $('#dmdetail').remove();
+  });
   // 添加返回按钮（顶部banner）
   const backBtn = document.createElement('button');
   backBtn.textContent = ' 返回 ';

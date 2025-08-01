@@ -38,7 +38,7 @@ let userInfo = {
   description: "有目的地生活"
 };
 
-let dmmode="conversation";
+let dmmode = "conversation";
 
 // Page Init
 
@@ -170,7 +170,7 @@ function bindClickActions() {
       $('.feed').addClass('background');
       $('#mentioned').removeClass('background');
       //if (curTab != "mentions" && mentionList.length > 0) {
-      if (curTab != "mentions" ) {
+      if (curTab != "mentions") {
         preTab = curTab;
         curTab = 'mentions';
         //$('#mentioned').empty();
@@ -233,24 +233,9 @@ function bindClickActions() {
     event.preventDefault(); // 阻止默认跳转行为
     //Name
     if ($(this).hasClass('former') || $(this).hasClass('msg-nickname')) {
-      // 切换Tab形态
-      preTab = curTab;
-      curTab = "showUser";
-      $('.feed').addClass('background');
-      // 并且，每次切进来都必重刷（毕竟是个临时性的显示层）
-      showList = [];
-      $('#switchshow').empty();
-      $('#switchshow').removeClass('background');
-      $('.button-array').addClass('background');
-
-      showid = ($(this).hasClass('former')) ? $(this).attr('href').split('/').pop() : $(this).attr('usrid');
-
-      //切换信息
-      $('#userinfo').addClass("background");
-      $('#user-description').addClass("background");
-      $('#switch-description').removeClass("background");
-      $('#switchLayer').removeClass("background");
-      buildUserListPage(showid, 'init', bindClickActions);
+      // 切换到showUser Tab，封装为函数
+      const getShowId = (el) => el.hasClass('former') ? el.attr('href').split('/').pop() : el.attr('usrid');
+      switchToShowUserTab(getShowId($(this)));
     } else {
       let targetUrl = new URL($(this).attr('href'), 'https://fanfou.com');
       window.open(targetUrl);
@@ -299,6 +284,24 @@ function bindClickActions() {
   });
 }
 
+// 封装切换到showUser Tab的函数
+function switchToShowUserTab(userid) {
+  preTab = curTab;
+  curTab = "showUser";
+  $('.feed').addClass('background');
+  // 每次切进来都必重刷（临时性显示层）
+  showList = [];
+  $('#switchshow').empty();
+  $('#switchshow').removeClass('background');
+  $('.button-array').addClass('background');
+  showid = userid;
+  // 切换信息
+  $('#userinfo').addClass("background");
+  $('#user-description').addClass("background");
+  $('#switch-description').removeClass("background");
+  $('#switchLayer').removeClass("background");
+  buildUserListPage(showid, 'init', bindClickActions);
+}
 
 function constructPop(type, content) {
   var $popframe = $('#popframe');
