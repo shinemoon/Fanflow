@@ -219,6 +219,7 @@ function buildHtmlFromMessages({
     else
       $actionsDiv.append($('<span>').addClass('star').addClass('icon-heart3'));
 
+    $actionsDiv.append($('<span>').addClass('dm').addClass('icon-mail'));
     $actionsDiv.append($('<span>').addClass('quote').addClass('icon-quote1'));
     $actionsDiv.append($('<span>').addClass('reply').addClass('icon-reply'));
     $actionsDiv.append($('<span>').addClass('icon-link').addClass('reply-src'));
@@ -368,8 +369,42 @@ function bindMsgAction() {
     window.open(srcurl, '_blank');
   });
 
-
-
+  // 私信按钮点击事件
+  $('.dm').off('click');
+  $('.dm').on('click', function () {
+    let curid = $(this).parent().attr('msgid');
+    let message = null;
+    switch (curTab) {
+      case 'home':
+        message = curList.find(function (message) {
+          return message.id == curid;
+        });
+        break;
+      case 'showUser':
+        message = showList.find(function (message) {
+          return message.id == curid;
+        });
+        break;
+      case 'mentions':
+        message = mentionList.find(function (message) {
+          return message.id == curid;
+        });
+        break;
+      default:
+        break;
+    }
+    if (!message) return;
+    // 记录userid到全局变量
+    const userid = message.user && message.user.id;
+    if (!userid) return;
+    window.pendingDMUserId = userid;
+    window.shouldOpenPendingDMDetail = true;
+    // 模拟点击#dm按钮
+    const dmBtn = document.querySelector('#dm');
+    if (dmBtn) {
+      dmBtn.click();
+    }
+  });
 }
 
 // Update the curList

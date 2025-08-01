@@ -1,4 +1,32 @@
 /**
+ * 发送私信消息
+ * @param {string} user_id - 接收方用户ID（必填）
+ * @param {string} text - 消息内容（必填）
+ * @param {object} options - 可选参数，如 in_reply_to_id
+ * @returns {Promise<object>} - 返回发送后的消息对象
+ */
+async function sendDM(user_id, text, options = {}) {
+    if (!user_id || !text) {
+        throw new Error('user_id 和 text 均为必填项');
+    }
+    const url = FANFOU_API_BASE + '/direct_messages/new.json';
+    const formData = new FormData();
+    formData.append('user', user_id);
+    formData.append('text', text);
+    formData.append('format', 'html');
+    formData.append('mode', 'lite');
+    if (options.in_reply_to_id) {
+        formData.append('in_reply_to_id', options.in_reply_to_id);
+    }
+    try {
+        const response = await fanfouRequest(url, 'POST', null, formData);
+        return await response.json();
+    } catch (error) {
+        console.error('Error sending DM:', error);
+        throw error;
+    }
+}
+/**
  * 获取与指定用户的私信对话（会话详情）。
  * @param {string} user_id - 对方用户ID（必填）
  * @param {object} options - 可选参数，如 since_id, max_id, count, page

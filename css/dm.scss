@@ -1,3 +1,155 @@
+// 聊天详情页 Material Design 风格
+.dm-detail-back-btn {
+  background: none;
+  border: none;
+  color: #2196f3;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 6px 12px;
+  cursor: pointer;
+  outline: none;
+  margin: 4px 0 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  height: 28px;
+  line-height: 20px;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.08);
+  background: #fff;
+  z-index: 10;
+  &:hover {
+    background: #e3f2fd;
+  }
+}
+.dm-detail-inputbar {
+  width: 100%;
+  background: #fff;
+  box-shadow: 0 -2px 8px 0 rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 10;
+}
+.dm-detail-inputbar input[type="text"] {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: #f5f5f5;
+  border-radius: 0px;
+  padding: 8px 16px;
+  font-size: 15px;
+  margin-right: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  transition: box-shadow 0.2s;
+}
+.dm-detail-inputbar input[type="text"]:focus {
+  box-shadow: 0 2px 8px rgba(33,150,243,0.12);
+  background: #fff;
+}
+.dm-detail-inputbar button {
+  background: #e3f2fd;
+  color: #2196f3;
+  border: none;
+  border-radius: 0px;
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  height: 28px;
+  line-height: 20px;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.08);
+  margin-left: 4px;
+  margin-right: 20px;
+}
+.dm-detail-inputbar button:hover {
+  background: #bbdefb;
+}
+
+.dm-chat-box {
+  padding: 8px 0 16px 0;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  /* 滚动条风格与popup一致 */
+  scrollbar-width: thin;
+  scrollbar-color: #ccc transparent;
+}
+.dm-chat-box::-webkit-scrollbar {
+  width: 8px;
+}
+.dm-chat-box::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dm-chat-box::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+.dm-chat-box::-webkit-scrollbar-thumb:hover {
+  background-color: #bbb;
+}
+
+
+.dm-msg-item {
+  display: flex;
+  align-items: flex-end;
+  margin: 0 8px;
+  margin-bottom: 2px;
+  font-size: 14px;
+  position: relative;
+}
+.dm-msg-item.me {
+  flex-direction: row-reverse;
+}
+
+.dm-msg-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.dm-msg-bubble {
+  background: #fff;
+  color: #222;
+  border-radius: 0;
+  padding: 8px 18px 18px 18px;
+  max-width: 80vw;
+  min-width: 200px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  word-break: break-all;
+  font-size: 14px;
+  margin: 0 4px;
+  line-height: 1.5;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.dm-msg-bubble.me {
+  background: #aee1f9;
+  color: #222;
+}
+
+.dm-msg-time {
+  font-size: 11px;
+  color: #aaa;
+  margin: 0;
+  align-self: flex-end;
+  min-width: 0;
+  text-align: right;
+  position: absolute;
+  bottom: 2px;
+  right: 10px;
+  white-space: nowrap;
+}
 // dm.scss
 $dm-primary-border-color: #8888885c;
 $dm-hover-color: #d6efcd;

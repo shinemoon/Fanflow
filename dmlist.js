@@ -174,64 +174,101 @@ function showDMConversation(dmlist, containerid) {
         console.warn('getDMDetails 未定义');
       }
     });
+    container.append(conversationElement);
+  });
 
-// 聊天详情UI渲染函数，模拟聊天软件界面
+  // 检查是否有待打开的DM详情（来自消息流的.dm点击）
+  if (window.shouldOpenPendingDMDetail && window.pendingDMUserId) {
+    (async () => {
+      try {
+        window.curdm = await getDMDetails(window.pendingDMUserId);
+        const dmview = document.querySelector('#dmview');
+        if (dmview) dmview.style.display = 'none';
+        let dmdetail = document.querySelector('#dmdetail');
+        if (!dmdetail) {
+          dmdetail = document.createElement('div');
+          dmdetail.id = 'dmdetail';
+          dmdetail.style.position = 'absolute';
+          dmdetail.style.top = '0';
+          dmdetail.style.left = '0';
+          dmdetail.style.width = '100%';
+          dmdetail.style.height = '100%';
+          dmdetail.style.background = '#fff';
+          dmdetail.style.zIndex = '999';
+          document.body.appendChild(dmdetail);
+        } else {
+          dmdetail.innerHTML = '';
+          dmdetail.style.display = 'block';
+        }
+        if (typeof showDMDetail === 'function') {
+          showDMDetail(window.curdm, dmdetail, window.pendingDMUserId);
+        }
+      } catch (e) {
+        console.error('自动打开DM详情失败:', e);
+      } finally {
+        // 清理全局变量
+        window.shouldOpenPendingDMDetail = false;
+        window.pendingDMUserId = null;
+      }
+    })();
+  }
+}
 function showDMDetail(dmDetail, container, otherUserId) {
   // 清空内容
   container.innerHTML = '';
-  // 添加返回按钮
+  // 添加返回按钮（顶部banner）
   const backBtn = document.createElement('button');
-  backBtn.textContent = '← 返回';
-  backBtn.style.margin = '10px';
-  backBtn.onclick = function() {
+  backBtn.textContent = ' 返回 ';
+  backBtn.className = 'dm-detail-back-btn';
+  // 标记本次详情页是否发送过DM
+  if (typeof container.hasSentDM === 'undefined') container.hasSentDM = false;
+  backBtn.onclick = async function() {
     container.style.display = 'none';
     const dmview = document.querySelector('#dmview');
     if (dmview) dmview.style.display = '';
+    // 仅当本次详情页发送过DM时才刷新对话列表
+    if (container.hasSentDM) {
+      try {
+        const result = await getDMConversation(1, dmPageCnt);
+        dmList = [];
+        dmList = await dmListUpdate({ newlist: result.conversations });
+        showDMConversation(dmList, '#dmview');
+      } catch (e) {
+        console.error('刷新对话列表失败:', e);
+      }
+      container.hasSentDM = false;
+    }
   };
   container.appendChild(backBtn);
 
   // 聊天消息区
   const chatBox = document.createElement('div');
   chatBox.className = 'dm-chat-box';
-  chatBox.style.padding = '20px';
-  chatBox.style.maxHeight = '80vh';
-  chatBox.style.overflowY = 'auto';
-  chatBox.style.background = '#f5f5f5';
 
   // 获取当前用户id
   const curUserId = (typeof curUsr !== 'undefined' && curUsr.id) ? curUsr.id : null;
 
   (dmDetail.messages || []).forEach(msg => {
-    const msgItem = document.createElement('div');
-    msgItem.className = 'dm-msg-item';
-    msgItem.style.display = 'flex';
-    msgItem.style.marginBottom = '16px';
-    msgItem.style.alignItems = 'flex-end';
-    // 判断消息方向
     const isMe = curUserId && msg.sender_id === curUserId;
-    msgItem.style.justifyContent = isMe ? 'flex-end' : 'flex-start';
+    const msgItem = document.createElement('div');
+    msgItem.className = 'dm-msg-item' + (isMe ? ' me' : '');
 
     // 头像
     const avatar = document.createElement('img');
+    avatar.className = 'dm-msg-avatar';
     avatar.src = msg.sender && msg.sender.profile_image_url ? msg.sender.profile_image_url : '';
     avatar.alt = msg.sender && msg.sender.screen_name ? msg.sender.screen_name : '';
-    avatar.style.width = '36px';
-    avatar.style.height = '36px';
-    avatar.style.borderRadius = '50%';
-    avatar.style.margin = isMe ? '0 0 0 10px' : '0 10px 0 0';
 
     // 气泡
     const bubble = document.createElement('div');
-    bubble.className = 'dm-msg-bubble';
+    bubble.className = 'dm-msg-bubble' + (isMe ? ' me' : '');
     bubble.textContent = msg.text;
-    bubble.style.padding = '10px 16px';
-    bubble.style.borderRadius = '18px';
-    bubble.style.maxWidth = '60%';
-    bubble.style.background = isMe ? '#aee1f9' : '#fff';
-    bubble.style.color = '#222';
-    bubble.style.boxShadow = '0 1px 4px rgba(0,0,0,0.08)';
-    bubble.style.wordBreak = 'break-all';
-    bubble.style.fontSize = '15px';
+
+    // 时间放在气泡内底部
+    const time = document.createElement('div');
+    time.className = 'dm-msg-time';
+    time.textContent = new Date(msg.created_at).toLocaleString();
+    bubble.appendChild(time);
 
     if (isMe) {
       msgItem.appendChild(bubble);
@@ -241,21 +278,50 @@ function showDMDetail(dmDetail, container, otherUserId) {
       msgItem.appendChild(bubble);
     }
 
-    // 时间
-    const time = document.createElement('div');
-    time.className = 'dm-msg-time';
-    time.textContent = new Date(msg.created_at).toLocaleString();
-    time.style.fontSize = '12px';
-    time.style.color = '#888';
-    time.style.margin = isMe ? '0 0 0 10px' : '0 10px 0 0';
-    time.style.alignSelf = 'flex-end';
-    msgItem.appendChild(time);
-
     chatBox.appendChild(msgItem);
   });
 
   container.appendChild(chatBox);
-}
-    container.append(conversationElement);
+
+  // 底部输入区
+  let inputBar = document.createElement('div');
+  inputBar.className = 'dm-detail-inputbar';
+  inputBar.innerHTML = `
+    <input type="text" placeholder="输入私信内容..." />
+    <button>发送</button>
+  `;
+  container.appendChild(inputBar);
+
+  // 发送事件集成
+  const input = inputBar.querySelector('input[type="text"]');
+  const sendBtn = inputBar.querySelector('button');
+  async function doSendDM() {
+    const text = input.value.trim();
+    if (!text) return;
+    sendBtn.disabled = true;
+    sendBtn.textContent = '发送中...';
+    try {
+      await sendDM(otherUserId, text);
+      input.value = '';
+      // 重新获取并刷新对话
+      const newDetail = await getDMDetails(otherUserId);
+      showDMDetail(newDetail, container, otherUserId);
+      // 发送后刷新会话列表并存储
+      const result = await getDMConversation(1, dmPageCnt);
+      dmList = await dmListUpdate({ newlist: result.conversations });
+      // 标记已发送
+      container.hasSentDM = true;
+    } catch (e) {
+      alert('发送失败: ' + (e && e.message ? e.message : e));
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = '发送';
+    }
+  }
+  sendBtn.addEventListener('click', doSendDM);
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      doSendDM();
+    }
   });
 }
