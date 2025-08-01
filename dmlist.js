@@ -15,17 +15,36 @@ async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
       chrome.storage.local.set({ userinfo: isValid }, function () {
         // console.log("Local Save users");
       });
-      // 刷新User信息部分
-      console.log(user_id);
+      // 检查是否全局变量跳转
+      if (window.shouldOpenPendingDMDetail && window.pendingDMUserId) {
+        try {
+          window.curdm = await getDMDetails(window.pendingDMUserId);
+          let dmdetail = document.querySelector('#dmdetail');
+          if (!dmdetail) {
+            dmdetail = document.createElement('div');
+            dmdetail.id = 'dmdetail';
+            dmdetail.className = 'dmdetail';
+            document.body.appendChild(dmdetail);
+          } else {
+            dmdetail.innerHTML = '';
+            dmdetail.style.display = '';
+          }
+          if (typeof showDMDetail === 'function') {
+            showDMDetail(window.curdm, dmdetail, window.pendingDMUserId);
+          }
+        } catch (e) {
+          console.error('自动打开DM详情失败:', e);
+        }
+        if (cb) cb();
+        return;
+      }
       // 获取用户信息并更新界面-No need in DM page
       // Get local
       await chrome.storage.local.get({ dmlist: [] }, async function (r) {
         dmList = r.dmlist;
-        //if (dmList.length == 0 || type === "forceRefresh") {
         if (type === "forceRefresh" || type === "up") {
           curDmPage = 1;
-          dmList = [];  // Clear history
-          //          dmList=[];  //Clean history
+          dmList = [];
           if (mode === "inbox") {
             result = await getDMInbox(curDmPage, dmPageCnt);
           } else if (mode === "conversation") {
@@ -41,32 +60,26 @@ async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
             result = await getDMConversation(curDmPage, dmPageCnt);
           }
         } else {
-          result = mode === "conversation" ? dmList : []; // 默认返回空数组或现有列表// TODO: to have inbox version
+          result = mode === "conversation" ? dmList : [];
         }
 
         console.log(result);
-        // 统一更新列表
-
         dmList = await dmListUpdate({
           newlist: result.conversations,
         });
 
-        // 根据模式选择显示函数
         if (mode === "inbox") {
           showDMList(dmList, '#dmview');
         } else {
           showDMConversation(dmList, '#dmview');
         }
-
       });
-
     } else {
       openAuthPage();
     }
   } else {
     openAuthPage();
   }
-
   if (cb) cb();
 }
 
@@ -149,17 +162,10 @@ function showDMConversation(dmlist, containerid) {
           if (!dmdetail) {
             dmdetail = document.createElement('div');
             dmdetail.id = 'dmdetail';
-            dmdetail.style.position = 'absolute';
-            dmdetail.style.top = '0';
-            dmdetail.style.left = '0';
-            dmdetail.style.width = '100%';
-            dmdetail.style.height = '100%';
-            dmdetail.style.background = '#fff';
-            dmdetail.style.zIndex = '999';
             document.body.appendChild(dmdetail);
           } else {
             dmdetail.innerHTML = '';
-            dmdetail.style.display = 'block';
+            dmdetail.style.display = '';
           }
           showDMDetail(window.curdm, dmdetail, userid);
         } catch (e) {
@@ -188,17 +194,11 @@ function showDMConversation(dmlist, containerid) {
         if (!dmdetail) {
           dmdetail = document.createElement('div');
           dmdetail.id = 'dmdetail';
-          dmdetail.style.position = 'absolute';
-          dmdetail.style.top = '0';
-          dmdetail.style.left = '0';
-          dmdetail.style.width = '100%';
-          dmdetail.style.height = '100%';
-          dmdetail.style.background = '#fff';
-          dmdetail.style.zIndex = '999';
+          dmdetail.className = 'dmdetail';
           document.body.appendChild(dmdetail);
         } else {
           dmdetail.innerHTML = '';
-          dmdetail.style.display = 'block';
+          dmdetail.style.display = '';
         }
         if (typeof showDMDetail === 'function') {
           showDMDetail(window.curdm, dmdetail, window.pendingDMUserId);
@@ -206,9 +206,7 @@ function showDMConversation(dmlist, containerid) {
       } catch (e) {
         console.error('自动打开DM详情失败:', e);
       } finally {
-        // 清理全局变量
-        window.shouldOpenPendingDMDetail = false;
-        window.pendingDMUserId = null;
+        // 清理全局变量 - 在返回处理了
       }
     })();
   }
@@ -226,6 +224,14 @@ function showDMDetail(dmDetail, container, otherUserId) {
     container.style.display = 'none';
     const dmview = document.querySelector('#dmview');
     if (dmview) dmview.style.display = '';
+    // 如果是通过window的全局变量跳转进来的，返回时直接跳首页并清理变量
+    if (window.shouldOpenPendingDMDetail || window.pendingDMUserId) {
+      const homeBtn = document.querySelector('#home');
+      if (homeBtn) homeBtn.click();
+      window.shouldOpenPendingDMDetail = false;
+      window.pendingDMUserId = null;
+      return;
+    }
     // 仅当本次详情页发送过DM时才刷新对话列表
     if (container.hasSentDM) {
       try {

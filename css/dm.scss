@@ -1,3 +1,14 @@
+// 补充dmdetail全屏白底样式
+.dmdetail {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  z-index: 999;
+  overflow: auto;
+}
 // 聊天详情页 Material Design 风格
 .dm-detail-back-btn {
   background: none;
