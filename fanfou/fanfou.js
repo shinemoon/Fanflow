@@ -1,78 +1,103 @@
+/**
+ * 获取与指定用户的私信对话（会话详情）。
+ * @param {string} user_id - 对方用户ID（必填）
+ * @param {object} options - 可选参数，如 since_id, max_id, count, page
+ * @returns {Promise<object>} - 返回消息对象列表 { messages: [...] }
+ */
+async function getDMDetails(user_id, options = {}) {
+    if (!user_id) {
+        throw new Error('user_id is required');
+    }
+    const url = new URL(FANFOU_API_BASE + '/direct_messages/conversation.json');
+    const queryParams = {
+        format: 'html',
+        mode: 'lite',
+        id: user_id,
+        ...(options.since_id && { since_id: options.since_id }),
+        ...(options.max_id && { max_id: options.max_id }),
+        ...(options.count && { count: options.count }),
+        ...(options.page && { page: options.page })
+    };
+    try {
+        const response = await fanfouRequest(url, 'GET', queryParams);
+        return { messages: await response.json() };
+    } catch (error) {
+        console.error('Error fetching DM details:', error);
+        throw error;
+    }
+}
 // 修改fanfou.js中的fanfouRequest函数
 async function fanfouRequest(apiurl, fmode, params, formData = null) {
-    return new Promise(async (resolve, reject) => {
-        NProgress.start();
-        const url = new URL(apiurl);
+    NProgress.start();
+    const url = new URL(apiurl);
 
-        // 生成OAuth签名
-        const queryParams = params || {};
-        const signParams = {
-            oauth_consumer_key: CONSUMER_KEY,
-            oauth_nonce: OAuth1.generateNonce(),
-            oauth_signature_method: "HMAC-SHA1",
-            oauth_timestamp: OAuth1.generateTimestamp(),
-            oauth_token: validToken.oauthToken,
-            oauth_version: "1.0"
+    // 生成OAuth签名
+    const queryParams = params || {};
+    const signParams = {
+        oauth_consumer_key: CONSUMER_KEY,
+        oauth_nonce: OAuth1.generateNonce(),
+        oauth_signature_method: "HMAC-SHA1",
+        oauth_timestamp: OAuth1.generateTimestamp(),
+        oauth_token: validToken.oauthToken,
+        oauth_version: "1.0"
+    };
+
+    //var headerParams = (fmode == 'POST') ? {} : signParams;
+    var headerParams = signParams;
+
+    try {
+        const signature = generateOAuthSignature(
+            fmode,
+            url,
+            formData ? {} : queryParams, // 如果是formData则不签名字
+            headerParams,
+            CONSUMER_SECRET,
+            validToken.oauthTokenSecret
+        );
+
+        headerParams.oauth_signature = signature;
+        if (fmode === 'POST' && formData) {
+            /* // Remove header
+            Object.entries(signParams).forEach(([key, value]) => {
+                formData.append(key, value);
+            });
+            */
+        }
+        const authHeader = OAuth1.buildAuthHeader(headerParams);
+
+        // 构造请求头
+        const headers = new Headers({
+            'Authorization': authHeader
+        });
+
+        // 根据请求类型设置Content-Type
+        if (formData) {
+            // 不设置Content-Type头，浏览器会自动处理multipart边界
+        } else {
+            headers.append('Content-Type', 'application/json');
+            // 添加查询参数到URL
+            Object.entries(queryParams).forEach(([key, value]) => {
+                url.searchParams.append(key, value);
+            });
+        }
+
+        const fetchOptions = {
+            method: fmode,
+            headers: headers,
+            body: formData || (fmode !== 'GET' ? JSON.stringify(queryParams) : null)
         };
 
-        //var headerParams = (fmode == 'POST') ? {} : signParams;
-        var headerParams = signParams;
+        const response = await fetch(url, fetchOptions);
 
-
-        try {
-            const signature = generateOAuthSignature(
-                fmode,
-                url,
-                formData ? {} : queryParams, // 如果是formData则不签名字
-                headerParams,
-                CONSUMER_SECRET,
-                validToken.oauthTokenSecret
-            );
-
-            headerParams.oauth_signature = signature;
-            if (fmode === 'POST' && formData) {
-                /* // Remove header
-                Object.entries(signParams).forEach(([key, value]) => {
-                    formData.append(key, value);
-                });
-                */
-            }
-            const authHeader = OAuth1.buildAuthHeader(headerParams);
-
-            // 构造请求头
-            const headers = new Headers({
-                'Authorization': authHeader
-            });
-
-            // 根据请求类型设置Content-Type
-            if (formData) {
-                // 不设置Content-Type头，浏览器会自动处理multipart边界
-            } else {
-                headers.append('Content-Type', 'application/json');
-                // 添加查询参数到URL
-                Object.entries(queryParams).forEach(([key, value]) => {
-                    url.searchParams.append(key, value);
-                });
-            }
-
-            const fetchOptions = {
-                method: fmode,
-                headers: headers,
-                body: formData || (fmode !== 'GET' ? JSON.stringify(queryParams) : null)
-            };
-
-            const response = await fetch(url, fetchOptions);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            resolve(response);
-        } catch (error) {
-            reject(error);
-        } finally {
-            NProgress.done();
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    });
+        return response;
+    } catch (error) {
+        throw error;
+    } finally {
+        NProgress.done();
+    }
 }
 
 // 修改后的postStatus函数
@@ -228,6 +253,9 @@ async function getDMConversation(page= 1, count= 4 ) {
         throw error;
     }
 }
+
+
+
 /**
  * Fetches direct message inbox messages.
  * @param since_id - The minimum message ID to fetch (messages newer than this ID).

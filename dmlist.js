@@ -1,4 +1,4 @@
-let curDmPage = 1;
+let curDmPage = 0;
 let dmPageCnt = 8;
 async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
   console.log("To show DM");
@@ -21,7 +21,10 @@ async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
       // Get local
       await chrome.storage.local.get({ dmlist: [] }, async function (r) {
         dmList = r.dmlist;
-        if (dmList.length == 0 || type === "forceRefresh") {
+        //if (dmList.length == 0 || type === "forceRefresh") {
+        if (type === "forceRefresh" || type === "up") {
+          curDmPage = 1;
+          dmList = [];  // Clear history
           //          dmList=[];  //Clean history
           if (mode === "inbox") {
             result = await getDMInbox(curDmPage, dmPageCnt);
@@ -37,29 +40,22 @@ async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
           } else {
             result = await getDMConversation(curDmPage, dmPageCnt);
           }
-        } else if (type === "up") {
-          curDmPage = 1;
-          if (mode === "inbox") {
-            result = await getDMInbox(curDmPage, dmPageCnt);
-          } else {
-            result = await getDMConversation(curDmPage, dmPageCnt);
-          }
         } else {
           result = mode === "conversation" ? dmList : []; // 默认返回空数组或现有列表// TODO: to have inbox version
         }
 
         console.log(result);
-
         // 统一更新列表
-        result = await dmListUpdate({
-          newlist: result,
+
+        dmList = await dmListUpdate({
+          newlist: result.conversations,
         });
 
         // 根据模式选择显示函数
         if (mode === "inbox") {
-          showDMList(result, '#dmview');
+          showDMList(dmList, '#dmview');
         } else {
-          showDMConversation(result, '#dmview');
+          showDMConversation(dmList, '#dmview');
         }
 
       });
@@ -75,19 +71,19 @@ async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
 }
 
 async function dmListUpdate({
-  direction = 'up',
-  limit = 100,
   newlist = [],
 } = {}) {
   console.log("更新DM列表");
-  await chrome.storage.local.set({ dmlist: newlist });
-  return newlist;
+  dmList = dmList.concat(newlist || []);
+  await chrome.storage.local.set({ dmlist: dmList });
+  return dmList;
 }
 
 
 function showDMList(dmlist, containerid) {
   const container = $(containerid);
   container.addClass('dm-list-container');
+  container.empty();
   //dmlist.conversations.forEach(conversation => {
   dmlist.messages.forEach(conversation => {
     const conversationElement = document.createElement('div');
@@ -112,19 +108,23 @@ function showDMList(dmlist, containerid) {
 function showDMConversation(dmlist, containerid) {
   const container = $(containerid);
   container.addClass('dm-list-container');
-  dmlist.conversations.forEach(conversation => {
+  container.empty();
+  dmlist.forEach(conversation => {
     const otherusr = conversation.dm.sender.id === conversation.otherid
       ? conversation.dm.sender
       : conversation.dm.recipient;
 
     const conversationElement = document.createElement('div');
     conversationElement.classList.add('conversation-item');
+    conversationElement.setAttribute('data-userid', otherusr.id);
+    // or alternatively:
+    // conversationElement.dataset.userid = otherusr.id;
     conversationElement.innerHTML = `
             <div class="avatar sender '}">
-                <img src="${otherusr.id === conversation.dm.sender.id ? otherusr.profile_image_url :curUsr.profile_image_url}" >
+                <img src="${otherusr.id === conversation.dm.sender.id ? otherusr.profile_image_url : curUsr.profile_image_url}" >
             </div>
             <div class="avatar rec">
-                <img src="${otherusr.id === conversation.dm.sender.id ? curUsr.profile_image_url:otherusr.profile_image_url}" >
+                <img src="${otherusr.id === conversation.dm.sender.id ? curUsr.profile_image_url : otherusr.profile_image_url}" >
             </div>
  
             <div class="message-content">
