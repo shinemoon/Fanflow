@@ -1,4 +1,9 @@
+
 $msg-font-size: 12px;
+$dm-avatar-size: 40px;
+$dm-radius: 10px;
+$dm-unread-bg: #07c160;
+$dm-unread-color: #fff;
 
 // 右上角固定水印
 .dm-detail-userid-watermark {
@@ -31,7 +36,7 @@ $msg-font-size: 12px;
 .dm-detail-back-btn {
   background: none;
   border: none;
-  color: #2196f3;
+  color: #2196f3; 
   font-size: 16px;
   font-weight: 500;
   padding: 6px 12px;
@@ -180,101 +185,96 @@ $msg-font-size: 12px;
   right: 10px;
   white-space: nowrap;
 }
-// dm.scss
+
 $dm-primary-border-color: #8888885c;
 $dm-hover-color: #d6efcd;
 
 .dm-list-container {
-    overflow-x: hidden;
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  overflow-x: hidden;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 
-    .conversation-item {
-        display: flex;
-        align-items: center;
-        border-bottom: 0.5px dotted $dm-primary-border-color;
-        padding: 10px;
-        cursor: pointer;
+  .conversation-item {
+    display: flex;
+    align-items: center;
+    border-bottom: 0.5px dotted $dm-primary-border-color;
+    padding: 10px;
+    cursor: pointer;
 
-        &:hover {
-            background-color: $dm-hover-color;
-        }
-
-        &.unread {
-            .unread-indicator {
-                display: inline-block;
-            }
-        }
+    &:hover {
+      background-color: $dm-hover-color;
     }
+
+    &.unread .unread-indicator {
+      display: inline-block;
+    }
+  }
 }
 
 .avatar {
-    width: 40px;
-    height: 40px;
+  width: $dm-avatar-size;
+  height: $dm-avatar-size;
 
-    &.sender {
-        margin-right: -20px;
-        z-index: 30;
-
-        img {
-            border: 2px solid white;
-        }
-
-    }
-
-    &.rec {
-        margin-right: 20px;
-        z-index: 20;
-        opacity:0.7;
-    }
-
-
+  &.sender {
+    margin-right: -20px;
+    z-index: 30;
 
     img {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        object-fit: cover;
+      border: 2px solid #fff;
     }
+  }
+
+  &.rec {
+    margin-right: 20px;
+    z-index: 20;
+    opacity: 0.7;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
 }
 
 .message-content {
-    flex: 1;
-    width: 80%;
+  flex: 1;
+  width: 80%;
 
-    .sender-info {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 4px;
+  .sender-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
 
-        .sender-name {
-            font-weight: bold;
-            font-size: 12px;
-        }
-
-        .message-time {
-            color: #999;
-            font-size: 12px;
-        }
+    .sender-name {
+      font-weight: bold;
+      font-size: 12px;
     }
 
-    .message-preview {
-        color: #333;
-        font-size: 13px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        max-width: 70%;
+    .message-time {
+      color: #999;
+      font-size: 12px;
     }
+  }
 
-    .unread-indicator {
-        display: none;
-        background-color: #07c160;
-        color: white;
-        padding: 2px 6px;
-        border-radius: 10px;
-        font-size: 12px;
-        margin-top: 4px;
-    }
+  .message-preview {
+    color: #333;
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 70%;
+  }
+
+  .unread-indicator {
+    display: none;
+    background-color: $dm-unread-bg;
+    color: $dm-unread-color;
+    padding: 2px 6px;
+    border-radius: $dm-radius;
+    font-size: $msg-font-size;
+    margin-top: 4px;
+  }
 }

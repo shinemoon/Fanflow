@@ -219,7 +219,7 @@
   z-index: 30;
 }
 .avatar.sender img {
-  border: 2px solid white;
+  border: 2px solid #fff;
 }
 .avatar.rec {
   margin-right: 20px;
@@ -227,8 +227,8 @@
   opacity: 0.7;
 }
 .avatar img {
-  width: 40px;
-  height: 40px;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   -o-object-fit: cover;
      object-fit: cover;
@@ -262,7 +262,7 @@
 .message-content .unread-indicator {
   display: none;
   background-color: #07c160;
-  color: white;
+  color: #fff;
   padding: 2px 6px;
   border-radius: 10px;
   font-size: 12px;
