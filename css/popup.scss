@@ -530,10 +530,12 @@ body {
 
             &.userNotify {
                 animation: glow 1.5s ease-in-out infinite alternate;
+
                 @keyframes glow {
                     from {
                         box-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #18c42f;
                     }
+
                     to {
                         box-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #88e6af;
                     }
@@ -560,10 +562,18 @@ body {
     flex-wrap: wrap;
     flex-direction: row;
     align-items: flex-start;
-    background-color: #e7f1ea94;
     padding: 5px 0px 2px 5px;
     border-radius: 5px;
-    box-shadow: inset #cce6d1ab 0px 0px 5px 2px;
+    background-color: #e3e9e594;
+    box-shadow: inset #b1b3b1ab 0px 0px 5px 2px;
+
+
+    &.friend {
+        background-color: #e7f1ea94;
+        box-shadow: inset #cce6d1ab 0px 0px 5px 2px;
+
+    }
+
     cursor: pointer;
 
     &:hover {

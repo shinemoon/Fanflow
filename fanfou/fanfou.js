@@ -444,3 +444,30 @@ async function updateNotifyNum(num) {
     }
 }
 
+/**
+ * 查询两个用户是否为好友关系
+ * https://github.com/FanfouAPI/FanFouAPIDoc/wiki/friendships.exists
+ * @param {string} user_a - 用户A的ID或用户名
+ * @param {string} user_b - 用户B的ID或用户名
+ * @returns {Promise<boolean>} - 是否为好友关系
+ */
+async function checkFriendshipExists(user_a, user_b) {
+    if (!user_a || !user_b) throw new Error('user_a 和 user_b 均为必填项');
+    const url = new URL(FANFOU_API_BASE + '/friendships/exists.json');
+    const queryParams = {
+        user_a,
+        user_b,
+        format: 'html',
+        mode: 'lite'
+    };
+    try {
+        const response = await fanfouRequest(url, 'GET', queryParams);
+        const data = await response.json();
+        // API 返回 true/false
+        return data;
+    } catch (error) {
+        console.error('Error checking friendship:', error);
+        throw error;
+    }
+}
+

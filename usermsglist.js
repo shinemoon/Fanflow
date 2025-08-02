@@ -27,6 +27,7 @@ async function buildUserListPage(user_id, type = "up", cb) {
         const res = await getUserInfo(user_id); // Now using Promise version
         console.log("获得用户信息");
         console.log(res);
+        const followY = await checkFriendshipExists(user_id, curUsr.id); // Now using Promise version
 
         // 填充用户面板
         if (res) {
@@ -35,6 +36,11 @@ async function buildUserListPage(user_id, type = "up", cb) {
           $('#switch-follower .value').text(res.friends_count);
           $('#switch-description .value').text(res.description);
           $('#switch-avator img').prop("src", res.profile_image_url);
+        }
+        if (followY) {
+          $('#switchLayer').addClass('friend');
+        } else {
+          $('#switchLayer').removeClass('friend');
         }
 
         // 检查是否可以显示内容
