@@ -100,6 +100,7 @@ body {
 
         &#popframe {
             align-items: center;
+
             .pop-controls {
                 display: flex;
                 gap: 2px;
@@ -111,7 +112,7 @@ body {
                 flex-direction: row;
                 justify-content: space-around;
                 align-items: flex-start;
-                width:100%; 
+                width: 100%;
 
                 span {
                     //display: inline-block;
@@ -145,16 +146,21 @@ body {
                 overflow-x: hidden;
                 border-radius: 8px;
                 /* 隐藏滚动条 */
-                scrollbar-width: none; /* Firefox */
+                scrollbar-width: none;
+
+                /* Firefox */
                 &::-webkit-scrollbar {
-                    display: none; /* Chrome/Safari */
+                    display: none;
+                    /* Chrome/Safari */
                 }
+
                 /* 超出部分隐藏 */
                 clip-path: inset(0 0 0 0);
                 display: flex;
                 justify-content: center;
                 align-items: flex-start;
                 box-sizing: border-box;
+
                 // 支持竖长图滚动
                 &.clean {
                     filter: blur(0px);
@@ -170,7 +176,7 @@ body {
                 position: relative;
                 top: 0;
                 left: 0;
-                box-shadow: 0 2px 16px 0 rgba(0,0,0,0.12);
+                box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.12);
                 cursor: pointer;
             }
         }
@@ -521,6 +527,19 @@ body {
 
         #user-avator {
             cursor: pointer;
+
+            &.userNotify {
+                animation: glow 1.5s ease-in-out infinite alternate;
+                @keyframes glow {
+                    from {
+                        box-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #18c42f;
+                    }
+                    to {
+                        box-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #88e6af;
+                    }
+                }
+            }
+
             img {
                 width: 35px;
                 height: auto;
@@ -674,4 +693,26 @@ body {
 #toast-container.toast-bottom-center>div,
 #toast-container.toast-top-center>div {
     margin-top: 40px;
+}
+
+.badge {
+    position: absolute;
+    top: -2px;
+    right: 1px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #fff;
+}
+
+.badge-mention {
+    background-color: rgb(65, 170, 65); // Light green
+}
+
+.badge-dm {
+    background-color: rgb(235, 135, 152); // Light blue
 }

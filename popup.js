@@ -1,7 +1,9 @@
 // banner切换封装
 let validToken = null;
 let curUsr = null;
-let otherUsrId =null;
+let otherUsrId = null;
+
+let curNotification = null;
 // local list max as 100 msb
 let curList = [];
 let mentionList = [];
@@ -124,7 +126,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       $(this).html(''); // Reset to original text if needed
     }
   );
+  // Add badges to mentions and dm tabs
+  // Add mention badge
+  const $mentionBadge = $('<div>').addClass('badge badge-mention').text('0');
+  $('#mentions').css('position', 'relative').append($mentionBadge);
 
+  // Add DM badge
+  const $dmBadge = $('<div>').addClass('badge badge-dm').text('0');
+  $('#dm').css('position', 'relative').append($dmBadge);
+
+  loadAndRefreshNotifications();
 });
 
 
@@ -150,6 +161,7 @@ function bindClickActions() {
   $('.tab').off('click');
   $('.tab').click(function () {
     $('.tab.active').removeClass('active');
+    loadAndRefreshNotifications();
     //  Workaround，确保tab点击都会回到主界面
     bannerToggle('self');
 
@@ -207,7 +219,6 @@ function bindClickActions() {
         buildDMListPage(null, ntype, dmmode, bindClickActions);
       }
     }
-
   });
 
   // non-tab click
@@ -412,3 +423,42 @@ $(document).on('click', '#user-avator, #user-name', function () {
     window.open(url, '_blank');
   }
 });
+
+// Load notifications from local storage and update badges
+function loadAndRefreshNotifications() {
+  chrome.storage.local.get(['notification'], function (result) {
+    curNotification = result.notification; 
+    refreshBadges(curNotification.mentions, curNotification.direct_messages);
+    // Add userNotify class to user-avator if there are friend requests
+    if (curNotification.friend_requests > 0) {
+      $('#user-avator').addClass('userNotify');
+    } else {
+      $('#user-avator').removeClass('userNotify');
+    }
+  });
+
+}
+
+/**
+ * 刷新 mentions 和 dm 的 badge
+ * @param {number} mentionCount - 提及数量
+ * @param {number} dmCount - 私信数量
+ */
+function refreshBadges(mentionCount, dmCount) {
+  const $mentionBadge = $('.badge-mention');
+  const $dmBadge = $('.badge-dm');
+  if ($mentionBadge.length) {
+    if (mentionCount > 0) {
+      $mentionBadge.text(mentionCount).show();
+    } else {
+      $mentionBadge.hide();
+    }
+  }
+  if ($dmBadge.length) {
+    if (dmCount > 0) {
+      $dmBadge.text(dmCount).show();
+    } else {
+      $dmBadge.hide();
+    }
+  }
+}
