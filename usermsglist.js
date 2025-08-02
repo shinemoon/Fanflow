@@ -17,6 +17,12 @@ async function buildUserListPage(user_id, type = "up", cb) {
       console.log(user_id);
       // 获取用户信息并更新界面
       try {
+        $('#switch-name').text('-');
+        $('#switch-following .value').text('-');
+        $('#switch-follower .value').text('-');
+        $('#switch-description .value').text('-');
+        $('#switch-avator img').prop("src", '/images/avator.png');
+
         const res = await getUserInfo(user_id); // Now using Promise version
         console.log("获得用户信息");
         console.log(res);

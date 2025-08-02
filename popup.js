@@ -150,7 +150,7 @@ function bindClickActions() {
   $('.tab').click(function () {
     $('.tab.active').removeClass('active');
     //  Workaround，确保tab点击都会回到主界面
-    bannerToggle(showSelf = true);
+    bannerToggle('self');
 
     $(this).addClass('active');
     let ntype = 'init';
@@ -184,19 +184,27 @@ function bindClickActions() {
       }
       buildMentionListPage(ntype, bindClickActions);
     } else if ($(this).prop('id') == 'dm') {
-      console.log("dm clicked");
-      $('.feed').addClass('background');
-      $('#dmview').removeClass('background');
-      //if (curTab != "dm" && dmList.length > 0) {
-      if (curTab != "dm") {
-        preTab = curTab;
-        curTab = 'dm';
-        ntype = "init";
+      if (window.shouldOpenPendingDMDetail && window.pendingDMUserId) {
+        console.log("dm detail clicked");
+        //
+        $('.feed').addClass('background');
+        bannerToggle('none');
+        buildDMListPage(null, "init", dmmode, bindClickActions);
       } else {
-        $('#dmview').scrollTop(0);
-        ntype = 'forceRefresh';
+        console.log("dm clicked");
+        $('.feed').addClass('background');
+        $('#dmview').removeClass('background');
+        //if (curTab != "dm" && dmList.length > 0) {
+        if (curTab != "dm") {
+          preTab = curTab;
+          curTab = 'dm';
+          ntype = "init";
+        } else {
+          $('#dmview').scrollTop(0);
+          ntype = 'forceRefresh';
+        }
+        buildDMListPage(null, ntype, dmmode, bindClickActions);
       }
-      buildDMListPage(null, ntype, dmmode, bindClickActions);
     }
 
   });
@@ -304,7 +312,7 @@ function switchToShowUserTab(userid) {
   $('#switchshow').removeClass('background');
   showid = userid;
   // 切换信息
-  bannerToggle(false);
+  bannerToggle('other');
   buildUserListPage(showid, 'init', bindClickActions);
 }
 
@@ -361,30 +369,34 @@ toastr.options = {
   "hideMethod": "fadeOut"
 }
 
-function bannerToggle(showSelf = true) {
-  if (showSelf == false)
-    $('#userinfo').addClass('background');
-  else
-    $('#userinfo').removeClass('background');
+function bannerToggle(type = 'self') {
+  // 所有涉及的元素
+  const $userinfo = $('#userinfo');
+  const $userDescription = $('#user-description');
+  const $buttonArray = $('.button-array');
+  const $switchDescription = $('#switch-description');
+  const $switchLayer = $('#switchLayer');
 
-  if (showSelf == false)
-    $('#user-description').addClass('background');
-  else
-    $('#user-description').removeClass('background');
-
-  if (showSelf == false)
-    $('.button-array').addClass('background');
-  else
-    $('.button-array').removeClass('background');
-
-
-  if (showSelf)
-    $('#switch-description').addClass('background');
-  else
-    $('#switch-description').removeClass('background');
-
-  if (showSelf)
-    $('#switchLayer').addClass('background');
-  else
-    $('#switchLayer').removeClass('background');
+  if (type === 'self') {
+    // switch开头的都加background，其他都去掉
+    $userinfo.removeClass('background');
+    $userDescription.removeClass('background');
+    $buttonArray.removeClass('background');
+    $switchDescription.addClass('background');
+    $switchLayer.addClass('background');
+  } else if (type === 'other') {
+    // switch开头的都去掉background，其他都加上
+    $userinfo.addClass('background');
+    $userDescription.addClass('background');
+    $buttonArray.addClass('background');
+    $switchDescription.removeClass('background');
+    $switchLayer.removeClass('background');
+  } else if (type === 'none') {
+    // 全部加background
+    $userinfo.addClass('background');
+    $userDescription.addClass('background');
+    $buttonArray.addClass('background');
+    $switchDescription.addClass('background');
+    $switchLayer.addClass('background');
+  }
 }
