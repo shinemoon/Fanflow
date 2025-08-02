@@ -395,3 +395,51 @@ function clearCache() {
     });
 }
 
+
+/**
+ * 获取通知数量（account/notification）
+ * https://github.com/FanfouAPI/FanFouAPIDoc/wiki/account.notification
+ * 返回 { mention, direct_message, follower, favorite }
+ */
+async function getNotification() {
+    const url = new URL(FANFOU_API_BASE + '/account/notification.json');
+    const queryParams = {
+        format: 'html',
+        mode: 'lite'
+    };
+    try {
+        const response = await fanfouRequest(url, 'GET', queryParams);
+        const data = await response.json();
+        // 存储到 local storage
+        chrome.storage.local.set({ notification: data });
+        return data;
+    } catch (error) {
+        console.error('Error fetching notification:', error);
+        throw error;
+    }
+}
+
+/**
+ * 更新通知数字（account/update-notify-num）
+ * https://github.com/FanfouAPI/FanFouAPIDoc/wiki/account.update-notify-num
+ * 返回 { notify_num }
+ */
+async function updateNotifyNum(num) {
+    const url = new URL(FANFOU_API_BASE + '/account/update-notify-num.json');
+    const queryParams = {
+        notify_num: num,
+        format: 'html',
+        mode: 'lite'
+    };
+    try {
+        const response = await fanfouRequest(url, 'POST', queryParams);
+        const data = await response.json();
+        // 存储到 local storage
+        chrome.storage.local.set({ notify_num: data.notify_num });
+        return data;
+    } catch (error) {
+        console.error('Error updating notify_num:', error);
+        throw error;
+    }
+}
+

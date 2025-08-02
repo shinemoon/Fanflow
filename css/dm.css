@@ -147,7 +147,8 @@
 }
 
 .dm-msg-item.me {
-  flex-direction: row-reverse;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .dm-msg-avatar {

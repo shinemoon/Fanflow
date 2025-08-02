@@ -1,4 +1,3 @@
-
 $msg-font-size: 12px;
 $dm-avatar-size: 40px;
 $dm-radius: 10px;
@@ -19,12 +18,14 @@ $dm-unread-color: #fff;
   z-index: 1200;
   background: none;
   line-height: 1.5;
-  &:hover{
-    color:#aee1f9;
-  opacity: 0.9;
+
+  &:hover {
+    color: #aee1f9;
+    opacity: 0.9;
   }
 
 }
+
 // 补充dmdetail全屏白底样式
 .dmdetail {
   position: absolute;
@@ -34,14 +35,15 @@ $dm-unread-color: #fff;
   height: 100%;
   background: #fff;
   z-index: 999;
-  overflow-y:auto ;
+  overflow-y: auto;
   overflow-x: hidden;
 }
+
 // 聊天详情页 Material Design 风格
 .dm-detail-back-btn {
   background: none;
   border: none;
-  color: #2196f3; 
+  color: #2196f3;
   font-size: 16px;
   font-weight: 500;
   padding: 6px 12px;
@@ -52,17 +54,19 @@ $dm-unread-color: #fff;
   transition: background 0.2s;
   height: 28px;
   line-height: 20px;
-  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
   background: #fff;
   z-index: 10;
+
   &:hover {
     background: #e3f2fd;
   }
 }
+
 .dm-detail-inputbar {
   width: 100%;
   background: #fff;
-  box-shadow: 0 -2px 8px 0 rgba(0,0,0,0.08);
+  box-shadow: 0 -2px 8px 0 rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
   padding: 8px 12px;
@@ -71,6 +75,7 @@ $dm-unread-color: #fff;
   bottom: 0;
   z-index: 10;
 }
+
 .dm-detail-inputbar input[type="text"] {
   flex: 1;
   border: none;
@@ -80,13 +85,15 @@ $dm-unread-color: #fff;
   padding: 8px 16px;
   font-size: 15px;
   margin-right: 8px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   transition: box-shadow 0.2s;
 }
+
 .dm-detail-inputbar input[type="text"]:focus {
-  box-shadow: 0 2px 8px rgba(33,150,243,0.12);
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.12);
   background: #fff;
 }
+
 .dm-detail-inputbar button {
   background: #e3f2fd;
   color: #2196f3;
@@ -99,10 +106,11 @@ $dm-unread-color: #fff;
   transition: background 0.2s;
   height: 28px;
   line-height: 20px;
-  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
   margin-left: 4px;
   margin-right: 20px;
 }
+
 .dm-detail-inputbar button:hover {
   background: #bbdefb;
 }
@@ -115,22 +123,26 @@ $dm-unread-color: #fff;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  height:100%;
+  height: 100%;
 
   /* 滚动条风格与popup一致 */
   scrollbar-width: thin;
   scrollbar-color: #ccc transparent;
 }
+
 .dm-chat-box::-webkit-scrollbar {
   width: 8px;
 }
+
 .dm-chat-box::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .dm-chat-box::-webkit-scrollbar-thumb {
   background-color: #ccc;
   border-radius: 4px;
 }
+
 .dm-chat-box::-webkit-scrollbar-thumb:hover {
   background-color: #bbb;
 }
@@ -144,8 +156,10 @@ $dm-unread-color: #fff;
   font-size: 14px;
   position: relative;
 }
+
 .dm-msg-item.me {
-  flex-direction: row-reverse;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .dm-msg-avatar {
@@ -153,7 +167,7 @@ $dm-unread-color: #fff;
   height: 32px;
   border-radius: 50%;
   margin: 0;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 .dm-msg-bubble {
@@ -163,7 +177,7 @@ $dm-unread-color: #fff;
   padding: 8px 18px 18px 18px;
   max-width: 80vw;
   min-width: 200px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   word-break: break-all;
   font-size: $msg-font-size;
   margin: 0 4px;
@@ -173,6 +187,7 @@ $dm-unread-color: #fff;
   flex-direction: column;
   justify-content: flex-end;
 }
+
 .dm-msg-bubble.me {
   background: #aee1f9;
   color: #222;
