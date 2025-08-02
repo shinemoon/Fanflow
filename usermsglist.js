@@ -51,14 +51,14 @@ async function buildUserListPage(user_id, type = "up", cb) {
         //- 是否好友
         if (res.following) {
           $('#follow').addClass('background');
-          $('#unfollow').removeClass('background');
+          //$('#unfollow').removeClass('background');
         } else {
           toastr.options.timeOut = "3000";
           toastr.options.extendedTimeOut = "1000";
           toastr.warning('未关注用户');
 
           $('#unfollow').addClass('background');
-          $('#follow').removeClass('background');
+          //$('#follow').removeClass('background');
         }
       } catch (error) {
         console.error('获取用户信息失败:', error);
