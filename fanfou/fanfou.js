@@ -401,7 +401,7 @@ function clearCache() {
  * https://github.com/FanfouAPI/FanFouAPIDoc/wiki/account.notification
  * 返回 { mention, direct_message, follower, favorite }
  */
-async function getNotification() {
+async function getNotification(cb) {
     const url = new URL(FANFOU_API_BASE + '/account/notification.json');
     const queryParams = {
         format: 'html',
@@ -412,6 +412,7 @@ async function getNotification() {
         const data = await response.json();
         // 存储到 local storage
         chrome.storage.local.set({ notification: data });
+        if(cb) cb();
         return data;
     } catch (error) {
         console.error('Error fetching notification:', error);

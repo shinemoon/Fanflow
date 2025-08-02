@@ -14,6 +14,7 @@ async function fetchRequestToken() { const e = `${FANFOU_AUTH_BASE}/request_toke
 async function fanfouRequest(t, n, o, e = null) { const a = new URL(t), r = o || {}, i = { oauth_consumer_key: CONSUMER_KEY, oauth_nonce: OAuth1.generateNonce(), oauth_signature_method: "HMAC-SHA1", oauth_timestamp: OAuth1.generateTimestamp(), oauth_token: validToken.oauthToken, oauth_version: "1.0" }; var s = i; try { const t = generateOAuthSignature(n, a, e ? {} : r, s, CONSUMER_SECRET, validToken.oauthTokenSecret); s.oauth_signature = t; const o = OAuth1.buildAuthHeader(s), i = new Headers({ Authorization: o }); e || (i.append("Content-Type", "application/json"), Object.entries(r).forEach(([t, n]) => { a.searchParams.append(t, n) })); const c = { method: n, headers: i, body: e || ("GET" !== n ? JSON.stringify(r) : null) }, u = await fetch(a, c); if (!u.ok) throw new Error(`HTTP error! status: ${u.status}`); return u } catch (t) { throw t } } async function getMentions(t = null, n = null) { const o = new URL(FANFOU_API_BASE + "/statuses/mentions.json"), e = { format: "html", mode: "lite", count: fetchCnt }; t && (e.since_id = t), n && (e.max_id = n); try { const t = await fanfouRequest(o, "GET", e), n = await t.json(); return { msglist: n } } catch (t) { throw console.error("Error fetching mentions:", t), t } } async function getNotification() { const t = new URL(FANFOU_API_BASE + "/account/notification.json"), n = { format: "html", mode: "lite" }; try { const o = await fanfouRequest(t, "GET", n), e = await o.json(); return chrome.storage.local.set({ notification: e }), e } catch (t) { throw console.error("Error fetching notification:", t), t } } async function updateNotifyNum(t) { const n = new URL(FANFOU_API_BASE + "/account/update-notify-num.json"), o = { notify_num: t, format: "html", mode: "lite" }; try { const t = await fanfouRequest(n, "POST", o), e = await t.json(); return chrome.storage.local.set({ notify_num: e.notify_num }), e } catch (t) { throw console.error("Error updating notify_num:", t), t } } // FanFlow 后台计数器，每10秒+1，并显示在扩展图标badge上
 
 
+// 10min checking for notification
 setInterval(async function () {
     // 获取本地token
     const token = await getStoredToken();
@@ -40,7 +41,6 @@ setInterval(async function () {
             } else {
                 chrome.action.setBadgeText({ text: '' });
             }
-            chrome.storage.local.set({ notification });
         } else {
             // 认证失败，清理token或提示
             chrome.action.setBadgeText({ text: '!' });
@@ -49,5 +49,4 @@ setInterval(async function () {
         // 未获取到token
         chrome.action.setBadgeText({ text: '?' });
     }
-
-}, 10000);
+}, 900000);

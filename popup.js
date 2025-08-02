@@ -130,11 +130,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Add mention badge
   const $mentionBadge = $('<div>').addClass('badge badge-mention').text('0');
   $('#mentions').css('position', 'relative').append($mentionBadge);
-
   // Add DM badge
   const $dmBadge = $('<div>').addClass('badge badge-dm').text('0');
   $('#dm').css('position', 'relative').append($dmBadge);
-
   loadAndRefreshNotifications();
 });
 
@@ -161,7 +159,10 @@ function bindClickActions() {
   $('.tab').off('click');
   $('.tab').click(function () {
     $('.tab.active').removeClass('active');
-    loadAndRefreshNotifications();
+    getNotification(function () {
+      loadAndRefreshNotifications();
+    });
+
     //  Workaround，确保tab点击都会回到主界面
     bannerToggle('self');
 
@@ -427,7 +428,7 @@ $(document).on('click', '#user-avator, #user-name', function () {
 // Load notifications from local storage and update badges
 function loadAndRefreshNotifications() {
   chrome.storage.local.get(['notification'], function (result) {
-    curNotification = result.notification; 
+    curNotification = result.notification;
     refreshBadges(curNotification.mentions, curNotification.direct_messages);
     // Add userNotify class to user-avator if there are friend requests
     if (curNotification.friend_requests > 0) {
