@@ -102,23 +102,40 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  max-width: 400px;
-  max-height: 400px;
-  -o-object-fit: cover;
-     object-fit: cover;
+  max-width: 90vw;
+  max-height: 380px;
+  min-height: 200px;
+  min-width: 350px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 8px;
+  /* 隐藏滚动条 */
+  scrollbar-width: none; /* Firefox */
+  /* 超出部分隐藏 */
+  clip-path: inset(0 0 0 0);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  box-sizing: border-box;
+}
+.mask .frame#popframe .img-container::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 .mask .frame#popframe .img-container.clean {
   filter: blur(0px);
 }
 .mask .frame#popframe img.popimg {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  max-width: 400px;
-  max-height: 400px;
-  -o-object-fit: cover;
-     object-fit: cover;
+  display: block;
+  margin: 0 auto;
+  width: 100%;
+  height: auto;
+  -o-object-fit: contain;
+     object-fit: contain;
+  position: relative;
+  top: 0;
+  left: 0;
+  box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.12);
+  cursor: pointer;
 }
 
 .feed {

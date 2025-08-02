@@ -459,39 +459,42 @@ function messageListUpdate(direction = 'up', limit = 100, newlist) {
  */
 function buildPopImg(thumb, large) {
   var $popframe = $('#popframe');
-  // Create a container for the blur effect
+  // 只设置class，样式交由popup.scss控制
   var $imgContainer = $('<div>').addClass('img-container');
-
-  // Create image element with blur effect background
   var $img = $('<img class="popimg thumb">').attr('src', thumb);
-
-
-  // Add both to frame
   $imgContainer.appendTo($popframe);
   $img.appendTo($imgContainer);
 
+  // 加载大图，fade切换，样式交由css控制
   const fullImg = new Image();
   fullImg.onload = () => {
     $img.fadeOut(300, function () {
-      $(this).attr('src', large).fadeIn(800);
-      $imgContainer.addClass('clean');
+      $(this).attr('src', large).fadeIn(800, function () {
+        $imgContainer.addClass('clean');
+      });
     });
   };
   fullImg.src = large;
-  // And then need actions for scale and download
-  // Resize button - open in new window
 
-  $('.popimg').click(function () {
+  // 鼠标滚轮滚动图片（如需支持竖长图滚动，可保留）
+  $imgContainer.on('wheel', function (e) {
+    e.preventDefault();
+    this.scrollTop += e.originalEvent.deltaY;
+  });
+
+  // 点击图片关闭弹窗
+  $img.on('click', function () {
     $('#popmask').removeClass('show');
   });
 
-  $('.resize').click(function () {
+  // Resize button - open in new window
+  $('.resize').off('click').on('click', function () {
     const imgUrl = $('.popimg').attr('src');
     window.open(imgUrl, '_blank');
   });
 
   // Download button
-  $('.download').click(async function () {
+  $('.download').off('click').on('click', async function () {
     const imgUrl = $('.popimg').attr('src');
     try {
       const response = await fetch(imgUrl);
@@ -506,8 +509,6 @@ function buildPopImg(thumb, large) {
       console.error('Download failed:', error);
     }
   });
-
-
 }
 // Keep in .last-read 
 
