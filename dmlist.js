@@ -1,6 +1,6 @@
 let curDmPage = 0;
 let dmPageCnt = 8;
-async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
+async function buildDMListPage(user_id, type = "up", mode = "conversation", cb) {
   console.log("To show DM");
   $("#float-buttons>div").addClass('background');
   $('#top').removeClass('background');
@@ -47,24 +47,14 @@ async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
         if (type === "forceRefresh" || type === "up") {
           curDmPage = 1;
           dmList = [];
-          if (mode === "inbox") {
-            result = await getDMInbox(curDmPage, dmPageCnt);
-          } else if (mode === "conversation") {
-            result = await getDMConversation(curDmPage, dmPageCnt);
-          } else {
-            throw new Error("无效的显示模式，请使用 'inbox' 或 'conversation'");
-          }
+          result = await getDMConversation(curDmPage, dmPageCnt);
         } else if (type === "down") {
           if (curDmPage == 0)
             dmList = []; // 清空全部数据，重新获取, in first page
           curDmPage = curDmPage + 1;
-          if (mode === "inbox") {
-            result = await getDMInbox(curDmPage, dmPageCnt);
-          } else {
-            result = await getDMConversation(curDmPage, dmPageCnt);
-          }
+          result = await getDMConversation(curDmPage, dmPageCnt);
         } else {
-          result = mode === "conversation" ? dmList : [];
+          result = dmList;
         }
 
         console.log(result);
@@ -72,11 +62,7 @@ async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
           newlist: result.conversations,
         });
 
-        if (mode === "inbox") {
-          showDMList(dmList, '#dmview');
-        } else {
-          showDMConversation(dmList, '#dmview');
-        }
+        showDMConversation(dmList, '#dmview');
       });
     } else {
       openAuthPage();
@@ -97,30 +83,7 @@ async function dmListUpdate({
 }
 
 
-function showDMList(dmlist, containerid) {
-  const container = $(containerid);
-  container.addClass('dm-list-container');
-  container.empty();
-  //dmlist.conversations.forEach(conversation => {
-  dmlist.messages.forEach(conversation => {
-    const conversationElement = document.createElement('div');
-    conversationElement.classList.add('conversation-item');
-    conversationElement.innerHTML = `
-            <div class="avatar">
-                <img src="${conversation.sender.profile_image_url}" alt="${conversation.sender.screen_name}">
-            </div>
-            <div class="message-content">
-                <div class="sender-info">
-                    <span class="sender-name">${conversation.sender.screen_name}</span>
-                    <span class="message-time">${new Date(conversation.created_at).toLocaleString()}</span>
-                </div>
-                <div class="message-preview">${conversation.text}</div>
-                <div class="unread-indicator" style="display: ${conversation.new_conv ? 'block' : 'none'};">New</div>
-            </div>
-        `;
-    container.append(conversationElement);
-  });
-}
+
 
 function showDMConversation(dmlist, containerid) {
   const container = $(containerid);
