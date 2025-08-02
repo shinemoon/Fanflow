@@ -18,7 +18,6 @@ async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
       // 检查是否全局变量跳转
       if (window.shouldOpenPendingDMDetail && window.pendingDMUserId) {
         try {
-          window.curdm = await getDMDetails(window.pendingDMUserId);
           let dmdetail = document.querySelector('#dmdetail');
           if (!dmdetail) {
             dmdetail = document.createElement('div');
@@ -29,6 +28,7 @@ async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
             dmdetail.innerHTML = '';
             dmdetail.style.display = '';
           }
+          window.curdm = await getDMDetails(window.pendingDMUserId);
           if (typeof showDMDetail === 'function') {
             showDMDetail(window.curdm, dmdetail, window.pendingDMUserId);
           }
@@ -53,6 +53,8 @@ async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
             throw new Error("无效的显示模式，请使用 'inbox' 或 'conversation'");
           }
         } else if (type === "down") {
+          if (curDmPage == 0)
+            dmList = []; // 清空全部数据，重新获取, in first page
           curDmPage = curDmPage + 1;
           if (mode === "inbox") {
             result = await getDMInbox(curDmPage, dmPageCnt);
@@ -225,8 +227,8 @@ function showDMDetail(dmDetail, container, otherUserId) {
   $('.dm-detail-userid-watermark').off('click');
   $('.dm-detail-userid-watermark').on('click', function (e) {
     e.stopPropagation();
-      switchToShowUserTab(otherUserId);
-      $('#dmdetail').remove();
+    switchToShowUserTab(otherUserId);
+    $('#dmdetail').remove();
   });
   // 添加返回按钮（顶部banner）
   const backBtn = document.createElement('button');
