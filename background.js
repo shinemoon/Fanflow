@@ -35,7 +35,7 @@ setInterval(async function () {
             console.log('通知数据:', notification);
             // 可根据需要处理 badge 或存储
 
-            const totalNotify = notification.dm + notification.mention + notification.friend_request || 0;
+            const totalNotify = notification.direct_messages+ notification.mentions + notification.friend_requests;
             if (totalNotify > 0) {
                 chrome.action.setBadgeText({ text: String(totalNotify) });
             } else {
