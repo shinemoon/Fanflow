@@ -15,6 +15,7 @@ async function buildUserListPage(user_id, type = "up", cb) {
       });
       // 刷新User信息部分
       console.log(user_id);
+      otherUsrId = user_id;
       // 获取用户信息并更新界面
       try {
         $('#switch-name').text('-');
@@ -41,13 +42,16 @@ async function buildUserListPage(user_id, type = "up", cb) {
         if (res.protected === false || res.following) {
           canShow = true;
         }
+
+        $("#float-buttons>div").addClass('background');
+        $('#top').removeClass('background');
+
+
+        $('#touser').removeClass('background');
         //- 是否好友
         if (res.following) {
           $('#follow').addClass('background');
           $('#unfollow').removeClass('background');
-          $('#unfollow').on('click', function () {
-            console.log('用户点击了关注按钮');
-          });
         } else {
           toastr.options.timeOut = "3000";
           toastr.options.extendedTimeOut = "1000";
@@ -55,9 +59,6 @@ async function buildUserListPage(user_id, type = "up", cb) {
 
           $('#unfollow').addClass('background');
           $('#follow').removeClass('background');
-          $('#follow').on('click', function () {
-            console.log('用户点击了关注按钮');
-          });
         }
       } catch (error) {
         console.error('获取用户信息失败:', error);
@@ -111,6 +112,8 @@ async function buildUserListPage(user_id, type = "up", cb) {
 
       };
       // 处理加载后的提及列表，例如更新页面显示
+
+
     } else {
       openAuthPage();
     }

@@ -387,6 +387,7 @@ body {
   color: #28a745;
 }
 .post-section #userinfo #user-name {
+  cursor: pointer;
   font-size: 15px;
   color: cornflowerblue;
   margin-right: 5px;
@@ -397,6 +398,9 @@ body {
   text-overflow: ellipsis;
   /* 显示省略号 */
   max-width: 100px;
+}
+.post-section #userinfo #user-avator {
+  cursor: pointer;
 }
 .post-section #userinfo #user-avator img {
   width: 35px;

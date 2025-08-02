@@ -506,6 +506,7 @@ body {
         }
 
         #user-name {
+            cursor: pointer;
             font-size: 15px;
             color: cornflowerblue;
             margin-right: 5px;
@@ -519,6 +520,7 @@ body {
         }
 
         #user-avator {
+            cursor: pointer;
             img {
                 width: 35px;
                 height: auto;

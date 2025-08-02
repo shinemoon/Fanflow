@@ -2,6 +2,8 @@ let curDmPage = 0;
 let dmPageCnt = 8;
 async function buildDMListPage(user_id, type = "up", mode = "inbox", cb) {
   console.log("To show DM");
+  $("#float-buttons>div").addClass('background');
+  $('#top').removeClass('background');
   const token = await getStoredToken();
   if (token) {
     const isValid = await validateToken(token.oauthToken, token.oauthTokenSecret);

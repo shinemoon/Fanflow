@@ -1,6 +1,7 @@
 // banner切换封装
 let validToken = null;
 let curUsr = null;
+let otherUsrId =null;
 // local list max as 100 msb
 let curList = [];
 let mentionList = [];
@@ -287,13 +288,16 @@ function bindClickActions() {
         console.log('Top button clicked');
         $('.feed:not(.background)').animate({ scrollTop: 0 }, 'slow');
         break;
-      case 'add':
+      case 'follow':
         // 执行添加按钮的操作
         console.log('Add button clicked');
         break;
-      case 'remove':
+      case 'unfollow':
         // 执行移除按钮的操作
         console.log('Remove button clicked');
+        break;
+      case 'touser':
+        window.open('https://fanfou.com/' + otherUsrId, '_blank');
         break;
       default:
         console.log('Unknown button clicked');
@@ -400,3 +404,11 @@ function bannerToggle(type = 'self') {
     $switchLayer.addClass('background');
   }
 }
+
+// 用户头像和昵称点击跳转
+$(document).on('click', '#user-avator, #user-name', function () {
+  if (curUsr && curUsr.id) {
+    const url = `https://fanfou.com/${curUsr.id}`;
+    window.open(url, '_blank');
+  }
+});
