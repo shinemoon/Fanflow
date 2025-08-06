@@ -223,7 +223,10 @@ function buildHtmlFromMessages({
     $actionsDiv.append($('<span>').addClass('quote').addClass('icon-quote1'));
     $actionsDiv.append($('<span>').addClass('reply').addClass('icon-reply'));
     $actionsDiv.append($('<span>').addClass('icon-link').addClass('reply-src'));
-    $actionsDiv.append($('<span>').addClass('icon-cancel1').addClass('delstatus'));
+    if (curUsr.id == message.raw.user.id) {
+      $actionsDiv.append($('<span>').addClass('icon-cancel1').addClass('delstatus'));
+    }
+
     // 拼装消息HTML
     $messageDiv.append($metaDiv);
     $messageDiv.append($contentDiv);
