@@ -413,42 +413,53 @@ function bindMsgAction() {
     let curid = $(this).parent().attr('msgid');
     if (!curid) return;
     
-    // 确认是否删除
-    if (!confirm('确定要删除这条消息吗？')) return;
+    // 保存当前上下文的this引用
+    const $this = $(this);
     
-    try {
-      // 调用fanfou.js中的delStatus函数
-      await delStatus(curid);
-      
-      // 删除成功后从当前列表中移除该消息
-      let $message = $(this).closest('.message');
-      $message.fadeOut(300, function() {
-        $(this).remove();
-      });
-      
-      // 从内存中的消息列表中移除
-      switch (curTab) {
-        case 'home':
-          curList = curList.filter(message => message.id !== curid);
-          break;
-        case 'showUser':
-          showList = showList.filter(message => message.id !== curid);
-          break;
-        case 'mentions':
-          mentionList = mentionList.filter(message => message.id !== curid);
-          break;
-        default:
-          break;
+    // 使用showCenteredConfirm替代原生confirm
+    showCenteredConfirm('确定要删除这条消息吗？', async () => {
+      try {
+        // 调用fanfou.js中的delStatus函数
+        await delStatus(curid);
+        
+        // 删除成功后从当前列表中移除该消息
+        let $message = $this.closest('.message');
+        $message.fadeOut(300, function() {
+          $(this).remove();
+        });
+        
+        // 从内存中的消息列表中移除
+        switch (curTab) {
+          case 'home':
+            curList = curList.filter(message => message.id !== curid);
+            break;
+          case 'showUser':
+            showList = showList.filter(message => message.id !== curid);
+            break;
+          case 'mentions':
+            mentionList = mentionList.filter(message => message.id !== curid);
+            break;
+          default:
+            break;
+        }
+        
+        // 更新本地存储
+        await chrome.storage.local.set({ homelist: curList, mentionlist: mentionList });
+        
+        // 使用toastr显示成功通知
+        toastr.options.timeOut = 3000;
+        toastr.options.extendedTimeOut = 1000;
+        toastr.success('消息已成功删除');
+      } catch (error) {
+        console.error('删除消息失败:', error);
+        // 使用toastr显示错误通知
+        toastr.options.timeOut = 5000;
+        toastr.options.extendedTimeOut = 2000;
+        toastr.error('删除消息失败: ' + error.message);
       }
-      
-      // 更新本地存储
-      await chrome.storage.local.set({ homelist: curList, mentionlist: mentionList });
-      
-      toastr.success('消息已成功删除');
-    } catch (error) {
-      console.error('删除消息失败:', error);
-      toastr.error('删除消息失败: ' + error.message);
-    }
+    }, () => {
+      // 取消删除操作，不执行任何操作
+    });
   });
 }
 
