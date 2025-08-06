@@ -52,8 +52,12 @@ function buildPopEditor(type = 'new', content = null) {
         rows: 4,
         autofocus: true
     }).appendTo($editorContainer);
-    // 光标移动到最开始
-    $textarea[0].setSelectionRange(0, 0);
+    
+    // 确保在DOM渲染完成后立即聚焦并将光标置于开头
+    setTimeout(function() {
+        $textarea.focus();
+        $textarea[0].setSelectionRange(0, 0);
+    }, 0);
     // 创建工具栏
     var $toolbar = $('<div>', {
         id: 'fanfou-toolbar'
@@ -91,6 +95,16 @@ function buildPopEditor(type = 'new', content = null) {
     if (repost_photo && repost_photo.imageurl !== '/images/background.png') {
         $('#fanfou-image-info').html('<div class="tipinfo">转发图片</div>');
     }
+    
+    // 确保textarea获得焦点，并且光标位于开头
+    // 使用requestAnimationFrame确保在下一次重绘前执行，此时DOM已完全渲染
+    requestAnimationFrame(function() {
+        const textarea = document.getElementById('fanfou-textarea');
+        if (textarea) {
+            textarea.focus();
+            textarea.setSelectionRange(0, 0);
+        }
+    });
 
 
 

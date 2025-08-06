@@ -1,7 +1,7 @@
 ﻿{
-	"name": "FanFlow",
-	"version": "0.1",
-	"description": "Fanfou flow in browser",
+	"name": "f饭否anFlow",
+	"version": "0.2",
+	"description": "Fanfou 饭否 插件 for browser",
 	"short_name": "FFlow",
 	"manifest_version": 3,
 	"icons": {
