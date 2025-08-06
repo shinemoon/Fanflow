@@ -67,3 +67,39 @@ function applyDarkMode() {
     images.forEach(img => img.style.filter = 'none');
   }
 }
+
+function showCenteredConfirm(message, onConfirm, onCancel) {
+  const confirmContainer = document.createElement('div');
+  confirmContainer.className = 'confirm-dialog';
+
+  const messageElement = document.createElement('p');
+  messageElement.className = 'confirm-message';
+  messageElement.textContent = message;
+
+  const buttonContainer = document.createElement('div');
+  buttonContainer.className = 'confirm-button-container';
+
+  const confirmButton = document.createElement('button');
+  confirmButton.className = 'confirm-button';
+  confirmButton.textContent = '确认';
+
+  const cancelButton = document.createElement('button');
+  cancelButton.className = 'cancel-button';
+  cancelButton.textContent = '取消';
+
+  confirmButton.addEventListener('click', () => {
+    document.body.removeChild(confirmContainer);
+    if (onConfirm) onConfirm();
+  });
+
+  cancelButton.addEventListener('click', () => {
+    document.body.removeChild(confirmContainer);
+    if (onCancel) onCancel();
+  });
+
+  buttonContainer.appendChild(confirmButton);
+  buttonContainer.appendChild(cancelButton);
+  confirmContainer.appendChild(messageElement);
+  confirmContainer.appendChild(buttonContainer);
+  document.body.appendChild(confirmContainer);
+}

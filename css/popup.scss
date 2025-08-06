@@ -126,7 +126,7 @@ body {
                     &.show {
                         display: inline-block;
                     }
-                }
+                } 
             }
 
             // Apply CSS for blur effect
@@ -726,3 +726,62 @@ body {
 .badge-dm {
     background-color: rgb(235, 135, 152); // Light blue
 }
+
+// 确认对话框样式 - 简洁平坦风格
+.confirm-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+    width: 280px;
+    max-width: 90%;
+    z-index: 1000;
+    text-align: center;
+}
+
+.confirm-message {
+    font-size: 14px; // 字体略小
+    color: #333;
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+.confirm-button-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.confirm-button {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px; // 字体略小
+    transition: background-color 0.2s;
+    
+    &:hover {
+        background-color: #45a049;
+    }
+}
+
+.cancel-button {
+    padding: 8px 16px;
+    background-color: #f1f1f1;
+    color: #555;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px; // 字体略小
+    transition: background-color 0.2s;
+    
+    &:hover {
+        background-color: #e0e0e0;
+    }
+} 
