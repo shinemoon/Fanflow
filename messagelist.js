@@ -223,6 +223,7 @@ function buildHtmlFromMessages({
     $actionsDiv.append($('<span>').addClass('quote').addClass('icon-quote1'));
     $actionsDiv.append($('<span>').addClass('reply').addClass('icon-reply'));
     $actionsDiv.append($('<span>').addClass('icon-link').addClass('reply-src'));
+    $actionsDiv.append($('<span>').addClass('icon-cancel1').addClass('delstatus'));
     // 拼装消息HTML
     $messageDiv.append($metaDiv);
     $messageDiv.append($contentDiv);
@@ -403,6 +404,50 @@ function bindMsgAction() {
     const dmBtn = document.querySelector('#dm');
     if (dmBtn) {
       dmBtn.click();
+    }
+  });
+  
+  // 删除消息按钮点击事件
+  $('.delstatus').off('click');
+  $('.delstatus').on('click', async function () {
+    let curid = $(this).parent().attr('msgid');
+    if (!curid) return;
+    
+    // 确认是否删除
+    if (!confirm('确定要删除这条消息吗？')) return;
+    
+    try {
+      // 调用fanfou.js中的delStatus函数
+      await delStatus(curid);
+      
+      // 删除成功后从当前列表中移除该消息
+      let $message = $(this).closest('.message');
+      $message.fadeOut(300, function() {
+        $(this).remove();
+      });
+      
+      // 从内存中的消息列表中移除
+      switch (curTab) {
+        case 'home':
+          curList = curList.filter(message => message.id !== curid);
+          break;
+        case 'showUser':
+          showList = showList.filter(message => message.id !== curid);
+          break;
+        case 'mentions':
+          mentionList = mentionList.filter(message => message.id !== curid);
+          break;
+        default:
+          break;
+      }
+      
+      // 更新本地存储
+      await chrome.storage.local.set({ homelist: curList, mentionlist: mentionList });
+      
+      toastr.success('消息已成功删除');
+    } catch (error) {
+      console.error('删除消息失败:', error);
+      toastr.error('删除消息失败: ' + error.message);
     }
   });
 }

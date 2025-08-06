@@ -471,3 +471,30 @@ async function checkFriendshipExists(user_a, user_b) {
     }
 }
 
+/**
+ * 删除指定ID的消息
+ * https://github.com/FanfouAPI/FanFouAPIDoc/wiki/statuses.destroy
+ * @param {string} status_id - 要删除的消息ID（必填）
+ * @returns {Promise<object>} - 返回被删除的消息对象
+ */
+async function delStatus(status_id) {
+    if (!status_id) {
+        throw new Error('status_id 为必填项');
+    }
+    
+    const url = new URL(FANFOU_API_BASE + '/statuses/destroy.json');
+    const queryParams = {
+        id: status_id,
+        format: 'html',
+        mode: 'lite'
+    };
+    
+    try {
+        const response = await fanfouRequest(url, 'POST', queryParams);
+        return await response.json();
+    } catch (error) {
+        console.error('Error deleting status:', error);
+        throw error;
+    }
+}
+
