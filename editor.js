@@ -49,8 +49,11 @@ function buildPopEditor(type = 'new', content = null) {
         id: 'fanfou-textarea',
         placeholder: 'What\'s happening?',
         text: type == 'retweet' || type == 'reply' ? post_text : null,
-        rows: 4
+        rows: 4,
+        autofocus: true
     }).appendTo($editorContainer);
+    // 光标移动到最开始
+    $textarea[0].setSelectionRange(0, 0);
     // 创建工具栏
     var $toolbar = $('<div>', {
         id: 'fanfou-toolbar'
@@ -189,11 +192,23 @@ function buildPopEditor(type = 'new', content = null) {
 
     // 监听文本变化，更新字数计数
     $textarea.on('input', function () {
-        var remaining = 140 - $(this).val().length;
+        var text = $(this).val();
+        var cursorPos = this.selectionStart;
+        var remaining = 140 - text.length;
         $charCount.text(remaining);
         if (remaining < 0) {
-            $textarea.val($textarea.val().substring(0, 140));
-            $charCount.text(0);
+            if (text.length > 140) {
+                text = text.substring(0, 137) + '...';
+                $(this).val(text);
+                this.setSelectionRange(cursorPos, cursorPos);
+                $charCount.text(0);
+            } else {
+                // 如果继续输入，删除一个字符并保留 '...'
+                text = text.substring(0, text.length - 4) + '...';
+                $(this).val(text);
+                this.setSelectionRange(cursorPos, cursorPos);
+                $charCount.text(0);
+            }
         }
     });
 }
