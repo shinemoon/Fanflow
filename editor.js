@@ -1,4 +1,7 @@
 function buildPopEditor(type = 'new', content = null) {
+    // 添加平滑初始化效果
+    $('#popframe').css({opacity: 0}).animate({opacity: 1}, 300);
+    
     if (content) console.log(content);
     let in_repost_user_id = null;
     let in_repost_msg_id = null;
@@ -47,7 +50,7 @@ function buildPopEditor(type = 'new', content = null) {
     // 创建文本输入区域
     var $textarea = $('<textarea>', {
         id: 'fanfou-textarea',
-        placeholder: 'What\'s happening?',
+        placeholder: '有什么新鲜事？',
         text: type == 'retweet' || type == 'reply' ? post_text : null,
         rows: 4,
         autofocus: true
@@ -57,6 +60,9 @@ function buildPopEditor(type = 'new', content = null) {
     setTimeout(function() {
         $textarea.focus();
         $textarea[0].setSelectionRange(0, 0);
+        
+        // 添加动画效果
+        $textarea.css('opacity', '0').animate({opacity: 1}, 200);
     }, 0);
     // 创建工具栏
     var $toolbar = $('<div>', {
@@ -73,8 +79,7 @@ function buildPopEditor(type = 'new', content = null) {
     // 插入图片元素
     $('<img>', {
         id: 'fanfou-image',
-        src: '/images/background.png', // 默认图片路径
-        id: 'fanfou-image',
+        class: repost_photo ? '' : 'placeholder',
         src: repost_photo ? repost_photo.imageurl : '/images/background.png',
         click: function () {
             if (!repost_photo)
@@ -91,9 +96,11 @@ function buildPopEditor(type = 'new', content = null) {
     $editorContainer.appendTo($popframe);
 
     //细节控制
-    $('#fanfou-image-info').append('<div class="tipinfo">请点击上传图片</div>');
     if (repost_photo && repost_photo.imageurl !== '/images/background.png') {
         $('#fanfou-image-info').html('<div class="tipinfo">转发图片</div>');
+        $('#fanfou-picframe').addClass('has-image');
+    } else {
+        $('#fanfou-image-info').append('<div class="tipinfo">点击左侧区域添加图片</div>');
     }
     
     // 确保textarea获得焦点，并且光标位于开头
@@ -109,19 +116,22 @@ function buildPopEditor(type = 'new', content = null) {
 
 
     // 发布按钮
-    $('<button >', {
+    $('<button>', {
         id: "publish-btn",
-        text: '发布',
+        html: '<span>发布</span>',
         click: async function () {
+            const $btn = $(this);
+            const $btnText = $btn.find('span');
             var fanfouText = $textarea.val();
             const imageFile = $('#upload-btn')[0].files[0]; // This will only be treated in upload case (i.e. null still if overided by repost)
+            
             if (fanfouText.trim() !== "" || imageFile) {
-                // 这里可以添加发布推特的逻辑
-                console.log("发布: " + fanfouText);
+                // 添加发布中的状态显示
+                $btn.prop('disabled', true);
+                $btnText.text('发布中...');
+                
                 try {
-                    //TODO : to add reply id in
-                    let meta = null;
-                    meta = {
+                    let meta = {
                         in_repost_user_id: $editorContainer.attr('in_repost_user_id'),
                         in_repost_msg_id: $editorContainer.attr('in_repost_msg_id'),
                         in_reply_user_id: $editorContainer.attr('in_reply_user_id'),
@@ -129,13 +139,25 @@ function buildPopEditor(type = 'new', content = null) {
                     };
 
                     await postStatus(fanfouText, imageFile, meta);
-                    toastr.success('发布成功');
-                    $('#fanfou-textarea').val(''); // 清空输入框
-                    $('#popmask').click();
+                    
+                    // 更新按钮状态为成功
+                    $btnText.text('已发布');
+                    setTimeout(() => {
+                        toastr.success('发布成功');
+                        $('#fanfou-textarea').val(''); // 清空输入框
+                        $('#popmask').click();
+                    }, 300);
                 } catch (error) {
+                    // 恢复按钮状态
+                    $btn.prop('disabled', false);
+                    $btnText.text('发布');
                     toastr.error(error.message);
                 }
             } else {
+                // 添加按钮轻微抖动效果
+                $btn.addClass('shake');
+                setTimeout(() => $btn.removeClass('shake'), 500);
+                
                 toastr.options.timeOut = "3000";
                 toastr.options.extendedTimeOut = "1000";
                 toastr.error("内容不能为空!");
@@ -164,36 +186,65 @@ function buildPopEditor(type = 'new', content = null) {
         css: { display: 'none' }
     }).appendTo($toolbar);
 
-    // 图片选择处理逻辑保持不变
+    // 图片选择处理逻辑优化
     $('#upload-btn').change(function (e) {
         const file = e.target.files[0];
         if (file) {
+            // 显示图片框
+            $('#fanfou-picframe').addClass('has-image');
+            
+            // 创建预览
             const previewUrl = URL.createObjectURL(file);
-            $('#fanfou-image').attr('src', previewUrl).show();
+            
+            // 使用淡入效果切换图片
+            $('#fanfou-image')
+                .removeClass('placeholder')
+                .css('opacity', '0.3')
+                .attr('src', previewUrl)
+                .animate({opacity: 0.85}, 300);
+                
             // 获取图片信息并显示
             const reader = new FileReader();
             reader.onload = function (event) {
                 const img = new Image();
                 img.onload = function () {
                     $('#fanfou-image-info').empty(); // 清空之前的信息
-                    $('#fanfou-image-info').append(`<div class="picdetails">${file.name}</div>`);
-                    $('#fanfou-image-info').append(`<div class="picdetails">${img.width} x ${img.height}</div>`);
-                    $('#fanfou-image-info').append(`<div class="picdetails">${(file.size / 1024).toFixed(2)} KB</div>`);
-                    $('#fanfou-image-info').append(`<div class="action " id="reset-pic">    重 置    </div>`);
+                    
+                    // 添加动画效果，依次显示信息
+                    const details = [
+                        `<div class="picdetails" style="opacity:0">${file.name.length > 18 ? file.name.substring(0, 15) + '...' : file.name}</div>`,
+                        `<div class="picdetails" style="opacity:0">${img.width} × ${img.height}</div>`,
+                        `<div class="picdetails" style="opacity:0">${(file.size / 1024).toFixed(1)} KB</div>`,
+                        `<div class="action" id="reset-pic" style="opacity:0">重置</div>`
+                    ];
+                    
+                    $('#fanfou-image-info').append(details.join(''));
+                    
+                    // 依次淡入显示信息
+                    $('#fanfou-image-info div').each(function(index) {
+                        $(this).delay(index * 100).animate({opacity: 1}, 200);
+                    });
+                    
+                    // 重置按钮功能
                     $('#reset-pic').click(function () {
                         $('#upload-btn').val('');
-                        $('#fanfou-image-info div.picdetails').text(" ").hide(); // 清空之前的信息
-                        $('#fanfou-image-info div.picdetails').eq(0).text("请点击上传图片").show(); // 清空之前的信息
-                        $('#fanfou-image-info div.action').eq(0).hide(); // 
-                        $('#fanfou-image').attr('src', '/images/background.png');
-                        // 创建一个空的FileList对象
+                        
+                        // 动画效果移除图片
+                        $('#fanfou-picframe').removeClass('has-image');
+                        $('#fanfou-image')
+                            .animate({opacity: 0.5}, 200, function() {
+                                $(this).addClass('placeholder').attr('src', '/images/background.png');
+                            });
+                            
+                        // 重置信息区域
+                        $('#fanfou-image-info div').fadeOut(200, function() {
+                            $('#fanfou-image-info').empty().append('<div class="tipinfo">点击左侧区域添加图片</div>');
+                        });
                     });
                 };
                 img.src = event.target.result;
             };
             reader.readAsDataURL(file);
-            $PLACEHOLDER$ = ''; // 清空占位符
-
         }
     });
 
@@ -203,13 +254,36 @@ function buildPopEditor(type = 'new', content = null) {
         id: 'char-count',
         text: '140'
     }).appendTo($toolbar);
+    
+    // 添加图片按钮
+    $('<div>', {
+        id: 'add-photo-btn',
+        html: '<i class="icon-image"></i>',
+        title: '添加图片',
+        click: function() {
+            $('#upload-btn').click();
+        }
+    }).appendTo($toolbar);
 
     // 监听文本变化，更新字数计数
     $textarea.on('input', function () {
         var text = $(this).val();
         var cursorPos = this.selectionStart;
         var remaining = 140 - text.length;
-        $charCount.text(remaining);
+        
+        // 平滑更新字数
+        $charCount
+            .removeClass('warn danger')
+            .text(remaining);
+            
+        // 根据剩余字数添加样式
+        if (remaining < 20) {
+            $charCount.addClass('warn');
+        }
+        if (remaining < 10) {
+            $charCount.addClass('danger');
+        }
+        
         if (remaining < 0) {
             if (text.length > 140) {
                 text = text.substring(0, 137) + '...';
