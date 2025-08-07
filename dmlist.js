@@ -1,5 +1,16 @@
 let curDmPage = 0;
 let dmPageCnt = 8;
+// DM去重工具
+function uniqueDMList(list) {
+  const seen = new Set();
+  return list.filter(item => {
+    const id = item.otherid || (item.dm && item.dm.id);
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+}
+
 async function buildDMListPage(user_id, type = "up", mode = "conversation", cb) {
   console.log("To show DM");
   $("#float-buttons>div").addClass('background');
@@ -43,25 +54,24 @@ async function buildDMListPage(user_id, type = "up", mode = "conversation", cb) 
       // 获取用户信息并更新界面-No need in DM page
       // Get local
       await chrome.storage.local.get({ dmlist: [] }, async function (r) {
-        dmList = r.dmlist;
         if (type === "forceRefresh" || type === "up") {
           curDmPage = 1;
-          dmList = [];
           result = await getDMConversation(curDmPage, dmPageCnt);
+          dmList = uniqueDMList(result.conversations || []);
         } else if (type === "down") {
-          if (curDmPage == 0)
-            dmList = []; // 清空全部数据，重新获取, in first page
+          if (curDmPage == 0) {
+            dmList = [];
+          }
           curDmPage = curDmPage + 1;
           result = await getDMConversation(curDmPage, dmPageCnt);
+          dmList = uniqueDMList(dmList.concat(result.conversations || []));
         } else {
+          dmList = uniqueDMList(r.dmlist || []);
           result = dmList;
         }
 
         console.log(result);
-        dmList = await dmListUpdate({
-          newlist: result.conversations,
-        });
-
+        dmList = await dmListUpdate({ newlist: [] }); // 只存当前dmList，无需再追加
         showDMConversation(dmList, '#dmview');
       });
     } else {
@@ -77,7 +87,7 @@ async function dmListUpdate({
   newlist = [],
 } = {}) {
   console.log("更新DM列表");
-  dmList = dmList.concat(newlist || []);
+  // 只存当前dmList，无需再追加
   await chrome.storage.local.set({ dmlist: dmList });
   return dmList;
 }
