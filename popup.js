@@ -77,6 +77,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   pagline.animate(0);
 
   buildHomePage("init", bindClickActions);
+  // 每次popup打开时，home界面强制up刷新到顶
+  buildHomePage("up", bindClickActions);
   // Bind page listener
   $('.feed').on('wheel', debounce(function (event) {
     const feedElement = $(this)[0];
