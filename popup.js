@@ -429,8 +429,11 @@ $(document).on('click', '#user-avator, #user-name', function () {
 
 // Load notifications from local storage and update badges
 function loadAndRefreshNotifications() {
-  chrome.storage.local.get(['notification'], function (result) {
+  chrome.storage.local.get({ 'notification': null }, function (result) {
     curNotification = result.notification;
+    if (curNotification== null) {
+      return;
+    }
     refreshBadges(curNotification.mentions, curNotification.direct_messages);
     // Add userNotify class to user-avator if there are friend requests
     if (curNotification.friend_requests > 0) {
