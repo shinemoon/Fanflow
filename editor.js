@@ -172,7 +172,7 @@ function buildPopEditor(type = 'new', content = null) {
         $('#fanfou-image-info').append('<div class="tipinfo">点击左侧区域添加图片</div>');
     }
     
-    // 恢复保存的图片信息（如果有）
+    // 恢复保存的图片（如果有），尝试从原始路径重新读取
     if (savedEditorState && savedEditorState.imageData && type === 'new') {
         try {
             const imageData = savedEditorState.imageData;
@@ -180,16 +180,81 @@ function buildPopEditor(type = 'new', content = null) {
             // 显示图片预览区域
             $('#fanfou-picframe').addClass('has-image');
             
-            // 先显示基本信息
+            // 先显示恢复中状态
             $('#fanfou-image-info').empty().append([
                 `<div class="picdetails">${imageData.name.length > 18 ? imageData.name.substring(0, 15) + '...' : imageData.name}</div>`,
                 `<div class="picdetails">${(imageData.size / 1024).toFixed(1)} KB</div>`,
-                '<div class="tipinfo" style="color: #007AFF;">正在恢复图片...</div>'
+                '<div class="tipinfo" style="color: #007AFF;">正在尝试恢复图片...</div>'
             ].join(''));
             
-            // 尝试从保存的URL或Base64数据恢复文件
-            if (imageData.imageSrc || imageData.dataUrl) {
-                const imageUrl = imageData.imageSrc || imageData.dataUrl;
+            // 尝试通过路径重新创建文件选择（浏览器环境限制）
+            if (imageData.filePath && imageData.filePath !== imageData.name) {
+                // 显示完整的文件路径信息
+                setTimeout(() => {
+                    $('#fanfou-image').addClass('placeholder').attr('src', '/images/background.png');
+                    $('#fanfou-image-info').empty().append([
+                        `<div class="picdetails">文件: ${imageData.name.length > 18 ? imageData.name.substring(0, 15) + '...' : imageData.name}</div>`,
+                        `<div class="picdetails">大小: ${(imageData.size / 1024).toFixed(1)} KB</div>`,
+                        `<div class="picdetails">类型: ${imageData.type.split('/')[1].toUpperCase()}</div>`,
+                        `<div class="picdetails" style="font-size: 10px; opacity: 0.7;">路径: ${imageData.filePath}</div>`,
+                        '<div class="tipinfo" style="color: #FF6B6B;">请重新选择此图片（由于浏览器安全限制无法自动读取本地文件）</div>'
+                    ].join(''));
+                }, 500);
+                
+            } else if (imageData.imageSrc && !imageData.imageSrc.startsWith('blob:')) {
+                // 如果是网络URL（非blob），尝试直接访问
+                const networkUrl = imageData.imageSrc;
+                console.log('尝试从网络URL恢复:', networkUrl);
+                
+                fetch(networkUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('网络图片访问失败: ' + response.status);
+                        }
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        // 创建文件对象
+                        const file = new File([blob], imageData.name, {
+                            type: imageData.type,
+                            lastModified: imageData.lastModified || Date.now()
+                        });
+                        
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        $('#upload-btn')[0].files = dt.files;
+                        
+                        // 显示恢复的图片
+                        $('#fanfou-image')
+                            .removeClass('placeholder')
+                            .attr('src', networkUrl);
+                        
+                        const img = new Image();
+                        img.onload = function() {
+                            $('#fanfou-image-info').empty().append([
+                                `<div class="picdetails">${imageData.name.length > 18 ? imageData.name.substring(0, 15) + '...' : imageData.name}</div>`,
+                                `<div class="picdetails">${img.width} × ${img.height}</div>`,
+                                `<div class="picdetails">${(blob.size / 1024).toFixed(1)} KB</div>`,
+                                '<div class="tipinfo" style="color: #51CF66;">✓ 网络图片已恢复</div>'
+                            ].join(''));
+                        };
+                        img.src = networkUrl;
+                        
+                        console.log('✓ 网络图片恢复成功:', imageData.name);
+                    })
+                    .catch(error => {
+                        console.warn('网络图片恢复失败:', error.message);
+                        $('#fanfou-image').addClass('placeholder').attr('src', '/images/background.png');
+                        $('#fanfou-image-info').empty().append([
+                            `<div class="picdetails">网络图片: ${imageData.name}</div>`,
+                            `<div class="picdetails">原URL: ${networkUrl.length > 30 ? networkUrl.substring(0, 27) + '...' : networkUrl}</div>`,
+                            '<div class="tipinfo" style="color: #FF6B6B;">⚠ 网络图片源已失效，请重新选择</div>'
+                        ].join(''));
+                    });
+                    
+            } else if (imageData.dataUrl) {
+                // 兼容旧版本Base64数据
+                const imageUrl = imageData.dataUrl;
                 
                 fetch(imageUrl)
                     .then(response => {
@@ -199,13 +264,9 @@ function buildPopEditor(type = 'new', content = null) {
                         return response.blob();
                     })
                     .then(blob => {
-                        // 对于Base64数据，不验证文件大小（因为编码可能有差异）
-                        if (!imageData.dataUrl) {
-                            // 只对URL方式验证文件大小
-                            const sizeDiff = Math.abs(blob.size - imageData.size);
-                            if (sizeDiff > 1024) { // 允许1KB误差
-                                throw new Error('文件大小不匹配');
-                            }
+                        // 验证文件大小（允许一定误差）
+                        if (!imageData.dataUrl && Math.abs(blob.size - imageData.size) > 1024) {
+                            throw new Error('文件大小不匹配');
                         }
                         
                         // 创建文件对象并设置到 file input
@@ -244,14 +305,14 @@ function buildPopEditor(type = 'new', content = null) {
                         $('#fanfou-image-info').empty().append([
                             `<div class="picdetails">${imageData.name.length > 18 ? imageData.name.substring(0, 15) + '...' : imageData.name}</div>`,
                             `<div class="picdetails">${(imageData.size / 1024).toFixed(1)} KB</div>`,
-                            '<div class="tipinfo" style="color: #FF6B6B;">⚠ 图片无法恢复，请重新选择</div>'
+                            '<div class="tipinfo" style="color: #FF6B6B;">⚠ 图片源已失效，请重新选择</div>'
                         ].join(''));
                     });
             } else {
-                // 没有保存的URL，直接提示重新选择
+                // 没有URL信息，直接提示重新选择
                 $('#fanfou-image').addClass('placeholder').attr('src', '/images/background.png');
                 $('#fanfou-image-info').empty().append([
-                    `<div class="picdetails">${imageData.name.length > 18 ? imageData.name.substring(0, 15) + '...' : imageData.name}</div>`,
+                    `<div class="picdetails">上次选择: ${imageData.name}</div>`,
                     `<div class="picdetails">${(imageData.size / 1024).toFixed(1)} KB</div>`,
                     '<div class="tipinfo" style="color: #FF6B6B;">请重新选择此图片</div>'
                 ].join(''));
@@ -358,19 +419,19 @@ function buildPopEditor(type = 'new', content = null) {
                 }
             };
             
-            // 如果有图片，保存文件基本信息（不保存Base64数据）
+            // 如果有图片，保存文件原始路径信息
             const fileInput = $('#upload-btn')[0];
             if (fileInput.files && fileInput.files[0]) {
                 const file = fileInput.files[0];
-                const imgSrc = $('#fanfou-image').attr('src');
                 
                 state.imageData = {
                     name: file.name,
                     size: file.size,
                     type: file.type,
                     lastModified: file.lastModified,
-                    imageSrc: imgSrc, // 保存当前显示的图片URL
-                    // 不再保存dataUrl，避免存储空间问题
+                    // 保存文件的原始路径（如果可获取）或webkitRelativePath
+                    filePath: file.webkitRelativePath || file.name,
+                    // 对于网络URL图片，可能需要其他方式保存源地址
                 };
             }
             
