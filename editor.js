@@ -118,6 +118,22 @@ function buildPopEditor(type = 'new', content = null) {
         const clipboardData = e.originalEvent.clipboardData;
         if (!clipboardData) return;
         
+        // 尝试获取剪贴板中的HTML内容，可能包含图片的原始URL
+        let sourceUrl = null;
+        try {
+            const htmlData = clipboardData.getData('text/html');
+            if (htmlData) {
+                // 使用正则提取img标签的src属性
+                const imgMatch = htmlData.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i);
+                if (imgMatch && imgMatch[1]) {
+                    sourceUrl = imgMatch[1];
+                    console.log('检测到图片原始URL:', sourceUrl);
+                }
+            }
+        } catch (e) {
+            console.log('无法获取剪贴板HTML数据:', e.message);
+        }
+        
         const items = clipboardData.items;
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
@@ -129,6 +145,12 @@ function buildPopEditor(type = 'new', content = null) {
                 const file = item.getAsFile();
                 if (file) {
                     console.log('检测到粘贴图片:', file.name || 'clipboard-image', file.size, 'bytes');
+                    
+                    // 如果有原始URL，临时保存它
+                    if (sourceUrl) {
+                        window._tempClipboardSourceUrl = sourceUrl;
+                        console.log('临时保存图片来源URL:', sourceUrl);
+                    }
                     
                     // 显示粘贴处理状态
                     toastr.info('正在处理粘贴的图片...', '', {
@@ -217,6 +239,21 @@ function buildPopEditor(type = 'new', content = null) {
             const clipboardData = e.originalEvent.clipboardData;
             if (!clipboardData) return;
             
+            // 尝试获取剪贴板中的HTML内容，可能包含图片的原始URL
+            let sourceUrl = null;
+            try {
+                const htmlData = clipboardData.getData('text/html');
+                if (htmlData) {
+                    const imgMatch = htmlData.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i);
+                    if (imgMatch && imgMatch[1]) {
+                        sourceUrl = imgMatch[1];
+                        console.log('容器检测到图片原始URL:', sourceUrl);
+                    }
+                }
+            } catch (e) {
+                console.log('容器无法获取剪贴板HTML数据:', e.message);
+            }
+            
             const items = clipboardData.items;
             for (let i = 0; i < items.length; i++) {
                 const item = items[i];
@@ -227,6 +264,12 @@ function buildPopEditor(type = 'new', content = null) {
                     const file = item.getAsFile();
                     if (file) {
                         console.log('容器检测到粘贴图片:', file.name || 'clipboard-image');
+                        
+                        // 如果有原始URL，临时保存它
+                        if (sourceUrl) {
+                            window._tempClipboardSourceUrl = sourceUrl;
+                            console.log('容器临时保存图片来源URL:', sourceUrl);
+                        }
                         
                         toastr.info('正在处理粘贴的图片...', '', {
                             positionClass: 'toast-top-center',
@@ -275,30 +318,187 @@ function buildPopEditor(type = 'new', content = null) {
             ].join(''));
             
             // 尝试通过路径重新创建文件选择（浏览器环境限制）
-            if (imageData.isPastedFromClipboard) {
-                // 对于粘贴的图片，无法恢复，显示特殊提示
+            if (imageData.isPastedFromClipboard && !imageData.sourceUrl) {
+                // 对于纯剪贴板图片（无原始URL），显示缩略图（如果有）或提示
                 setTimeout(() => {
-                    $('#fanfou-image').addClass('placeholder').attr('src', '/images/background.png');
-                    $('#fanfou-image-info').empty().append([
-                        `<div class="picdetails">剪贴板图片: ${imageData.name}</div>`,
-                        `<div class="picdetails">大小: ${(imageData.size / 1024).toFixed(1)} KB</div>`,
-                        `<div class="picdetails">类型: ${imageData.type.split('/')[1].toUpperCase()}</div>`,
-                        '<div class="tipinfo" style="color: #FF6B6B;">剪贴板图片无法自动恢复，请重新粘贴</div>',
-                        '<div class="tipinfo" style="color: #86868B; font-size: 10px;">提示: 可以直接在文本框中按 Ctrl+V 粘贴图片</div>'
-                    ].join(''));
+                    // 检查是否有保存的缩略图
+                    if (imageData.thumbnail && imageData.thumbnail.dataUrl) {
+                        console.log('显示剪贴板图片的保存缩略图');
+                        $('#fanfou-image')
+                            .removeClass('placeholder')
+                            .attr('src', imageData.thumbnail.dataUrl)
+                            .css({
+                                'opacity': '0.8',
+                                'filter': 'grayscale(20%)',
+                                'border': '2px dashed #007AFF'
+                            });
+                        
+                        // 缓存图片数据以便保存草稿
+                        window._currentImageData = {
+                            ...imageData,
+                            // 确保有必要的字段
+                            lastModified: imageData.lastModified || Date.now()
+                        };
+                        
+                        $('#fanfou-image-info').empty().append([
+                            `<div class="picdetails">剪贴板图片: ${imageData.name}</div>`,
+                            `<div class="picdetails">原始大小: ${(imageData.size / 1024).toFixed(1)} KB</div>`,
+                            `<div class="picdetails">缩略图: ${imageData.thumbnail.width}×${imageData.thumbnail.height}</div>`,
+                            '<div class="tipinfo" style="color: #007AFF;">显示已保存的缩略图预览</div>',
+                            '<div class="tipinfo" style="color: #FF6B6B; margin-top: 5px;">需要重新粘贴图片以继续编辑</div>',
+                            '<div class="tipinfo" style="color: #86868B; font-size: 10px;">提示: 可以直接在文本框中按 Ctrl+V 粘贴图片</div>'
+                        ].join(''));
+                    } else {
+                        // 没有缩略图时显示原来的提示
+                        $('#fanfou-image').addClass('placeholder').attr('src', '/images/background.png');
+                        $('#fanfou-image-info').empty().append([
+                            `<div class="picdetails">剪贴板图片: ${imageData.name}</div>`,
+                            `<div class="picdetails">大小: ${(imageData.size / 1024).toFixed(1)} KB</div>`,
+                            `<div class="picdetails">类型: ${imageData.type.split('/')[1].toUpperCase()}</div>`,
+                            '<div class="tipinfo" style="color: #FF6B6B;">剪贴板图片无法自动恢复，请重新粘贴</div>',
+                            '<div class="tipinfo" style="color: #86868B; font-size: 10px;">提示: 可以直接在文本框中按 Ctrl+V 粘贴图片</div>'
+                        ].join(''));
+                    }
                 }, 500);
+                
+            } else if (imageData.isPastedFromClipboard && imageData.sourceUrl) {
+                // 对于有原始URL的剪贴板图片，尝试从URL恢复
+                console.log('尝试从剪贴板图片的原始URL恢复:', imageData.sourceUrl);
+                
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                img.onload = function() {
+                    // 创建canvas来转换图片为blob
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    
+                    canvas.toBlob(function(blob) {
+                        // 创建文件对象
+                        const file = new File([blob], imageData.name || 'recovered-clipboard-image.jpg', {
+                            type: imageData.type || 'image/jpeg'
+                        });
+                        
+                        // 显示恢复的图片
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            $('#fanfou-image').removeClass('placeholder').attr('src', e.target.result);
+                            $('#fanfou-image-info').empty().append([
+                                `<div class="picdetails">${imageData.name}</div>`,
+                                `<div class="picdetails">${img.width} × ${img.height}</div>`,
+                                `<div class="picdetails">${(file.size / 1024).toFixed(1)} KB</div>`,
+                                '<div class="tipinfo" style="color: #51CF66;">✓ 剪贴板图片已从原始URL恢复</div>'
+                            ].join(''));
+                        };
+                        reader.readAsDataURL(file);
+                        
+                        // 设置全局变量以便发布时使用
+                        uploadedFile = file;
+                        
+                        // 同步文件到file input，确保草稿保存时能检测到图片
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        $('#upload-btn')[0].files = dt.files;
+                        
+                        // 缓存恢复的图片数据，以防后续需要保存草稿
+                        window._currentImageData = {
+                            name: imageData.name,
+                            size: imageData.size || file.size,
+                            type: imageData.type || file.type,
+                            filePath: imageData.sourceUrl,
+                            sourceUrl: imageData.sourceUrl,
+                            isPastedFromClipboard: true,
+                            originalSource: 'clipboard-with-url',
+                            lastModified: file.lastModified || Date.now()
+                        };
+                        
+                        console.log('✓ 剪贴板图片从URL恢复成功:', imageData.sourceUrl);
+                    }, imageData.type || 'image/jpeg');
+                };
+                
+                img.onerror = function(error) {
+                    console.warn('剪贴板图片URL恢复失败:', error.message);
+                    
+                    // 检查是否有保存的缩略图作为备选显示
+                    if (imageData.thumbnail && imageData.thumbnail.dataUrl) {
+                        console.log('URL恢复失败，显示保存的缩略图');
+                        $('#fanfou-image')
+                            .removeClass('placeholder')
+                            .attr('src', imageData.thumbnail.dataUrl)
+                            .css({
+                                'opacity': '0.7',
+                                'filter': 'grayscale(30%)',
+                                'border': '2px dashed #FF6B6B'
+                            });
+                        
+                        // 缓存图片数据以便保存草稿
+                        window._currentImageData = {
+                            ...imageData,
+                            lastModified: imageData.lastModified || Date.now()
+                        };
+                        
+                        $('#fanfou-image-info').empty().append([
+                            `<div class="picdetails">剪贴板图片: ${imageData.name}</div>`,
+                            `<div class="picdetails">显示缩略图预览</div>`,
+                            '<div class="tipinfo" style="color: #FF6B6B;">原始链接已失效，显示保存的预览图</div>',
+                            `<div style="font-size: 10px; margin-top: 5px; color: #6c757d; word-break: break-all;">${imageData.sourceUrl}</div>`,
+                            '<div class="tipinfo" style="color: #86868B; font-size: 10px; margin-top: 5px;">请重新粘贴图片</div>'
+                        ].join(''));
+                    } else {
+                        $('#fanfou-image').addClass('placeholder').attr('src', '/images/background.png');
+                        $('#fanfou-image-info').empty().append([
+                            `<div class="picdetails">剪贴板图片: ${imageData.name}</div>`,
+                            `<div class="picdetails">原始来源: 网络图片</div>`,
+                            '<div class="tipinfo" style="color: #FF6B6B;">原始链接已失效，请重新粘贴</div>',
+                            `<div style="font-size: 10px; margin-top: 5px; color: #6c757d; word-break: break-all;">${imageData.sourceUrl}</div>`
+                        ].join(''));
+                    }
+                };
+                
+                img.src = imageData.sourceUrl;
                 
             } else if (imageData.filePath && imageData.filePath !== imageData.name) {
                 // 显示完整的文件路径信息
                 setTimeout(() => {
-                    $('#fanfou-image').addClass('placeholder').attr('src', '/images/background.png');
-                    $('#fanfou-image-info').empty().append([
-                        `<div class="picdetails">文件: ${imageData.name.length > 18 ? imageData.name.substring(0, 15) + '...' : imageData.name}</div>`,
-                        `<div class="picdetails">大小: ${(imageData.size / 1024).toFixed(1)} KB</div>`,
-                        `<div class="picdetails">类型: ${imageData.type.split('/')[1].toUpperCase()}</div>`,
-                        `<div class="picdetails" style="font-size: 10px; opacity: 0.7;">路径: ${imageData.filePath}</div>`,
-                        '<div class="tipinfo" style="color: #FF6B6B;">请重新选择此图片（由于浏览器安全限制无法自动读取本地文件）</div>'
-                    ].join(''));
+                    // 检查是否有保存的缩略图
+                    if (imageData.thumbnail && imageData.thumbnail.dataUrl) {
+                        console.log('本地文件恢复失败，显示保存的缩略图');
+                        $('#fanfou-image')
+                            .removeClass('placeholder')
+                            .attr('src', imageData.thumbnail.dataUrl)
+                            .css({
+                                'opacity': '0.8',
+                                'filter': 'grayscale(20%)',
+                                'border': '2px dashed #ffa500'
+                            });
+                        
+                        // 缓存图片数据以便保存草稿
+                        window._currentImageData = {
+                            ...imageData,
+                            lastModified: imageData.lastModified || Date.now()
+                        };
+                        
+                        $('#fanfou-image-info').empty().append([
+                            `<div class="picdetails">文件: ${imageData.name.length > 18 ? imageData.name.substring(0, 15) + '...' : imageData.name}</div>`,
+                            `<div class="picdetails">缩略图: ${imageData.thumbnail.width}×${imageData.thumbnail.height}</div>`,
+                            `<div class="picdetails">原始大小: ${(imageData.size / 1024).toFixed(1)} KB</div>`,
+                            `<div class="picdetails" style="font-size: 10px; opacity: 0.7;">路径: ${imageData.filePath}</div>`,
+                            '<div class="tipinfo" style="color: #ffa500;">显示保存的缩略图预览</div>',
+                            '<div class="tipinfo" style="color: #FF6B6B;">请重新选择此图片（浏览器安全限制）</div>'
+                        ].join(''));
+                    } else {
+                        $('#fanfou-image').addClass('placeholder').attr('src', '/images/background.png');
+                        $('#fanfou-image-info').empty().append([
+                            `<div class="picdetails">文件: ${imageData.name.length > 18 ? imageData.name.substring(0, 15) + '...' : imageData.name}</div>`,
+                            `<div class="picdetails">大小: ${(imageData.size / 1024).toFixed(1)} KB</div>`,
+                            `<div class="picdetails">类型: ${imageData.type.split('/')[1].toUpperCase()}</div>`,
+                            `<div class="picdetails" style="font-size: 10px; opacity: 0.7;">路径: ${imageData.filePath}</div>`,
+                            '<div class="tipinfo" style="color: #FF6B6B;">请重新选择此图片（由于浏览器安全限制无法自动读取本地文件）</div>'
+                        ].join(''));
+                    }
                 }, 500);
                 
             } else if (imageData.imageSrc && !imageData.imageSrc.startsWith('blob:')) {
@@ -433,6 +633,9 @@ function buildPopEditor(type = 'new', content = null) {
             textarea.setSelectionRange(0, 0);
         }
         
+        // 检查localStorage使用情况（用于调试和优化）
+        checkStorageUsage();
+        
         // 如果有草稿被恢复，显示提示
         if (savedEditorState && type === 'new') {
             const draftTime = new Date(savedEditorState.timestamp).toLocaleString();
@@ -519,7 +722,7 @@ function buildPopEditor(type = 'new', content = null) {
                 }
             };
             
-            // 如果有图片，保存文件原始路径信息
+            // 如果有图片，保存文件原始路径信息和生成缩略图
             const fileInput = $('#upload-btn')[0];
             if (fileInput.files && fileInput.files[0]) {
                 const file = fileInput.files[0];
@@ -527,21 +730,194 @@ function buildPopEditor(type = 'new', content = null) {
                 // 检测是否为粘贴的图片（通常文件名为空或image.png）
                 const isPastedImage = !file.name || file.name === 'image.png' || file.name === 'image' || file.name.startsWith('image.');
                 
+                // 检查是否有临时保存的剪贴板来源URL
+                const clipboardSourceUrl = window._tempClipboardSourceUrl;
+                
                 state.imageData = {
                     name: file.name || 'pasted-image.png',
                     size: file.size,
                     type: file.type,
                     lastModified: file.lastModified,
-                    // 对粘贴的图片标记来源
-                    filePath: isPastedImage ? 'clipboard://pasted-image' : (file.webkitRelativePath || file.name),
+                    // 改进的路径和来源信息
+                    filePath: isPastedImage ? (clipboardSourceUrl || 'clipboard://pasted-image') : (file.webkitRelativePath || file.name),
                     isPastedFromClipboard: isPastedImage,
-                    // 对于网络URL图片，可能需要其他方式保存源地址
+                    // 新增：如果有原始URL，保存它，并标记类型为network
+                    ...(clipboardSourceUrl && isPastedImage && {
+                        sourceUrl: clipboardSourceUrl,
+                        type: 'network',
+                        originalSource: 'clipboard-with-url'
+                    })
                 };
+                
+                // 缓存当前图片数据到全局变量，以便后续保存时使用
+                window._currentImageData = state.imageData;
+                
+                // 生成并保存缩略图
+                const currentImageElement = $('#fanfou-image')[0];
+                if (currentImageElement && currentImageElement.src && !currentImageElement.src.includes('background.png')) {
+                    // 异步生成缩略图
+                    generateThumbnail(currentImageElement, 150, 0.6)
+                        .then(thumbnail => {
+                            // 如果缩略图不超过20KB，保存到状态中
+                            if (thumbnail.sizeKB < 20) {
+                                state.imageData.thumbnail = {
+                                    dataUrl: thumbnail.dataUrl,
+                                    width: thumbnail.width,
+                                    height: thumbnail.height
+                                };
+                                console.log('缩略图已保存到草稿');
+                            } else {
+                                console.log('缩略图过大，跳过保存:', thumbnail.sizeKB, 'KB');
+                            }
+                            
+                            // 无论是否保存缩略图都继续保存草稿
+                            finalizeSaveState(state);
+                        })
+                        .catch(error => {
+                            console.warn('缩略图生成失败，继续保存草稿:', error);
+                            finalizeSaveState(state);
+                        });
+                    return; // 异步处理，直接返回
+                }
+                
+            } else if ($('#fanfou-picframe').hasClass('has-image') && 
+                      (savedEditorState?.imageData || window._currentImageData)) {
+                // 如果没有新文件但有图片显示，且有之前的图片数据，保留之前的数据
+                const previousImageData = window._currentImageData || savedEditorState.imageData;
+                console.log('保留之前恢复的图片数据:', previousImageData.name);
+                state.imageData = { ...previousImageData };
+                
+                // 也尝试生成当前显示图片的缩略图
+                const currentImageElement = $('#fanfou-image')[0];
+                if (currentImageElement && currentImageElement.src && 
+                    !currentImageElement.src.includes('background.png') && 
+                    !previousImageData.thumbnail) {
+                    // 如果之前没有缩略图，尝试生成
+                    generateThumbnail(currentImageElement, 150, 0.6)
+                        .then(thumbnail => {
+                            if (thumbnail.sizeKB < 20) {
+                                state.imageData.thumbnail = {
+                                    dataUrl: thumbnail.dataUrl,
+                                    width: thumbnail.width,
+                                    height: thumbnail.height
+                                };
+                                console.log('为恢复的图片生成了缩略图');
+                            }
+                            finalizeSaveState(state);
+                        })
+                        .catch(() => {
+                            finalizeSaveState(state);
+                        });
+                    return;
+                }
+            }
+                
+                // 清理临时URL
+                if (window._tempClipboardSourceUrl) {
+                    console.log('保存图片来源URL到草稿:', clipboardSourceUrl);
+                    delete window._tempClipboardSourceUrl;
+                }
+            
+            // 如果没有异步操作，直接保存
+            finalizeSaveState(state);
+            
+        } catch (error) {
+            if (error.name === 'QuotaExceededError') {
+                console.warn('存储空间不足，尝试清理后重试...');
+                // 尝试清理localStorage中的其他数据
+                try {
+                    // 先清理可能存在的旧草稿
+                    localStorage.removeItem('fanfou_editor_draft');
+                    
+                    // 再次尝试保存基本信息
+                    const minimalState = {
+                        text: $textarea.val().substring(0, 1000), // 只保存前1000字符
+                        timestamp: Date.now(),
+                        replyInfo: {
+                            in_reply_user_id: $editorContainer.attr('in_reply_user_id'),
+                            in_reply_msg_id: $editorContainer.attr('in_reply_msg_id')
+                        }
+                    };
+                    localStorage.setItem('fanfou_editor_draft', JSON.stringify(minimalState));
+                    console.log('已保存最小化草稿');
+                } catch (e) {
+                    console.error('即使最小化保存也失败:', e);
+                }
+            } else {
+                console.error('保存编辑器状态失败:', error);
+            }
+        }
+    }
+    
+    // 完成状态保存的函数
+    function finalizeSaveState(state) {
+        try {
+            // 检查数据大小，实现安全存储
+            const dataString = JSON.stringify(state);
+            const dataSizeKB = (dataString.length * 2) / 1024; // 估算UTF-16大小
+            
+            console.log(`草稿数据大小: ${dataSizeKB.toFixed(1)} KB`);
+            
+            // 如果数据过大，尝试压缩
+            if (dataSizeKB > 100) { // 超过100KB时开始优化
+                console.warn('草稿数据较大，开始优化...');
+                
+                // 首先移除缩略图（如果存在且数据仍然过大）
+                if (state.imageData && state.imageData.thumbnail && dataSizeKB > 200) {
+                    console.log('移除缩略图以减小数据量');
+                    delete state.imageData.thumbnail;
+                }
+                
+                // 截断过长的文本
+                if (state.text && state.text.length > 10000) {
+                    state.text = state.text.substring(0, 10000);
+                    console.log('文本内容已截断到10000字符');
+                }
+                
+                // 重新计算大小
+                const optimizedString = JSON.stringify(state);
+                const optimizedSizeKB = (optimizedString.length * 2) / 1024;
+                console.log(`优化后数据大小: ${optimizedSizeKB.toFixed(1)} KB`);
+                
+                if (optimizedSizeKB > 500) { // 如果还是太大，只保存文本
+                    console.warn('数据仍然过大，只保存文本内容');
+                    const minimalState = {
+                        text: state.text.substring(0, 5000), // 进一步截断
+                        hasImage: false,
+                        timestamp: state.timestamp,
+                        replyInfo: state.replyInfo
+                    };
+                    localStorage.setItem('fanfou_editor_draft', JSON.stringify(minimalState));
+                    return;
+                }
+                
+                localStorage.setItem('fanfou_editor_draft', optimizedString);
+            } else {
+                localStorage.setItem('fanfou_editor_draft', dataString);
             }
             
-            localStorage.setItem('fanfou_editor_draft', JSON.stringify(state));
         } catch (e) {
-            console.warn('保存编辑器状态失败:', e);
+            if (e.name === 'QuotaExceededError') {
+                console.warn('localStorage空间不足，尝试清理旧数据...');
+                try {
+                    // 清理旧数据并尝试只保存最基本的信息
+                    localStorage.removeItem('fanfou_editor_draft');
+                    
+                    const minimalState = {
+                        text: state.text.substring(0, 1000), // 只保存前1000字符
+                        timestamp: state.timestamp,
+                        replyInfo: state.replyInfo
+                    };
+                    
+                    localStorage.setItem('fanfou_editor_draft', JSON.stringify(minimalState));
+                    console.log('已保存最小化草稿到finalizeSaveState');
+                    
+                } catch (fallbackError) {
+                    console.error('finalizeSaveState无法保存任何草稿数据:', fallbackError);
+                }
+            } else {
+                console.warn('finalizeSaveState保存失败:', e);
+            }
         }
     }
 
@@ -549,6 +925,9 @@ function buildPopEditor(type = 'new', content = null) {
     function clearEditorState() {
         try {
             localStorage.removeItem('fanfou_editor_draft');
+            console.log('已清除草稿');
+            checkStorageUsage(); // 清除后检查存储使用情况
+            
             // 同时清理当前编辑器的reply信息（仅当是新建模式时）
             if (type === 'new') {
                 $editorContainer.attr('in_repost_user_id', '0');
@@ -559,6 +938,75 @@ function buildPopEditor(type = 'new', content = null) {
         } catch (e) {
             console.warn('清除编辑器状态失败:', e);
         }
+    }
+
+    // 检查localStorage使用情况的工具函数
+    function checkStorageUsage() {
+        try {
+            let totalSize = 0;
+            for (let key in localStorage) {
+                if (localStorage.hasOwnProperty(key)) {
+                    totalSize += localStorage[key].length;
+                }
+            }
+            const totalSizeMB = (totalSize * 2) / (1024 * 1024); // UTF-16估算
+            console.log(`localStorage总使用量: ${totalSizeMB.toFixed(2)} MB`);
+            
+            // 检查草稿大小
+            const draftData = localStorage.getItem('fanfou_editor_draft');
+            if (draftData) {
+                const draftSizeKB = (draftData.length * 2) / 1024;
+                console.log(`当前草稿大小: ${draftSizeKB.toFixed(1)} KB`);
+            }
+        } catch (e) {
+            console.warn('无法检查存储使用情况:', e);
+        }
+    }
+
+    // 生成图片缩略图的工具函数
+    function generateThumbnail(imageElement, maxWidth = 200, quality = 0.7) {
+        return new Promise((resolve, reject) => {
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // 计算缩略图尺寸，保持宽高比
+                const originalWidth = imageElement.naturalWidth || imageElement.width;
+                const originalHeight = imageElement.naturalHeight || imageElement.height;
+                
+                let thumbnailWidth = maxWidth;
+                let thumbnailHeight = (originalHeight * maxWidth) / originalWidth;
+                
+                // 如果高度超过最大宽度，则以高度为准
+                if (thumbnailHeight > maxWidth) {
+                    thumbnailHeight = maxWidth;
+                    thumbnailWidth = (originalWidth * maxWidth) / originalHeight;
+                }
+                
+                canvas.width = Math.round(thumbnailWidth);
+                canvas.height = Math.round(thumbnailHeight);
+                
+                // 绘制缩略图
+                ctx.drawImage(imageElement, 0, 0, canvas.width, canvas.height);
+                
+                // 转换为base64，使用较低质量以减小体积
+                const thumbnailDataUrl = canvas.toDataURL('image/jpeg', quality);
+                
+                // 检查缩略图大小
+                const thumbnailSizeKB = (thumbnailDataUrl.length * 0.75) / 1024; // base64大约增加33%
+                console.log(`缩略图大小: ${canvas.width}×${canvas.height}, ${thumbnailSizeKB.toFixed(1)} KB`);
+                
+                resolve({
+                    dataUrl: thumbnailDataUrl,
+                    width: canvas.width,
+                    height: canvas.height,
+                    sizeKB: thumbnailSizeKB
+                });
+            } catch (error) {
+                console.warn('生成缩略图失败:', error);
+                reject(error);
+            }
+        });
     }
 
     // 在页面关闭前保存状态
@@ -653,6 +1101,17 @@ function buildPopEditor(type = 'new', content = null) {
                             opacity: 1
                         }, 200).css('transform', 'translateX(0)');
                     });
+                    
+                    // 缓存当前上传的图片数据
+                    const isPastedImage = !file.name || file.name === 'image.png' || file.name === 'image' || file.name.startsWith('image.');
+                    window._currentImageData = {
+                        name: file.name || 'uploaded-image.png',
+                        size: file.size,
+                        type: file.type,
+                        lastModified: file.lastModified,
+                        filePath: file.webkitRelativePath || file.name,
+                        isPastedFromClipboard: isPastedImage
+                    };
                     
                     // 图片处理完成后保存状态
                     saveEditorState();
