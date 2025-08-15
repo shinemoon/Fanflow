@@ -1,223 +1,294 @@
-// editor.scss
+// editor.scss - 现代化简洁设计
 @use "sass:color";
 
-$primary-color: #3498db;
-$primary-hover: #2980b9;
-$secondary-color: rgba(216, 217, 218, 0.1);
-$text-color: #2c3e50;
-$border-radius: 8px;
-$transition-speed: 0.25s;
-$shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.05);
-$shadow-focus: 0 0 0 3px rgba($primary-color, 0.2);
+// 现代化色彩系统
+$primary-color: #007AFF;      // iOS蓝色
+$primary-hover: #0051D5;      // 深蓝
+$primary-light: rgba(0, 122, 255, 0.1);
+$accent-color: #FF6B6B;       // 现代红色用于警告
+$success-color: #51CF66;      // 成功绿色
+$text-primary: #1D1D1F;       // 深色主文本
+$text-secondary: #86868B;     // 次要文本
+$background-primary: #FFFFFF;  // 纯白背景
+$background-secondary: #F2F2F7; // 淡灰背景
+$border-color: rgba(0, 0, 0, 0.08);
+$shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
+$shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.15);
+$radius-none: 0px;            // 无圆角
+$radius-small: 2px;           // 最小圆角
+$radius-medium: 3px;          // 中等圆角
+$radius-large: 4px;           // 大圆角
 
-// Keyframes for animations
-@keyframes fadeIn { 
-  from { opacity: 0; } 
-  to { opacity: 1; }
+// 动画
+@keyframes slideUp {
+  from { 
+    transform: translateY(20px); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateY(0); 
+    opacity: 1; 
+  }
 }
 
-@keyframes slideUp {
-  from { transform: translateY(10px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-5px); }
-  40%, 80% { transform: translateX(5px); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
 }
 
 .shake {
-  animation: shake 0.5s ease;
+  animation: shake 0.4s ease;
 }
 
 #fanfou-editor {
-    margin: 20px auto 0;
-    width: 94%;
+    margin: 8px;
+    width: calc(100% - 16px);
+    height: calc(100% - 16px);
     display: flex;
     flex-direction: column;
-    height: 92%;
-    justify-content: center;
-    border-radius: $border-radius;
-    //background: #fff;
-    box-shadow: $shadow-subtle;
+    background: $background-primary;
+    border-radius: $radius-none;
+    box-shadow: none;
     overflow: hidden;
-    transition: all $transition-speed;
-    animation: slideUp 0.3s ease;
+    animation: slideUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border: 1px solid $border-color;
 
+    // 文本输入区域
+    textarea {
+        flex: 1;
+        padding: 16px;
+        border: none;
+        resize: none;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.4;
+        color: $text-primary;
+        background: transparent;
+        outline: none;
+        transition: all 0.2s ease;
+        
+        &::placeholder {
+            color: $text-secondary;
+            font-weight: 400;
+        }
+        
+        &:focus {
+            background: rgba(0, 122, 255, 0.02);
+        }
+    }
+
+    // 工具栏
     #fanfou-toolbar {
         display: flex;
-        gap: 15px;
-        padding: 14px 16px;
-        background: #fafafa;
-        border: none;
-        border-radius: 0 0 $border-radius $border-radius;
-        margin-top: 0;
         align-items: center;
-        transition: all $transition-speed;
-        position: relative;
-        z-index: 2;
+        padding: 12px 16px;
+        background: $background-secondary;
+        border-top: 1px solid $border-color;
+        gap: 10px;
 
+        // 发布按钮
         button {
-            flex: 0 0 auto;
-            padding: 8px 24px;
+            padding: 8px 16px;
             border: none;
-            border-radius: 5px;
+            border-radius: $radius-none;
             background: $primary-color;
             color: white;
+            font-weight: 600;
+            font-size: 13px;
             cursor: pointer;
-            transition: all $transition-speed ease;
-            font-weight: 500;
-            font-size: 0.95em;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            animation: slideUp 0.3s ease;
+            transition: all 0.2s ease;
+            box-shadow: $shadow-light;
+            min-width: 70px;
+            position: relative;
+            overflow: hidden;
 
-            &:hover {
+            // 发布中状态
+            &.publishing {
+                background: $text-secondary;
+                
+                i.icon-loading {
+                    animation: spin 1s linear infinite;
+                }
+            }
+            
+            // 成功状态
+            &.success {
+                background: $success-color;
+            }
+
+            &:hover:not(:disabled) {
                 background: $primary-hover;
-                transform: translateY(-2px);
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+                transform: translateY(-1px);
+                box-shadow: $shadow-medium;
             }
 
             &:active {
                 transform: translateY(0);
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             }
             
             &:disabled {
-                background: color.adjust($primary-color, $lightness: 15%);
+                cursor: not-allowed;
                 transform: none;
-                box-shadow: none;
-                cursor: default;
+                opacity: 0.7;
             }
         }
         
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        // 添加图片按钮
         #add-photo-btn {
             display: flex;
             align-items: center;
             justify-content: center;
             width: 32px;
             height: 32px;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.05);
+            border-radius: $radius-none;
+            background: transparent;
             cursor: pointer;
-            transition: all $transition-speed;
-            color: color.adjust($text-color, $lightness: 20%);
+            transition: all 0.2s ease;
+            color: $text-secondary;
             font-size: 16px;
-            margin-left: 5px;
             
             &:hover {
-                background: rgba(0, 0, 0, 0.1);
+                background: $primary-light;
                 color: $primary-color;
-                transform: scale(1.1);
+                transform: scale(1.05);
             }
             
             &:active {
                 transform: scale(0.95);
             }
         }
-    }
 
-    #char-count {
-        margin-left: auto;
-        color: color.adjust($text-color, $lightness: 20%);
-        font-size: 0.95em;
-        align-self: center;
-        min-width: 38px;
-        text-align: center;
-        padding: 4px 8px;
-        border-radius: 1px;
-     //   background: rgba(0, 0, 0, 0.03);
-        transition: all $transition-speed;
+        // 字数计数器
+        #char-count {
+            margin-left: auto;
+            color: $text-secondary;
+            font-size: 12px;
+            font-weight: 500;
+            min-width: 28px;
+            text-align: center;
+            padding: 4px 8px;
+            border-radius: $radius-none;
+            transition: all 0.2s ease;
 
-        &.warn {
-            color: #e67e22;
-            background: rgba(230, 126, 34, 0.1);
-        }
+            &.warn {
+                color: #FF9500;
+                background: rgba(255, 149, 0, 0.1);
+            }
 
-        &.danger {
-            color: #e74c3c;
-            background: rgba(231, 76, 60, 0.1);
-        }
-    }
-
-    textarea {
-        height: 160px;
-        padding: 16px;
-        border: 1px solid transparent;
-        border-bottom: 1px solid rgba(0,0,0,0.08);
-        border-radius: $border-radius $border-radius 0 0;
-        resize: none;
-        font-family: inherit;
-        font-size: 1.05em;
-        line-height: 1.5;
-        color: $text-color;
-        transition: all $transition-speed;
-        background-color: rgba(250, 250, 250, 0.7);
-        // Prevent scrolling of the entire editor
-        overflow: auto;
-
-        &:focus {
-            outline: none;
-          //  border-color: transparent;
-           // border-bottom-color: $primary-color;
-           // background-color: #fff;
-            //box-shadow: $shadow-focus;
+            &.danger {
+                color: $accent-color;
+                background: rgba(255, 107, 107, 0.1);
+                animation: pulse 1s infinite;
+            }
         }
     }
 
+    // 图片预览区域
     #fanfou-picframe {
-        height: auto;
         max-height: 0;
-        border: none;
-        margin-top: 0;
-        display: flex;
-        cursor: default;
         overflow: hidden;
-        transition: all $transition-speed ease;
-        background: rgba(250, 250, 250, 0.5);
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        background: $background-primary;
         
         &.has-image {
             max-height: 120px;
-            margin-top: 10px;
-            padding: 8px;
-            border-radius: $border-radius;
-            border-top: 1px solid rgba(0, 0, 0, 0.04);
-            background: rgba(250, 250, 250, 0.8);
+            padding: 12px 16px;
+            border-top: 1px solid $border-color;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         #fanfou-image-container {
-            width: 160px;
-            height: 100px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 100px;
+            height: 75px;
+            border-radius: $radius-none;
             overflow: hidden;
-            border-radius: $border-radius;
-            background: rgba(0, 0, 0, 0.02);
-            transition: all $transition-speed;
+            background: $background-secondary;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: none;
+            border: 1px solid $border-color;
+            position: relative;
             
-            &:hover {
-                background: rgba(0, 0, 0, 0.05);
+            &:hover .image-delete-btn {
+                opacity: 1;
+            }
+
+            // 删除按钮
+            .image-delete-btn {
+                position: absolute;
+                top: 4px;
+                right: 4px;
+                width: 20px;
+                height: 20px;
+                background: $accent-color;
+                color: white;
+                border: none;
+                border-radius: $radius-none;
+                cursor: pointer;
+                opacity: 0;
+                transition: all 0.2s ease;
+                font-size: 12px;
+                line-height: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                
+                &:hover {
+                    background: color.adjust($accent-color, $lightness: -10%);
+                    transform: scale(1.1);
+                }
+                
+                &:active {
+                    transform: scale(0.9);
+                }
             }
 
             img {
                 max-width: 100%;
                 max-height: 100%;
-                object-fit: contain;
+                object-fit: cover;
                 cursor: pointer;
-                transition: opacity $transition-speed, transform 0.3s ease;
-                opacity: 0.85;
-                
-                &:hover {
-                    opacity: 1;
-                    transform: scale(1.02);
-                }
+                transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
                 
                 &.placeholder {
-                    opacity: 0.5;
-                    max-width: 50%;
-                    max-height: 50%;
+                    opacity: 0.4;
+                    max-width: 60%;
+                    max-height: 60%;
+                    object-fit: contain;
+                    filter: grayscale(100%);
+                }
+                
+                &.loading {
+                    opacity: 0.6;
+                    
+                    &::after {
+                        content: '';
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        width: 16px;
+                        height: 16px;
+                        margin: -8px 0 0 -8px;
+                        border: 2px solid $primary-light;
+                        border-top: 2px solid $primary-color;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                    }
                 }
             }
         }
@@ -226,55 +297,117 @@ $shadow-focus: 0 0 0 3px rgba($primary-color, 0.2);
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: space-around;
-            padding-left: 15px;
+            justify-content: center;
+            gap: 4px;
             
             .tipinfo {
-                color: color.adjust($text-color, $lightness: 25%);
-                font-style: italic;
-                font-size: 0.9em;
+                color: $text-secondary;
+                font-size: 12px;
+                font-weight: 400;
             }
 
-            div {
-                margin-left: 5px;
-                border-left: 1px solid rgba(0, 0, 0, 0.1);
-                padding-left: 10px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                min-height: 20px;
+            .picdetails {
+                color: $text-primary;
+                font-size: 11px;
+                font-weight: 500;
                 display: flex;
                 align-items: center;
-                justify-content: flex-start;
-                font-size: 0.85em;
-                color: color.adjust($text-color, $lightness: 15%);
+                transition: opacity 0.2s ease;
                 
-                &.picdetails {
-                    transition: opacity $transition-speed;
+                &:first-of-type {
+                    font-weight: 600;
+                    color: $primary-color;
                 }
+            }
  
-                &.action {
-                    background: rgba(0, 0, 0, 0.05);
-                    text-align: center;
-                    padding: 3px 12px;
-                    margin-top: 5px;
-                    width: auto;
-                    max-width: 80px;
-                    border-radius: 12px;
-                    letter-spacing: 1px;
-                    cursor: pointer;
-                    border: none;
-                    font-size: 0.8em;
-                    transition: all $transition-speed;
-                    align-self: flex-end;
-                    margin-right: 10px;
+            .action {
+                background: $accent-color;
+                color: white;
+                padding: 4px 10px;
+                border-radius: $radius-none;
+                font-size: 10px;
+                font-weight: 600;
+                cursor: pointer;
+                border: none;
+                transition: all 0.2s ease;
+                align-self: flex-start;
+                margin-top: 6px;
 
-                    &:hover {
-                        background: rgba(0, 0, 0, 0.1);
-                        color: $primary-color;
-                    }
+                &:hover {
+                    background: color.adjust($accent-color, $lightness: -10%);
+                    transform: translateY(-1px);
+                }
+                
+                &:active {
+                    transform: translateY(0);
                 }
             }
         }
+    }
+}
+
+// 响应式设计
+@media (max-width: 640px) {
+    #fanfou-editor {
+        margin: 0;
+        width: 100%;
+        border-radius: $radius-none;
+        
+        textarea {
+            padding: 14px;
+            font-size: 14px; // 防止iOS缩放
+        }
+        
+        #fanfou-toolbar {
+            padding: 10px 14px;
+            gap: 8px;
+            
+            button {
+                padding: 7px 14px;
+                font-size: 12px;
+                min-width: 60px;
+            }
+            
+            #char-count {
+                font-size: 11px;
+                padding: 3px 6px;
+            }
+        }
+        
+        #fanfou-picframe {
+            &.has-image {
+                max-height: 100px;
+                padding: 10px 14px;
+            }
+            
+            #fanfou-image-container {
+                width: 80px;
+                height: 60px;
+            }
+            
+            #fanfou-image-info {
+                gap: 3px;
+                
+                .picdetails {
+                    font-size: 10px;
+                }
+                
+                .action {
+                    padding: 3px 8px;
+                    font-size: 9px;
+                    margin-top: 4px;
+                }
+            }
+        }
+    }
+}
+
+// 暗色模式支持（预留）
+@media (prefers-color-scheme: dark) {
+    // 可以在这里添加暗色模式样式
+    // 目前保持浅色主题以保持一致性
+    body {
+        // 占位符规则避免空规则集
+        color: inherit;
     }
 }

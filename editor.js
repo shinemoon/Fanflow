@@ -59,6 +59,20 @@ function buildPopEditor(type = 'new', content = null) {
         $editorContainer.attr('in_reply_user_id', in_reply_user_id);
         $editorContainer.attr('in_reply_msg_id', in_reply_msg_id);
     }
+    
+    // 如果有保存的草稿且是新建模式，恢复reply信息
+    if (savedEditorState && savedEditorState.replyInfo && type === 'new' && !content) {
+        const replyInfo = savedEditorState.replyInfo;
+        if (replyInfo.in_repost_user_id && replyInfo.in_repost_user_id !== '0') {
+            $editorContainer.attr('in_repost_user_id', replyInfo.in_repost_user_id);
+            $editorContainer.attr('in_repost_msg_id', replyInfo.in_repost_msg_id);
+            console.log('恢复转发信息:', replyInfo.in_repost_user_id, replyInfo.in_repost_msg_id);
+        } else if (replyInfo.in_reply_user_id && replyInfo.in_reply_user_id !== '0') {
+            $editorContainer.attr('in_reply_user_id', replyInfo.in_reply_user_id);
+            $editorContainer.attr('in_reply_msg_id', replyInfo.in_reply_msg_id);
+            console.log('恢复回复信息:', replyInfo.in_reply_user_id, replyInfo.in_reply_msg_id);
+        }
+    }
     //Repost Img handling:
     // Repost image handling
     if (content && content.photo) {
@@ -80,8 +94,23 @@ function buildPopEditor(type = 'new', content = null) {
         $textarea.focus();
         $textarea[0].setSelectionRange(0, 0);
         
-        // 添加动画效果
-        $textarea.css('opacity', '0').animate({opacity: 1}, 200);
+        // 添加现代化的初始动画效果
+        $textarea.css('opacity', '0').animate({opacity: 1}, 300);
+        
+        // 添加打字机效果提示（可选）
+        if (!savedEditorState || !savedEditorState.text) {
+            const placeholder = $textarea.attr('placeholder');
+            $textarea.attr('placeholder', '');
+            let i = 0;
+            const typeWriter = () => {
+                if (i < placeholder.length) {
+                    $textarea.attr('placeholder', placeholder.substring(0, i + 1));
+                    i++;
+                    setTimeout(typeWriter, 50);
+                }
+            };
+            setTimeout(typeWriter, 500);
+        }
     }, 0);
     // 创建工具栏
     var $toolbar = $('<div>', {
@@ -107,6 +136,27 @@ function buildPopEditor(type = 'new', content = null) {
         alt: 'Uploaded Image',
     }).appendTo($piccontainer);
 
+    // 添加删除按钮
+    $('<button>', {
+        class: 'image-delete-btn',
+        html: '×',
+        click: function(e) {
+            e.stopPropagation(); // 防止触发图片点击事件
+            $('#upload-btn').val('');
+            $('#fanfou-picframe').removeClass('has-image');
+            $('#fanfou-image').addClass('placeholder').attr('src', '/images/background.png');
+            $('#fanfou-image-info').empty().append('<div class="tipinfo">点击左侧区域添加图片</div>');
+            
+            // 如果文本也为空，清除草稿
+            if (!$textarea.val().trim()) {
+                clearEditorState();
+                console.log('图片和文本都已清空，清除草稿');
+            } else {
+                saveEditorState(); // 保存状态
+            }
+        }
+    }).appendTo($piccontainer);
+
     // 插入图片元素信息控制
     $('<div>', {
         id: 'fanfou-image-info',
@@ -122,54 +172,94 @@ function buildPopEditor(type = 'new', content = null) {
         $('#fanfou-image-info').append('<div class="tipinfo">点击左侧区域添加图片</div>');
     }
     
-    // 恢复保存的图片（如果有）
+    // 恢复保存的图片信息（如果有）
     if (savedEditorState && savedEditorState.imageData && type === 'new') {
         try {
-            // 创建文件对象并设置到 file input
-            fetch(savedEditorState.imageData.dataUrl)
-                .then(res => res.blob())
-                .then(blob => {
-                    const file = new File([blob], savedEditorState.imageData.name, {
-                        type: savedEditorState.imageData.type
-                    });
-                    
-                    // 创建新的 DataTransfer 对象来设置文件
-                    const dt = new DataTransfer();
-                    dt.items.add(file);
-                    $('#upload-btn')[0].files = dt.files;
-                    
-                    // 显示恢复的图片
-                    $('#fanfou-picframe').addClass('has-image');
-                    $('#fanfou-image')
-                        .removeClass('placeholder')
-                        .attr('src', savedEditorState.imageData.dataUrl);
-                    
-                    // 显示图片信息
-                    const img = new Image();
-                    img.onload = function() {
-                        $('#fanfou-image-info').empty().append([
-                            `<div class="picdetails">${savedEditorState.imageData.name.length > 18 ? savedEditorState.imageData.name.substring(0, 15) + '...' : savedEditorState.imageData.name}</div>`,
-                            `<div class="picdetails">${img.width} × ${img.height}</div>`,
-                            `<div class="picdetails">${(savedEditorState.imageData.size / 1024).toFixed(1)} KB</div>`,
-                            `<div class="action" id="reset-pic">重置</div>`
-                        ].join(''));
+            const imageData = savedEditorState.imageData;
+            
+            // 显示图片预览区域
+            $('#fanfou-picframe').addClass('has-image');
+            
+            // 先显示基本信息
+            $('#fanfou-image-info').empty().append([
+                `<div class="picdetails">${imageData.name.length > 18 ? imageData.name.substring(0, 15) + '...' : imageData.name}</div>`,
+                `<div class="picdetails">${(imageData.size / 1024).toFixed(1)} KB</div>`,
+                '<div class="tipinfo" style="color: #007AFF;">正在恢复图片...</div>'
+            ].join(''));
+            
+            // 尝试从保存的URL或Base64数据恢复文件
+            if (imageData.imageSrc || imageData.dataUrl) {
+                const imageUrl = imageData.imageSrc || imageData.dataUrl;
+                
+                fetch(imageUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('图片地址无效');
+                        }
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        // 对于Base64数据，不验证文件大小（因为编码可能有差异）
+                        if (!imageData.dataUrl) {
+                            // 只对URL方式验证文件大小
+                            const sizeDiff = Math.abs(blob.size - imageData.size);
+                            if (sizeDiff > 1024) { // 允许1KB误差
+                                throw new Error('文件大小不匹配');
+                            }
+                        }
                         
-                        // 重置按钮功能
-                        $('#reset-pic').click(function () {
-                            $('#upload-btn').val('');
-                            $('#fanfou-picframe').removeClass('has-image');
-                            $('#fanfou-image').addClass('placeholder').attr('src', '/images/background.png');
-                            $('#fanfou-image-info').empty().append('<div class="tipinfo">点击左侧区域添加图片</div>');
-                            saveEditorState(); // 保存状态
+                        // 创建文件对象并设置到 file input
+                        const file = new File([blob], imageData.name, {
+                            type: imageData.type,
+                            lastModified: imageData.lastModified || Date.now()
                         });
-                    };
-                    img.src = savedEditorState.imageData.dataUrl;
-                })
-                .catch(e => {
-                    console.warn('恢复图片失败:', e);
-                });
+                        
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        $('#upload-btn')[0].files = dt.files;
+                        
+                        // 显示恢复的图片
+                        $('#fanfou-image')
+                            .removeClass('placeholder')
+                            .attr('src', imageUrl);
+                        
+                        // 更新状态信息
+                        const img = new Image();
+                        img.onload = function() {
+                            $('#fanfou-image-info').empty().append([
+                                `<div class="picdetails">${imageData.name.length > 18 ? imageData.name.substring(0, 15) + '...' : imageData.name}</div>`,
+                                `<div class="picdetails">${img.width} × ${img.height}</div>`,
+                                `<div class="picdetails">${(imageData.size / 1024).toFixed(1)} KB</div>`,
+                                '<div class="tipinfo" style="color: #51CF66;">✓ 图片已恢复</div>'
+                            ].join(''));
+                        };
+                        img.src = imageUrl;
+                        
+                        console.log('✓ 图片恢复成功:', imageData.name);
+                    })
+                    .catch(error => {
+                        console.warn('图片恢复失败:', error.message);
+                        // 恢复失败，显示占位符和重新选择提示
+                        $('#fanfou-image').addClass('placeholder').attr('src', '/images/background.png');
+                        $('#fanfou-image-info').empty().append([
+                            `<div class="picdetails">${imageData.name.length > 18 ? imageData.name.substring(0, 15) + '...' : imageData.name}</div>`,
+                            `<div class="picdetails">${(imageData.size / 1024).toFixed(1)} KB</div>`,
+                            '<div class="tipinfo" style="color: #FF6B6B;">⚠ 图片无法恢复，请重新选择</div>'
+                        ].join(''));
+                    });
+            } else {
+                // 没有保存的URL，直接提示重新选择
+                $('#fanfou-image').addClass('placeholder').attr('src', '/images/background.png');
+                $('#fanfou-image-info').empty().append([
+                    `<div class="picdetails">${imageData.name.length > 18 ? imageData.name.substring(0, 15) + '...' : imageData.name}</div>`,
+                    `<div class="picdetails">${(imageData.size / 1024).toFixed(1)} KB</div>`,
+                    '<div class="tipinfo" style="color: #FF6B6B;">请重新选择此图片</div>'
+                ].join(''));
+            }
+            
         } catch (e) {
-            console.warn('恢复图片失败:', e);
+            console.warn('恢复图片信息失败:', e);
+            $('#fanfou-image-info').append('<div class="tipinfo">恢复图片信息失败，请重新选择</div>');
         }
     }
     
@@ -205,9 +295,9 @@ function buildPopEditor(type = 'new', content = null) {
             const imageFile = $('#upload-btn')[0].files[0]; // This will only be treated in upload case (i.e. null still if overided by repost)
             
             if (fanfouText.trim() !== "" || imageFile) {
-                // 添加发布中的状态显示
-                $btn.prop('disabled', true);
-                $btnText.text('发布中...');
+                // 现代化的发布中状态
+                $btn.prop('disabled', true).addClass('publishing');
+                $btnText.html('<i class="icon-loading"></i> 发布中...');
                 
                 try {
                     let meta = {
@@ -219,28 +309,35 @@ function buildPopEditor(type = 'new', content = null) {
 
                     await postStatus(fanfouText, imageFile, meta);
                     
-                    // 更新按钮状态为成功
-                    $btnText.text('已发布');
+                    // 现代化的成功状态
+                    $btnText.html('<i class="icon-check"></i> 已发布');
+                    $btn.addClass('success');
                     setTimeout(() => {
-                        toastr.success('发布成功');
+                        toastr.success('发布成功', '', {
+                            positionClass: 'toast-top-center',
+                            timeOut: 2000
+                        });
                         $('#fanfou-textarea').val(''); // 清空输入框
                         clearEditorState(); // 清除保存的草稿
                         $('#popmask').click();
-                    }, 300);
+                    }, 600);
                 } catch (error) {
-                    // 恢复按钮状态
-                    $btn.prop('disabled', false);
+                    // 现代化的错误处理
+                    $btn.prop('disabled', false).removeClass('publishing');
                     $btnText.text('发布');
-                    toastr.error(error.message);
+                    toastr.error(error.message, '发布失败', {
+                        positionClass: 'toast-top-center'
+                    });
                 }
             } else {
-                // 添加按钮轻微抖动效果
+                // 现代化的空内容提示
                 $btn.addClass('shake');
-                setTimeout(() => $btn.removeClass('shake'), 500);
+                setTimeout(() => $btn.removeClass('shake'), 400);
                 
-                toastr.options.timeOut = "3000";
-                toastr.options.extendedTimeOut = "1000";
-                toastr.error("内容不能为空!");
+                toastr.warning("请输入内容或添加图片", '', {
+                    positionClass: 'toast-top-center',
+                    timeOut: 2000
+                });
             }
         }
     }).appendTo($toolbar);
@@ -251,28 +348,33 @@ function buildPopEditor(type = 'new', content = null) {
             const state = {
                 text: $textarea.val(),
                 hasImage: $('#fanfou-picframe').hasClass('has-image'),
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                // 保存reply相关信息
+                replyInfo: {
+                    in_repost_user_id: $editorContainer.attr('in_repost_user_id'),
+                    in_repost_msg_id: $editorContainer.attr('in_repost_msg_id'),
+                    in_reply_user_id: $editorContainer.attr('in_reply_user_id'),
+                    in_reply_msg_id: $editorContainer.attr('in_reply_msg_id')
+                }
             };
             
-            // 如果有图片，保存文件信息
+            // 如果有图片，保存文件基本信息（不保存Base64数据）
             const fileInput = $('#upload-btn')[0];
             if (fileInput.files && fileInput.files[0]) {
                 const file = fileInput.files[0];
-                // 将文件转换为Base64保存（注意：大文件可能会有问题）
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    state.imageData = {
-                        name: file.name,
-                        size: file.size,
-                        type: file.type,
-                        dataUrl: e.target.result
-                    };
-                    localStorage.setItem('fanfou_editor_draft', JSON.stringify(state));
+                const imgSrc = $('#fanfou-image').attr('src');
+                
+                state.imageData = {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    lastModified: file.lastModified,
+                    imageSrc: imgSrc, // 保存当前显示的图片URL
+                    // 不再保存dataUrl，避免存储空间问题
                 };
-                reader.readAsDataURL(file);
-            } else {
-                localStorage.setItem('fanfou_editor_draft', JSON.stringify(state));
             }
+            
+            localStorage.setItem('fanfou_editor_draft', JSON.stringify(state));
         } catch (e) {
             console.warn('保存编辑器状态失败:', e);
         }
@@ -282,6 +384,13 @@ function buildPopEditor(type = 'new', content = null) {
     function clearEditorState() {
         try {
             localStorage.removeItem('fanfou_editor_draft');
+            // 同时清理当前编辑器的reply信息（仅当是新建模式时）
+            if (type === 'new') {
+                $editorContainer.attr('in_repost_user_id', '0');
+                $editorContainer.attr('in_repost_msg_id', '0');
+                $editorContainer.attr('in_reply_user_id', '0');
+                $editorContainer.attr('in_reply_msg_id', '0');
+            }
         } catch (e) {
             console.warn('清除编辑器状态失败:', e);
         }
@@ -336,58 +445,48 @@ function buildPopEditor(type = 'new', content = null) {
     $('#upload-btn').change(function (e) {
         const file = e.target.files[0];
         if (file) {
-            // 显示图片框
+            // 现代化的图片加载动画
             $('#fanfou-picframe').addClass('has-image');
+            $('#fanfou-image').addClass('loading');
             
             // 创建预览
             const previewUrl = URL.createObjectURL(file);
             
-            // 使用淡入效果切换图片
+            // 现代化的图片切换效果
             $('#fanfou-image')
-                .removeClass('placeholder')
-                .css('opacity', '0.3')
+                .removeClass('placeholder loading')
+                .css({opacity: 0, transform: 'scale(0.8)'})
                 .attr('src', previewUrl)
-                .animate({opacity: 0.85}, 300);
+                .animate({opacity: 1}, 300)
+                .css('transform', 'scale(1)');
                 
             // 获取图片信息并显示
             const reader = new FileReader();
             reader.onload = function (event) {
                 const img = new Image();
                 img.onload = function () {
-                    $('#fanfou-image-info').empty(); // 清空之前的信息
+                    $('#fanfou-image-info').empty();
                     
-                    // 添加动画效果，依次显示信息
+                    // 现代化的信息显示动画
+                    const fileName = file.name.length > 20 ? file.name.substring(0, 17) + '...' : file.name;
+                    const fileSize = file.size > 1024 * 1024 
+                        ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+                        : `${(file.size / 1024).toFixed(1)} KB`;
+                    
                     const details = [
-                        `<div class="picdetails" style="opacity:0">${file.name.length > 18 ? file.name.substring(0, 15) + '...' : file.name}</div>`,
-                        `<div class="picdetails" style="opacity:0">${img.width} × ${img.height}</div>`,
-                        `<div class="picdetails" style="opacity:0">${(file.size / 1024).toFixed(1)} KB</div>`,
-                        `<div class="action" id="reset-pic" style="opacity:0">重置</div>`
+                        `<div class="picdetails">${fileName}</div>`,
+                        `<div class="picdetails">${img.width} × ${img.height}</div>`,
+                        `<div class="picdetails">${fileSize}</div>`
                     ];
                     
                     $('#fanfou-image-info').append(details.join(''));
                     
-                    // 依次淡入显示信息
+                    // 现代化的渐入动画
+                    $('#fanfou-image-info div').css({opacity: 0, transform: 'translateX(-10px)'});
                     $('#fanfou-image-info div').each(function(index) {
-                        $(this).delay(index * 100).animate({opacity: 1}, 200);
-                    });
-                    
-                    // 重置按钮功能
-                    $('#reset-pic').click(function () {
-                        $('#upload-btn').val('');
-                        
-                        // 动画效果移除图片
-                        $('#fanfou-picframe').removeClass('has-image');
-                        $('#fanfou-image')
-                            .animate({opacity: 0.5}, 200, function() {
-                                $(this).addClass('placeholder').attr('src', '/images/background.png');
-                            });
-                            
-                        // 重置信息区域
-                        $('#fanfou-image-info div').fadeOut(200, function() {
-                            $('#fanfou-image-info').empty().append('<div class="tipinfo">点击左侧区域添加图片</div>');
-                            // 在重置完成后保存状态
-                            setTimeout(saveEditorState, 100);
-                        });
+                        $(this).delay(index * 80).animate({
+                            opacity: 1
+                        }, 200).css('transform', 'translateX(0)');
                     });
                     
                     // 图片处理完成后保存状态
@@ -421,6 +520,21 @@ function buildPopEditor(type = 'new', content = null) {
         var text = $(this).val();
         var cursorPos = this.selectionStart;
         var remaining = 140 - text.length;
+        
+        // 如果文本被完全清空，清理reply相关信息
+        if (text.trim() === '') {
+            $editorContainer.attr('in_repost_user_id', '0');
+            $editorContainer.attr('in_repost_msg_id', '0');
+            $editorContainer.attr('in_reply_user_id', '0');
+            $editorContainer.attr('in_reply_msg_id', '0');
+            console.log('文本已清空，清理reply信息');
+            
+            // 如果文本为空且没有图片，清除草稿
+            if (!$('#fanfou-picframe').hasClass('has-image')) {
+                clearEditorState();
+                console.log('文本和图片都已清空，清除草稿');
+            }
+        }
         
         // 平滑更新字数
         $charCount
