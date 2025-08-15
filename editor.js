@@ -112,6 +112,52 @@ function buildPopEditor(type = 'new', content = null) {
             setTimeout(typeWriter, 500);
         }
     }, 0);
+    
+    // 添加粘贴事件监听，支持直接粘贴图片
+    $textarea.on('paste', function(e) {
+        const clipboardData = e.originalEvent.clipboardData;
+        if (!clipboardData) return;
+        
+        const items = clipboardData.items;
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            
+            // 检查是否为图片类型
+            if (item.type.indexOf('image') !== -1) {
+                e.preventDefault(); // 阻止默认粘贴行为
+                
+                const file = item.getAsFile();
+                if (file) {
+                    console.log('检测到粘贴图片:', file.name || 'clipboard-image', file.size, 'bytes');
+                    
+                    // 显示粘贴处理状态
+                    toastr.info('正在处理粘贴的图片...', '', {
+                        positionClass: 'toast-top-center',
+                        timeOut: 2000
+                    });
+                    
+                    // 创建一个虚拟的file input event来重用现有的图片处理逻辑
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    
+                    // 设置到隐藏的file input
+                    $('#upload-btn')[0].files = dt.files;
+                    
+                    // 触发file input的change事件
+                    $('#upload-btn').trigger('change');
+                    
+                    // 显示成功提示
+                    setTimeout(() => {
+                        toastr.success('图片粘贴成功！', '', {
+                            positionClass: 'toast-top-center',
+                            timeOut: 2000
+                        });
+                    }, 500);
+                }
+                break; // 只处理第一个图片
+            }
+        }
+    });
     // 创建工具栏
     var $toolbar = $('<div>', {
         id: 'fanfou-toolbar'
@@ -164,6 +210,47 @@ function buildPopEditor(type = 'new', content = null) {
 
     $editorContainer.appendTo($popframe);
 
+    // 为整个编辑器容器添加粘贴事件监听
+    $editorContainer.on('paste', function(e) {
+        // 如果焦点不在textarea上，也能处理粘贴
+        if (e.target !== $textarea[0]) {
+            const clipboardData = e.originalEvent.clipboardData;
+            if (!clipboardData) return;
+            
+            const items = clipboardData.items;
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                
+                if (item.type.indexOf('image') !== -1) {
+                    e.preventDefault();
+                    
+                    const file = item.getAsFile();
+                    if (file) {
+                        console.log('容器检测到粘贴图片:', file.name || 'clipboard-image');
+                        
+                        toastr.info('正在处理粘贴的图片...', '', {
+                            positionClass: 'toast-top-center',
+                            timeOut: 2000
+                        });
+                        
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        $('#upload-btn')[0].files = dt.files;
+                        $('#upload-btn').trigger('change');
+                        
+                        setTimeout(() => {
+                            toastr.success('图片粘贴成功！', '', {
+                                positionClass: 'toast-top-center',
+                                timeOut: 2000
+                            });
+                        }, 500);
+                    }
+                    break;
+                }
+            }
+        }
+    });
+
     //细节控制
     if (repost_photo && repost_photo.imageurl !== '/images/background.png') {
         $('#fanfou-image-info').html('<div class="tipinfo">转发图片</div>');
@@ -188,7 +275,20 @@ function buildPopEditor(type = 'new', content = null) {
             ].join(''));
             
             // 尝试通过路径重新创建文件选择（浏览器环境限制）
-            if (imageData.filePath && imageData.filePath !== imageData.name) {
+            if (imageData.isPastedFromClipboard) {
+                // 对于粘贴的图片，无法恢复，显示特殊提示
+                setTimeout(() => {
+                    $('#fanfou-image').addClass('placeholder').attr('src', '/images/background.png');
+                    $('#fanfou-image-info').empty().append([
+                        `<div class="picdetails">剪贴板图片: ${imageData.name}</div>`,
+                        `<div class="picdetails">大小: ${(imageData.size / 1024).toFixed(1)} KB</div>`,
+                        `<div class="picdetails">类型: ${imageData.type.split('/')[1].toUpperCase()}</div>`,
+                        '<div class="tipinfo" style="color: #FF6B6B;">剪贴板图片无法自动恢复，请重新粘贴</div>',
+                        '<div class="tipinfo" style="color: #86868B; font-size: 10px;">提示: 可以直接在文本框中按 Ctrl+V 粘贴图片</div>'
+                    ].join(''));
+                }, 500);
+                
+            } else if (imageData.filePath && imageData.filePath !== imageData.name) {
                 // 显示完整的文件路径信息
                 setTimeout(() => {
                     $('#fanfou-image').addClass('placeholder').attr('src', '/images/background.png');
@@ -424,13 +524,17 @@ function buildPopEditor(type = 'new', content = null) {
             if (fileInput.files && fileInput.files[0]) {
                 const file = fileInput.files[0];
                 
+                // 检测是否为粘贴的图片（通常文件名为空或image.png）
+                const isPastedImage = !file.name || file.name === 'image.png' || file.name === 'image' || file.name.startsWith('image.');
+                
                 state.imageData = {
-                    name: file.name,
+                    name: file.name || 'pasted-image.png',
                     size: file.size,
                     type: file.type,
                     lastModified: file.lastModified,
-                    // 保存文件的原始路径（如果可获取）或webkitRelativePath
-                    filePath: file.webkitRelativePath || file.name,
+                    // 对粘贴的图片标记来源
+                    filePath: isPastedImage ? 'clipboard://pasted-image' : (file.webkitRelativePath || file.name),
+                    isPastedFromClipboard: isPastedImage,
                     // 对于网络URL图片，可能需要其他方式保存源地址
                 };
             }
