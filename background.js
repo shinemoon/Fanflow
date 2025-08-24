@@ -15,7 +15,7 @@ async function fanfouRequest(t, n, o, e = null) { const a = new URL(t), r = o ||
 
 
 // 10min checking for notification
-setInterval(async function () {
+async function runChecks() {
     // 获取本地token
     const token = await getStoredToken();
     if (token) {
@@ -26,16 +26,16 @@ setInterval(async function () {
             validToken = {
                 oauthToken: token.oauthToken,
                 oauthTokenSecret: token.oauthTokenSecret
-            }
+            };
             chrome.storage.local.set({ userinfo: isValid }, function () {
                 // console.log("Local Save users");
             });
- 
+
             const notification = await getNotification();
             console.log('通知数据:', notification);
             // 可根据需要处理 badge 或存储
 
-            const totalNotify = notification.direct_messages+ notification.mentions + notification.friend_requests;
+            const totalNotify = notification.direct_messages + notification.mentions + notification.friend_requests;
             if (totalNotify > 0) {
                 chrome.action.setBadgeText({ text: String(totalNotify) });
             } else {
@@ -49,4 +49,8 @@ setInterval(async function () {
         // 未获取到token
         chrome.action.setBadgeText({ text: '?' });
     }
-}, 900000);
+}
+
+// 立即执行一次检查（启动时），并保留每10分钟定时检查
+runChecks();
+setInterval(runChecks, 900000);
