@@ -150,7 +150,7 @@ async function validateToken(oauthToken, oauthTokenSecret) {
       // To clean the token, re-login
       console.log('Token invalid, clear it');
       clearToken();
-      if (window.location.pathname.includes('popup.html')) {
+      if (typeof window !== 'undefined' && window.location && window.location.pathname.includes('popup.html')) {
         window.close();
       }
       return false;

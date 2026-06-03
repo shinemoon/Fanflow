@@ -53,7 +53,7 @@ async function buildDMListPage(user_id, type = "up", mode = "conversation", cb) 
       }
       // 获取用户信息并更新界面-No need in DM page
       // Get local
-      await chrome.storage.local.get({ dmlist: [] }, async function (r) {
+      await chrome.storage.local.get({ dmlist: [], messageCache: null }, async function (r) {
         if (type === "forceRefresh" || type === "up") {
           curDmPage = 1;
           result = await getDMConversation(curDmPage, dmPageCnt);
@@ -66,7 +66,16 @@ async function buildDMListPage(user_id, type = "up", mode = "conversation", cb) 
           result = await getDMConversation(curDmPage, dmPageCnt);
           dmList = uniqueDMList(dmList.concat(result.conversations || []));
         } else {
-          dmList = uniqueDMList(r.dmlist || []);
+          const cacheConversations = (r.messageCache && Array.isArray(r.messageCache.dmConversations))
+            ? r.messageCache.dmConversations
+            : [];
+
+          if (cacheConversations.length > 0) {
+            dmList = uniqueDMList(cacheConversations);
+            chrome.storage.local.set({ dmlist: dmList });
+          } else {
+            dmList = uniqueDMList(r.dmlist || []);
+          }
           result = dmList;
         }
 

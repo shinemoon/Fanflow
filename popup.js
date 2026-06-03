@@ -28,6 +28,85 @@ let preTab = '';
 
 let curTab = 'home';
 
+function requestBackgroundSync(reason = 'popup') {
+  chrome.runtime.sendMessage({
+    action: 'fanflow:syncNow',
+    reason: reason
+  }).catch(() => {
+    // Service worker may be waking up; ignore transient message errors.
+  });
+}
+
+function applyNotificationToUi(notification) {
+  if (!notification) return;
+
+  const mentionCount = Number(notification.mentions) || 0;
+  const dmCount = Number(notification.direct_messages) || 0;
+  const requestCount = Number(notification.friend_requests) || 0;
+
+  refreshBadges(mentionCount, dmCount);
+
+  if (requestCount > 0) {
+    $('#user-avator').addClass('userNotify');
+  } else {
+    $('#user-avator').removeClass('userNotify');
+  }
+}
+
+function ensureSyncStatusElement() {
+  let statusEl = document.getElementById('sync-status');
+  if (statusEl) return statusEl;
+
+  const container = document.querySelector('.container');
+  if (!container) return null;
+
+  statusEl = document.createElement('div');
+  statusEl.id = 'sync-status';
+  statusEl.style.cssText = 'position: absolute;right: 10px;bottom: 0px;font-size: 11px;color: rgba(115, 118, 110, 0.4)!important; background: rgba(255, 255, 255, 0.85);z-index: 5;';
+  container.appendChild(statusEl);
+  return statusEl;
+}
+
+function formatSyncTime(ts) {
+  if (!ts) return '';
+  return new Date(ts).toLocaleTimeString();
+}
+
+function renderSyncStatus(cache) {
+  const statusEl = ensureSyncStatusElement();
+  if (!statusEl) return;
+
+  if (!cache) {
+    statusEl.textContent = '同步: 等待中';
+    statusEl.style.color = '#6b7280';
+    return;
+  }
+
+  const state = cache.syncState || 'idle';
+  const timeLabel = formatSyncTime(cache.lastUpdatedAt);
+
+  if (state === 'ok') {
+    statusEl.textContent = timeLabel ? `同步: ${timeLabel}` : '同步: 已完成';
+    statusEl.style.color = '#0f766e';
+    return;
+  }
+
+  if (state === 'unauthenticated' || state === 'auth-invalid') {
+    statusEl.textContent = '同步: 需登录';
+    statusEl.style.color = '#b45309';
+    return;
+  }
+
+  if (state === 'error') {
+    statusEl.textContent = '同步: 失败';
+    statusEl.style.color = '#b91c1c';
+    return;
+  }
+
+  statusEl.textContent = timeLabel ? `同步: ${timeLabel}` : '同步: 进行中';
+  statusEl.style.color = '#6b7280';
+}
+
 
 // Default Stub
 let userInfo = {
@@ -76,9 +155,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
   pagline.animate(0);
 
-  buildHomePage("init", bindClickActions);
-  // 每次popup打开时，home界面强制up刷新到顶
-  buildHomePage("up", bindClickActions);
+  // popup打开时仅执行一次主页刷新，避免重复请求
+  buildHomePage("forceRefresh", bindClickActions);
   // Bind page listener
   $('.feed').on('wheel', debounce(function (event) {
     const feedElement = $(this)[0];
@@ -135,7 +213,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Add DM badge
   const $dmBadge = $('<div>').addClass('badge badge-dm').text('0');
   $('#dm').css('position', 'relative').append($dmBadge);
+//  renderSyncStatus(null);
   loadAndRefreshNotifications();
+  requestBackgroundSync('popup-open');
+
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== 'local') return;
+
+    if (changes.messageCache || changes.notification) {
+      loadAndRefreshNotifications();
+    }
+  });
+
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message && message.action === 'fanflow:messageCacheUpdated') {
+      loadAndRefreshNotifications();
+    }
+  });
 });
 
 
@@ -161,9 +255,8 @@ function bindClickActions() {
   $('.tab').off('click');
   $('.tab').click(function () {
     $('.tab.active').removeClass('active');
-    getNotification(function () {
-      loadAndRefreshNotifications();
-    });
+    requestBackgroundSync('tab-click');
+    loadAndRefreshNotifications();
 
     //  Workaround，确保tab点击都会回到主界面
     bannerToggle('self');
@@ -429,18 +522,21 @@ $(document).on('click', '#user-avator, #user-name', function () {
 
 // Load notifications from local storage and update badges
 function loadAndRefreshNotifications() {
-  chrome.storage.local.get({ 'notification': null }, function (result) {
-    curNotification = result.notification;
-    if (curNotification== null) {
+  chrome.storage.local.get({
+    messageCache: null,
+    notification: null
+  }, function (result) {
+    const cache = result.messageCache;
+    curNotification = (cache && cache.notification) ? cache.notification : result.notification;
+//    renderSyncStatus(cache);
+
+    if (curNotification == null) {
+      refreshBadges(0, 0);
+      $('#user-avator').removeClass('userNotify');
       return;
     }
-    refreshBadges(curNotification.mentions, curNotification.direct_messages);
-    // Add userNotify class to user-avator if there are friend requests
-    if (curNotification.friend_requests > 0) {
-      $('#user-avator').addClass('userNotify');
-    } else {
-      $('#user-avator').removeClass('userNotify');
-    }
+
+    applyNotificationToUi(curNotification);
   });
 
 }

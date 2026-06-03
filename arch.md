@@ -234,3 +234,112 @@ graph TD
 - JavaScript代码压缩和混淆
 
 这个架构支持了一个功能完整、用户体验优秀的现代化编辑器系统，具有良好的扩展性和维护性。
+
+## 后台消息同步架构（v0.7 重构）
+
+### 目标
+- 解决“后台检查在跑，但前台体感不同步”的问题。
+- 将消息同步收敛为单一真源：由 service worker 负责拉取、聚合、缓存与广播。
+- Popup 和列表页优先消费缓存，降低重复请求和空白等待。
+
+### 核心原则
+- **单一数据源**：后台维护 `messageCache`，前台只读缓存并按需触发同步。
+- **固定节奏 + 即时触发**：启动立即同步，之后每 3 分钟轮询；用户交互可触发即时同步。
+- **失败可解释**：缓存中持久化 `syncState` 和 `lastError`，UI可展示同步状态。
+- **向后兼容**：保留 `notification` 旧字段写入，兼容老读取路径。
+
+### 关键文件与职责
+- `background.js`
+    - 统一调度入口：`runSync` / `performSync`
+    - OAuth校验、通知拉取、mentions/DM预取、badge更新
+    - 写入缓存：`messageCache`、`notification`、`mentionPrefetch`、`dmPrefetch`
+    - 广播事件：`fanflow:messageCacheUpdated`
+- `popup.js`
+    - 只读缓存并刷新徽标
+    - 发起后台即时同步：`fanflow:syncNow`
+    - 展示轻量同步状态（成功/失败/需登录）
+- `mentionlist.js`
+    - `init` 阶段优先消费 `messageCache.mentions`
+- `dmlist.js`
+    - `init` 阶段优先消费 `messageCache.dmConversations`
+- `fanfou/oauth1.js`
+    - 兼容 service worker 环境（`window` 判空后再访问）
+
+### 后台同步流程
+```mermaid
+flowchart TD
+        A[trigger: startup / interval / popup request / token changed] --> B[getStoredToken]
+        B -->|no token| C[syncState=unauthenticated + badge ?]
+        B -->|has token| D[validateToken]
+        D -->|invalid| E[syncState=auth-invalid + badge !]
+        D -->|valid| F[GET /account/notification]
+        F --> G{mentions > 0 ?}
+        G -->|yes| H[GET /statuses/mentions]
+        G -->|no| I[skip mentions prefetch]
+        H --> J{dm > 0 ?}
+        I --> J
+        J -->|yes| K[GET /direct_messages/conversation_list]
+        J -->|no| L[skip dm prefetch]
+        K --> M[write messageCache + notification]
+        L --> M
+        M --> N[set extension badge]
+        N --> O[send fanflow:messageCacheUpdated]
+```
+
+### 缓存模型（messageCache）
+```javascript
+{
+    notification: {
+        mentions: 0,
+        direct_messages: 0,
+        friend_requests: 0
+    },
+    mentions: [],              // 后台预取的@列表（可为空）
+    dmConversations: [],       // 后台预取的DM会话（可为空）
+    lastUpdatedAt: 0,          // 时间戳
+    syncState: "ok",          // ok | error | unauthenticated | auth-invalid | idle
+    lastError: null,           // 错误信息
+    source: "interval"        // 触发来源
+}
+```
+
+### 事件协议
+- Popup -> Background
+    - `fanflow:syncNow`
+    - 用途：用户打开popup或点击tab时，要求后台立即同步一次。
+- Background -> Popup
+    - `fanflow:messageCacheUpdated`
+    - 用途：后台完成同步后通知前台刷新状态与徽标。
+
+### UI消费策略
+- Popup
+    - `loadAndRefreshNotifications` 优先读 `messageCache.notification`。
+    - 若不存在则回退读 `notification`。
+    - 同步状态标签展示：
+        - `ok`: 显示最近同步时间
+        - `error`: 显示“同步失败”
+        - `unauthenticated/auth-invalid`: 显示“需登录”
+- Mentions / DM 列表页
+    - `init` 优先从 `messageCache` 预取数据渲染。
+    - 网络增量刷新继续保留，兼容原分页行为。
+
+### Badge 语义
+- 总数计算：`mentions + direct_messages + friend_requests`
+- 显示规则：
+    - 正常有未读：数字
+    - 无未读：空
+    - 无token：`?`
+    - token失效：`!`
+
+### 故障降级与恢复
+- 后台请求失败时：
+    - 更新 `syncState=error` 与 `lastError`
+    - 尽量保留上次可用 `notification` 和缓存列表，避免前台清空
+- token变化时：
+    - `chrome.storage.onChanged` 监听 `fanfouToken`，自动触发重同步
+
+### 重构收益
+- 统一了后台与前台的数据来源，减少状态撕裂。
+- 首屏可用性提升：mentions/DM 可直接显示预取缓存。
+- 调试更直接：`messageCache.syncState` 与 `lastError` 可定位问题。
+- 为后续扩展（指数退避、缓存过期策略、细粒度同步）提供基础。

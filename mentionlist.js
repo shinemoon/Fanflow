@@ -14,10 +14,16 @@
 async function buildMentionListPage(type = "up", cb) {
   console.log("认证成功，提及列表页面构建开始:" + type);
   // 首先从本地存储中获取用户信息和提及列表
-  chrome.storage.local.get({ userinfo: userInfo, mentionlist: [] }, function (r) {
+  chrome.storage.local.get({ userinfo: userInfo, mentionlist: [], messageCache: null }, function (r) {
     // 先恢复本地提及列表，等待获取数据
     updateUserInfo(r.userinfo);
-    mentionList = r.mentionlist;
+    const cacheMentions = (r.messageCache && Array.isArray(r.messageCache.mentions)) ? r.messageCache.mentions : [];
+    if (cacheMentions.length > 0) {
+      mentionList = cacheMentions;
+      chrome.storage.local.set({ mentionlist: mentionList });
+    } else {
+      mentionList = r.mentionlist;
+    }
     pagline.animate(mentionList.length / listLength);
   });
   const token = await getStoredToken();

@@ -14,7 +14,8 @@
 		"default_title": "FanFlow"
 	},
 	"host_permissions": [
-		"http://fanfou.com/*"
+		"http://fanfou.com/*",
+		"http://api.fanfou.com/*"
 	],
 	"permissions": [
 		"storage"
