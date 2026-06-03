@@ -11,20 +11,53 @@
  * 
  * 如果没有有效的令牌，将打开认证页面。
  */
+function getHomePageState() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get({
+      userinfo: userInfo,
+      homelist: [],
+      mentionlist: [],
+      messageCache: null
+    }, resolve);
+  });
+}
+
+function getPreferredHomeList(state) {
+  const cacheHomeTimeline = (state.messageCache && Array.isArray(state.messageCache.homeTimeline))
+    ? state.messageCache.homeTimeline
+    : [];
+  const homeList = Array.isArray(state.homelist) ? state.homelist : [];
+
+  return cacheHomeTimeline.length > 0 ? cacheHomeTimeline : homeList;
+}
+
+async function syncHomeListCache(homeList, baseCache) {
+  const currentCache = baseCache || (await getHomePageState()).messageCache || null;
+  const updatedHomeList = Array.isArray(homeList) ? homeList.slice(0, listLength) : [];
+  const updatedCache = Object.assign({}, currentCache || {}, {
+    homeTimeline: updatedHomeList,
+    homeTimelineLastSyncAt: Date.now()
+  });
+
+  await chrome.storage.local.set({
+    homelist: updatedHomeList,
+    messageCache: updatedCache
+  });
+
+  return updatedCache;
+}
+
 async function buildHomePage(type = "up", cb) {
   console.log("认证成功，页面构建开始:" + type);
   toastr.clear();
   $("#float-buttons>div").addClass('background');
   $("#top").removeClass('background');
-  // To load local store firstly
-  // Because home is init page, so it will also get mention or other list if possible from local
-  chrome.storage.local.get({ userinfo: userInfo, homelist: [], mentionlist: [], }, function (r) {
-    // Restore local list firstly , waiting for fetching
-    updateUserInfo(r.userinfo);
-    curList = r.homelist;
-    mentionList = r.mentionlist;
-    pagline.animate(curList.length / listLength);
-  })
+  const state = await getHomePageState();
+  updateUserInfo(state.userinfo);
+  curList = getPreferredHomeList(state).slice(0, listLength);
+  mentionList = Array.isArray(state.mentionlist) ? state.mentionlist : [];
+  pagline.animate(curList.length / listLength);
+
   const token = await getStoredToken();
   if (token) {
     const isValid = await validateToken(token.oauthToken, token.oauthTokenSecret);
@@ -41,6 +74,7 @@ async function buildHomePage(type = "up", cb) {
       updateUserInfo(isValid);
       var since_id = null;
       var max_id = null;
+      let renderedFromCache = false;
 
 
       if (curList.length > 0) {
@@ -60,20 +94,23 @@ async function buildHomePage(type = "up", cb) {
         // Just show the local list
         // 初始化则重新load
         if (type == "init") {
-          if (initRrefresh == false) {
-            //Get first page to show
+          if (initRrefresh == false && curList.length > 0) {
+            renderedFromCache = true;
             buildHtmlFromMessages({
               type: type,
               messageList: curList,
-              cb: cb
+              cb: curList.length >= fetchCnt ? cb : function () { }
             });
-            return;
+            if (curList.length >= fetchCnt) {
+              return;
+            }
+            type = 'forceRefresh';
           } else {
             type = 'forceRefresh';
           }
         }
 
-        if (type == "forceRefresh") {
+        if (type == "forceRefresh" && !renderedFromCache) {
           curList = [];
         };
 
@@ -91,7 +128,7 @@ async function buildHomePage(type = "up", cb) {
         messageListUpdate(direction, listLength, result.msglist);
 
         // 构造完整列表并本地存储
-        await chrome.storage.local.set({ homelist: curList });
+        await syncHomeListCache(curList, state.messageCache);
         console.log("Local Save Msgs");
 
       } catch (error) {
@@ -100,8 +137,8 @@ async function buildHomePage(type = "up", cb) {
       }
       // Need to handle the index of showing
       buildHtmlFromMessages({
-        type: type,
-        messageList: result.msglist,
+        type: renderedFromCache ? 'forceRefresh' : type,
+        messageList: curList,
         cb: cb,
       });
     }
@@ -491,13 +528,28 @@ function messageListUpdate(direction = 'up', limit = 100, newlist) {
   console.log("更新消息列表");
   // Not update list, if no scrolling
   if (direction == 'init') return;
+  const incomingList = Array.isArray(newlist) ? newlist : [];
+
+  function dedupeMessages(list) {
+    const uniqueMessages = [];
+    const seen = new Set();
+
+    list.forEach((message) => {
+      if (!message || !message.id || seen.has(message.id)) return;
+      seen.add(message.id);
+      uniqueMessages.push(message);
+    });
+
+    return uniqueMessages;
+  }
+
   if (direction == 'up') {
-    curList = newlist.concat(curList);
+    curList = dedupeMessages(incomingList.concat(curList));
     if (curList.length > limit)
       curList = curList.slice(0, limit);
   }
   if (direction == 'down') {
-    curList = curList.concat(newlist);
+    curList = dedupeMessages(curList.concat(incomingList));
     if (curList.length > limit)
       curList = curList.slice(-limit); // 取后limit个元素
   }

@@ -14,6 +14,7 @@ const SYNC_INTERVAL_MS = 3 * 60 * 1000;
 const PREFETCH_MENTION_COUNT = 20;
 const PREFETCH_DM_COUNT = 8;
 const PREFETCH_HOME_TIMELINE_COUNT = 40;
+const HOME_LIST_LIMIT = 400;
 
 const CACHE_KEY = 'messageCache';
 const LEGACY_NOTIFICATION_KEY = 'notification';
@@ -106,6 +107,23 @@ function calculateTimelineUnread(homeTimeline, lastReadId) {
     unreadCount,
     foundAnchor
   };
+}
+
+function mergeHomeTimelineLists(primaryList, secondaryList, limit = HOME_LIST_LIMIT) {
+  const merged = [];
+  const seen = new Set();
+
+  [primaryList, secondaryList].forEach((list) => {
+    if (!Array.isArray(list)) return;
+
+    list.forEach((message) => {
+      if (!message || !message.id || seen.has(message.id)) return;
+      seen.add(message.id);
+      merged.push(message);
+    });
+  });
+
+  return merged.slice(0, limit);
 }
 
 function setBadgeFromNotification(notification, cache) {
@@ -207,6 +225,8 @@ async function writeSyncState(partial) {
       notification: null,
       mentions: [],
       dmConversations: [],
+      homeTimeline: [],
+      homeTimelineLastSyncAt: null,
       timelineUnread: 0,
       timelineLastReadId: null,
       timelineLastSeenAt: null,
@@ -248,6 +268,8 @@ async function performSync(trigger) {
       notification: null,
       mentions: [],
       dmConversations: [],
+      homeTimeline: [],
+      homeTimelineLastSyncAt: null,
       timelineUnread: 0,
       timelineLastReadId: null,
       timelineLastSeenAt: null,
@@ -256,7 +278,8 @@ async function performSync(trigger) {
       syncState: 'idle',
       lastError: null,
       source: null
-    }
+    },
+    homelist: []
   });
   const previousCache = existing.messageCache || {};
 
@@ -303,10 +326,13 @@ async function performSync(trigger) {
 
     let mentions = [];
     let dmConversations = [];
-    let homeTimeline = [];
+    let fetchedHomeTimeline = [];
     let timelineUnread = Number(previousCache.timelineUnread) || 0;
     let timelineLastReadId = previousCache.timelineLastReadId || null;
     let timelineInitialized = Boolean(previousCache.timelineInitialized);
+    const previousHomeTimeline = Array.isArray(previousCache.homeTimeline)
+      ? previousCache.homeTimeline
+      : (Array.isArray(existing.homelist) ? existing.homelist : []);
 
     if ((Number(notification && notification.mentions) || 0) > 0) {
       const mentionData = await requestApi(
@@ -340,12 +366,14 @@ async function performSync(trigger) {
         validToken
       );
       if (Array.isArray(homeTimelineData)) {
-        homeTimeline = homeTimelineData;
+        fetchedHomeTimeline = homeTimelineData;
       }
     } catch (timelineError) {
       // Keep the previous timeline unread state when timeline prefetch fails.
       console.warn('home timeline prefetch failed:', timelineError);
     }
+
+    const homeTimeline = mergeHomeTimelineLists(fetchedHomeTimeline, previousHomeTimeline);
 
     if (homeTimeline.length > 0) {
       const currentTopId = homeTimeline[0].id || null;
@@ -356,7 +384,13 @@ async function performSync(trigger) {
         timelineLastReadId = currentTopId;
       } else {
         const unread = calculateTimelineUnread(homeTimeline, timelineLastReadId);
-        timelineUnread = unread.unreadCount;
+        if (unread.foundAnchor) {
+          timelineUnread = unread.unreadCount;
+        } else if ((Number(previousCache.timelineUnread) || 0) === 0) {
+          timelineUnread = 0;
+        } else {
+          timelineUnread = unread.unreadCount;
+        }
       }
     }
 
@@ -364,6 +398,8 @@ async function performSync(trigger) {
       notification,
       mentions,
       dmConversations,
+      homeTimeline,
+      homeTimelineLastSyncAt: Date.now(),
       timelineUnread,
       timelineLastReadId,
       timelineLastSeenAt: Date.now(),
@@ -376,6 +412,7 @@ async function performSync(trigger) {
 
     await storageSet({
       messageCache: cache,
+      homelist: homeTimeline,
       notification,
       mentionPrefetch: mentions,
       dmPrefetch: dmConversations
@@ -453,6 +490,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           notification: null,
           mentions: [],
           dmConversations: [],
+          homeTimeline: [],
+          homeTimelineLastSyncAt: null,
           timelineUnread: 0,
           timelineLastReadId: null,
           timelineLastSeenAt: null,
@@ -466,6 +505,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       const currentCache = state.messageCache || {};
       let readId = (message && message.readId) ? message.readId : currentCache.timelineLastReadId;
+
+      if (!readId && Array.isArray(currentCache.homeTimeline) && currentCache.homeTimeline.length > 0) {
+        readId = currentCache.homeTimeline[0] && currentCache.homeTimeline[0].id
+          ? currentCache.homeTimeline[0].id
+          : null;
+      }
 
       if (!readId) {
         const token = await getStoredToken();

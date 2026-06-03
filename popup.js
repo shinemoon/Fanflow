@@ -92,8 +92,13 @@ function markTimelineAsReadByHomeTab() {
       return;
     }
 
-    chrome.storage.local.get({ homelist: [] }, function (result) {
-      const list = Array.isArray(result.homelist) ? result.homelist : [];
+    chrome.storage.local.get({ messageCache: null, homelist: [] }, function (result) {
+      const cacheHomeTimeline = (result.messageCache && Array.isArray(result.messageCache.homeTimeline))
+        ? result.messageCache.homeTimeline
+        : [];
+      const list = cacheHomeTimeline.length > 0
+        ? cacheHomeTimeline
+        : (Array.isArray(result.homelist) ? result.homelist : []);
       const fallbackReadId = (list.length > 0 && list[0] && list[0].id) ? list[0].id : null;
 
       chrome.runtime.sendMessage({
@@ -229,8 +234,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
   pagline.animate(0);
 
+  bindClickActions();
+
   // popup打开时仅执行一次主页刷新，避免重复请求
-  buildHomePage("forceRefresh", function () {
+  buildHomePage("init", function () {
     bindClickActions();
     markTimelineAsReadByHomeTab().finally(() => {
       loadAndRefreshNotifications();
@@ -296,7 +303,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   $('#dm').css('position', 'relative').append($dmBadge);
 //  renderSyncStatus(null);
   loadAndRefreshNotifications();
-  requestBackgroundSync('popup-open');
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName !== 'local') return;
