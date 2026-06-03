@@ -248,7 +248,13 @@ function showDMDetail(dmDetail, container, otherUserId) {
   // 获取当前用户id
   const curUserId = (typeof curUsr !== 'undefined' && curUsr.id) ? curUsr.id : null;
 
-  (dmDetail.messages || []).forEach(msg => {
+  const sortedMessages = [...(dmDetail.messages || [])].sort((a, b) => {
+    const aTime = new Date(a.created_at).getTime();
+    const bTime = new Date(b.created_at).getTime();
+    return aTime - bTime;
+  });
+
+  sortedMessages.forEach(msg => {
     const isMe = curUserId && msg.sender_id === curUserId;
     const msgItem = document.createElement('div');
     msgItem.className = 'dm-msg-item' + (isMe ? ' me' : '');
@@ -275,6 +281,12 @@ function showDMDetail(dmDetail, container, otherUserId) {
     chatBox.appendChild(msgItem);
   });
   container.appendChild(chatBox);
+
+  // 常见聊天界面行为：渲染后定位到最新消息（底部）
+  requestAnimationFrame(() => {
+    chatBox.scrollTop = chatBox.scrollHeight;
+    container.scrollTop = container.scrollHeight;
+  });
 
   // 底部输入区
   let inputBar = document.createElement('div');
