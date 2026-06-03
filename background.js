@@ -132,8 +132,15 @@ function setBadgeFromNotification(notification, cache) {
   const requestCount = Number(notification && notification.friend_requests) || 0;
   const timelineCount = getTimelineUnreadFromCache(cache, notification);
   const total = mentionCount + dmCount + requestCount + timelineCount;
+  const titleLines = ['FanFlow'];
+
+  if (timelineCount > 0) titleLines.push(`Home: ${timelineCount}`);
+  if (mentionCount > 0) titleLines.push(`Mention: ${mentionCount}`);
+  if (dmCount > 0) titleLines.push(`DM: ${dmCount}`);
+  if (requestCount > 0) titleLines.push(`Request: ${requestCount}`);
 
   chrome.action.setBadgeText({ text: total > 0 ? String(total) : '' });
+  chrome.action.setTitle({ title: titleLines.join('\n') });
   return total;
 }
 
@@ -285,6 +292,7 @@ async function performSync(trigger) {
 
   if (!token) {
     chrome.action.setBadgeText({ text: '?' });
+    chrome.action.setTitle({ title: 'FanFlow\n状态: 未登录（缺少 token）' });
     const cache = await writeSyncState({
       notification: null,
       syncState: 'unauthenticated',
@@ -299,6 +307,7 @@ async function performSync(trigger) {
   const userInfo = await validateTokenForBackground(token);
   if (!userInfo) {
     chrome.action.setBadgeText({ text: '!' });
+    chrome.action.setTitle({ title: 'FanFlow\n状态: 登录失效（token invalid）' });
     const cache = await writeSyncState({
       syncState: 'auth-invalid',
       lastError: 'token invalid',
@@ -434,6 +443,7 @@ async function performSync(trigger) {
       notifyPopupCacheUpdated(cache, total);
     } else {
       chrome.action.setBadgeText({ text: '' });
+      chrome.action.setTitle({ title: 'FanFlow\n未读总数: 0' });
       notifyPopupCacheUpdated(cache, 0);
     }
   }
