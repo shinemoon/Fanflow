@@ -54,6 +54,31 @@ async function getDMDetails(user_id, options = {}) {
         throw error;
     }
 }
+async function extractApiErrorMessage(response) {
+    if (!response) return '';
+
+    let responseText = '';
+    try {
+        // 使用 clone 避免消费原始响应体，保持调用方可继续 response.json()
+        responseText = await response.clone().text();
+    } catch (e) {
+        return '';
+    }
+
+    if (!responseText) return '';
+
+    try {
+        const data = JSON.parse(responseText);
+        if (data && typeof data.error === 'string' && data.error.trim()) {
+            return data.error.trim();
+        }
+    } catch (e) {
+        // 非 JSON 响应忽略
+    }
+
+    return '';
+}
+
 // 修改fanfou.js中的fanfouRequest函数
 async function fanfouRequest(apiurl, fmode, params, formData = null) {
     NProgress.start();
@@ -116,6 +141,12 @@ async function fanfouRequest(apiurl, fmode, params, formData = null) {
         };
 
         const response = await fetch(url, fetchOptions);
+
+        const apiErrorMessage = await extractApiErrorMessage(response);
+
+        if (apiErrorMessage) {
+            throw new Error(apiErrorMessage);
+        }
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
