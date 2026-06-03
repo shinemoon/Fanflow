@@ -13,6 +13,7 @@ importScripts(
 const SYNC_INTERVAL_MS = 3 * 60 * 1000;
 const PREFETCH_MENTION_COUNT = 20;
 const PREFETCH_DM_COUNT = 8;
+const PREFETCH_HOME_TIMELINE_COUNT = 40;
 
 const CACHE_KEY = 'messageCache';
 const LEGACY_NOTIFICATION_KEY = 'notification';
@@ -33,11 +34,86 @@ function storageSet(data) {
   });
 }
 
-function setBadgeFromNotification(notification) {
+function normalizeCount(value) {
+  if (value === null || value === undefined) return 0;
+
+  if (typeof value === 'object') {
+    return (
+      Number(value.unread) ||
+      Number(value.count) ||
+      Number(value.total) ||
+      0
+    );
+  }
+
+  return Number(value) || 0;
+}
+
+function getTimelineUnreadCount(notification) {
+  if (!notification) return 0;
+
+  const timelineKeys = [
+    'timeline',
+    'statuses',
+    'home_timeline',
+    'home_timeline_unread',
+    'notify_num'
+  ];
+
+  for (const key of timelineKeys) {
+    const count = normalizeCount(notification[key]);
+    if (count > 0) return count;
+  }
+
+  return 0;
+}
+
+function getTimelineUnreadFromCache(cache, notification) {
+  const cacheCount = Number(cache && cache.timelineUnread);
+  if (Number.isFinite(cacheCount) && cacheCount >= 0) {
+    return cacheCount;
+  }
+
+  return getTimelineUnreadCount(notification);
+}
+
+function calculateTimelineUnread(homeTimeline, lastReadId) {
+  if (!Array.isArray(homeTimeline) || homeTimeline.length === 0 || !lastReadId) {
+    return {
+      unreadCount: 0,
+      foundAnchor: false
+    };
+  }
+
+  let unreadCount = 0;
+  let foundAnchor = false;
+  const seen = new Set();
+
+  for (const message of homeTimeline) {
+    if (!message || !message.id) continue;
+    if (seen.has(message.id)) continue;
+    seen.add(message.id);
+
+    if (message.id === lastReadId) {
+      foundAnchor = true;
+      break;
+    }
+
+    unreadCount += 1;
+  }
+
+  return {
+    unreadCount,
+    foundAnchor
+  };
+}
+
+function setBadgeFromNotification(notification, cache) {
   const mentionCount = Number(notification && notification.mentions) || 0;
   const dmCount = Number(notification && notification.direct_messages) || 0;
   const requestCount = Number(notification && notification.friend_requests) || 0;
-  const total = mentionCount + dmCount + requestCount;
+  const timelineCount = getTimelineUnreadFromCache(cache, notification);
+  const total = mentionCount + dmCount + requestCount + timelineCount;
 
   chrome.action.setBadgeText({ text: total > 0 ? String(total) : '' });
   return total;
@@ -131,6 +207,10 @@ async function writeSyncState(partial) {
       notification: null,
       mentions: [],
       dmConversations: [],
+      timelineUnread: 0,
+      timelineLastReadId: null,
+      timelineLastSeenAt: null,
+      timelineInitialized: false,
       lastUpdatedAt: null,
       syncState: 'idle',
       lastError: null,
@@ -163,6 +243,22 @@ function notifyPopupCacheUpdated(cache, total) {
 
 async function performSync(trigger) {
   const token = await getStoredToken();
+  const existing = await storageGet({
+    messageCache: {
+      notification: null,
+      mentions: [],
+      dmConversations: [],
+      timelineUnread: 0,
+      timelineLastReadId: null,
+      timelineLastSeenAt: null,
+      timelineInitialized: false,
+      lastUpdatedAt: null,
+      syncState: 'idle',
+      lastError: null,
+      source: null
+    }
+  });
+  const previousCache = existing.messageCache || {};
 
   if (!token) {
     chrome.action.setBadgeText({ text: '?' });
@@ -207,6 +303,10 @@ async function performSync(trigger) {
 
     let mentions = [];
     let dmConversations = [];
+    let homeTimeline = [];
+    let timelineUnread = Number(previousCache.timelineUnread) || 0;
+    let timelineLastReadId = previousCache.timelineLastReadId || null;
+    let timelineInitialized = Boolean(previousCache.timelineInitialized);
 
     if ((Number(notification && notification.mentions) || 0) > 0) {
       const mentionData = await requestApi(
@@ -232,10 +332,42 @@ async function performSync(trigger) {
       }
     }
 
+    try {
+      const homeTimelineData = await requestApi(
+        '/statuses/home_timeline.json',
+        'GET',
+        { format: 'html', mode: 'lite', count: PREFETCH_HOME_TIMELINE_COUNT },
+        validToken
+      );
+      if (Array.isArray(homeTimelineData)) {
+        homeTimeline = homeTimelineData;
+      }
+    } catch (timelineError) {
+      // Keep the previous timeline unread state when timeline prefetch fails.
+      console.warn('home timeline prefetch failed:', timelineError);
+    }
+
+    if (homeTimeline.length > 0) {
+      const currentTopId = homeTimeline[0].id || null;
+
+      if (!timelineInitialized || !timelineLastReadId) {
+        timelineUnread = 0;
+        timelineInitialized = true;
+        timelineLastReadId = currentTopId;
+      } else {
+        const unread = calculateTimelineUnread(homeTimeline, timelineLastReadId);
+        timelineUnread = unread.unreadCount;
+      }
+    }
+
     const cache = {
       notification,
       mentions,
       dmConversations,
+      timelineUnread,
+      timelineLastReadId,
+      timelineLastSeenAt: Date.now(),
+      timelineInitialized,
       lastUpdatedAt: Date.now(),
       syncState: 'ok',
       lastError: null,
@@ -249,7 +381,7 @@ async function performSync(trigger) {
       dmPrefetch: dmConversations
     });
 
-    const total = setBadgeFromNotification(notification);
+    const total = setBadgeFromNotification(notification, cache);
     notifyPopupCacheUpdated(cache, total);
   } catch (error) {
     const message = error && error.message ? error.message : String(error);
@@ -261,7 +393,7 @@ async function performSync(trigger) {
     });
 
     if (cache && cache.notification) {
-      const total = setBadgeFromNotification(cache.notification);
+      const total = setBadgeFromNotification(cache.notification, cache);
       notifyPopupCacheUpdated(cache, total);
     } else {
       chrome.action.setBadgeText({ text: '' });
@@ -311,6 +443,80 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           error: error && error.message ? error.message : String(error)
         });
       });
+    return true;
+  }
+
+  if (message && message.action === 'fanflow:markTimelineRead') {
+    (async () => {
+      const state = await storageGet({
+        messageCache: {
+          notification: null,
+          mentions: [],
+          dmConversations: [],
+          timelineUnread: 0,
+          timelineLastReadId: null,
+          timelineLastSeenAt: null,
+          timelineInitialized: false,
+          lastUpdatedAt: null,
+          syncState: 'idle',
+          lastError: null,
+          source: null
+        }
+      });
+
+      const currentCache = state.messageCache || {};
+      let readId = (message && message.readId) ? message.readId : currentCache.timelineLastReadId;
+
+      if (!readId) {
+        const token = await getStoredToken();
+        if (token) {
+          const tokenUser = await validateTokenForBackground(token);
+          if (tokenUser) {
+            validToken = {
+              oauthToken: token.oauthToken,
+              oauthTokenSecret: token.oauthTokenSecret
+            };
+            try {
+              const latestHome = await requestApi(
+                '/statuses/home_timeline.json',
+                'GET',
+                { format: 'html', mode: 'lite', count: 1 },
+                validToken
+              );
+              if (Array.isArray(latestHome) && latestHome.length > 0 && latestHome[0] && latestHome[0].id) {
+                readId = latestHome[0].id;
+              }
+            } catch (e) {
+              // Keep existing anchor if fetch fails.
+            }
+          }
+        }
+      }
+
+      const updatedCache = Object.assign({}, currentCache, {
+        timelineUnread: 0,
+        timelineLastReadId: readId || currentCache.timelineLastReadId || null,
+        timelineLastSeenAt: Date.now(),
+        timelineInitialized: true,
+        source: message && message.reason ? message.reason : 'popup-home-read',
+        lastUpdatedAt: Date.now()
+      });
+
+      await storageSet({
+        messageCache: updatedCache,
+        notification: updatedCache.notification || null
+      });
+
+      const total = setBadgeFromNotification(updatedCache.notification, updatedCache);
+      notifyPopupCacheUpdated(updatedCache, total);
+      sendResponse({ ok: true });
+    })().catch((error) => {
+      sendResponse({
+        ok: false,
+        error: error && error.message ? error.message : String(error)
+      });
+    });
+
     return true;
   }
 

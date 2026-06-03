@@ -37,14 +37,88 @@ function requestBackgroundSync(reason = 'popup') {
   });
 }
 
-function applyNotificationToUi(notification) {
+function normalizeCount(value) {
+  if (value === null || value === undefined) return 0;
+
+  if (typeof value === 'object') {
+    return (
+      Number(value.unread) ||
+      Number(value.count) ||
+      Number(value.total) ||
+      0
+    );
+  }
+
+  return Number(value) || 0;
+}
+
+function getTimelineUnreadCount(notification) {
+  if (!notification) return 0;
+
+  const timelineKeys = [
+    'timeline',
+    'statuses',
+    'home_timeline',
+    'home_timeline_unread',
+    'notify_num'
+  ];
+
+  for (const key of timelineKeys) {
+    const count = normalizeCount(notification[key]);
+    if (count > 0) return count;
+  }
+
+  return 0;
+}
+
+function getHomeTopMessageId() {
+  return (Array.isArray(curList) && curList.length > 0 && curList[0] && curList[0].id)
+    ? curList[0].id
+    : null;
+}
+
+function markTimelineAsReadByHomeTab() {
+  return new Promise((resolve) => {
+    const readId = getHomeTopMessageId();
+
+    if (readId) {
+      chrome.runtime.sendMessage({
+        action: 'fanflow:markTimelineRead',
+        reason: 'home-tab-click',
+        readId: readId
+      }).finally(() => {
+        resolve();
+      });
+      return;
+    }
+
+    chrome.storage.local.get({ homelist: [] }, function (result) {
+      const list = Array.isArray(result.homelist) ? result.homelist : [];
+      const fallbackReadId = (list.length > 0 && list[0] && list[0].id) ? list[0].id : null;
+
+      chrome.runtime.sendMessage({
+        action: 'fanflow:markTimelineRead',
+        reason: 'home-tab-click',
+        readId: fallbackReadId
+      }).finally(() => {
+        resolve();
+      });
+    });
+  });
+}
+
+function applyNotificationToUi(notification, cache) {
   if (!notification) return;
 
+  const cacheTimeline = Number(cache && cache.timelineUnread);
+  const timelineCount = Number.isFinite(cacheTimeline) && cacheTimeline >= 0
+    ? cacheTimeline
+    : getTimelineUnreadCount(notification);
   const mentionCount = Number(notification.mentions) || 0;
   const dmCount = Number(notification.direct_messages) || 0;
   const requestCount = Number(notification.friend_requests) || 0;
 
-  refreshBadges(mentionCount, dmCount);
+  refreshBadges(timelineCount, mentionCount, dmCount);
 
   if (requestCount > 0) {
     $('#user-avator').addClass('userNotify');
@@ -156,7 +230,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   pagline.animate(0);
 
   // popup打开时仅执行一次主页刷新，避免重复请求
-  buildHomePage("forceRefresh", bindClickActions);
+  buildHomePage("forceRefresh", function () {
+    bindClickActions();
+    markTimelineAsReadByHomeTab().finally(() => {
+      loadAndRefreshNotifications();
+    });
+  });
   // Bind page listener
   $('.feed').on('wheel', debounce(function (event) {
     const feedElement = $(this)[0];
@@ -207,6 +286,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   );
   // Add badges to mentions and dm tabs
+  const $homeBadge = $('<div>').addClass('badge badge-home').text('0');
+  $('#home').css('position', 'relative').append($homeBadge);
   // Add mention badge
   const $mentionBadge = $('<div>').addClass('badge badge-mention').text('0');
   $('#mentions').css('position', 'relative').append($mentionBadge);
@@ -255,8 +336,6 @@ function bindClickActions() {
   $('.tab').off('click');
   $('.tab').click(function () {
     $('.tab.active').removeClass('active');
-    requestBackgroundSync('tab-click');
-    loadAndRefreshNotifications();
 
     //  Workaround，确保tab点击都会回到主界面
     bannerToggle('self');
@@ -267,6 +346,10 @@ function bindClickActions() {
       console.log("home clicked");
       $('.feed').addClass('background');
       $('#feed').removeClass('background');
+      markTimelineAsReadByHomeTab().finally(() => {
+        requestBackgroundSync('tab-click-home');
+        loadAndRefreshNotifications();
+      });
 
       if (curTab != "home" && curList.length > 0) {
         // If just swtich layers, no need to change content
@@ -279,6 +362,8 @@ function bindClickActions() {
       }
       buildHomePage(ntype, bindClickActions);
     } else if ($(this).prop('id') == 'mentions') {
+      requestBackgroundSync('tab-click');
+      loadAndRefreshNotifications();
       console.log("mentions clicked");
       $('.feed').addClass('background');
       $('#mentioned').removeClass('background');
@@ -293,6 +378,8 @@ function bindClickActions() {
       }
       buildMentionListPage(ntype, bindClickActions);
     } else if ($(this).prop('id') == 'dm') {
+      requestBackgroundSync('tab-click');
+      loadAndRefreshNotifications();
       if (window.shouldOpenPendingDMDetail && window.pendingDMUserId) {
         console.log("dm detail clicked");
         //
@@ -531,24 +618,33 @@ function loadAndRefreshNotifications() {
 //    renderSyncStatus(cache);
 
     if (curNotification == null) {
-      refreshBadges(0, 0);
+      refreshBadges(0, 0, 0);
       $('#user-avator').removeClass('userNotify');
       return;
     }
 
-    applyNotificationToUi(curNotification);
+    applyNotificationToUi(curNotification, cache);
   });
 
 }
 
 /**
  * 刷新 mentions 和 dm 的 badge
+ * @param {number} timelineCount - 首页未读数量
  * @param {number} mentionCount - 提及数量
  * @param {number} dmCount - 私信数量
  */
-function refreshBadges(mentionCount, dmCount) {
+function refreshBadges(timelineCount, mentionCount, dmCount) {
+  const $homeBadge = $('.badge-home');
   const $mentionBadge = $('.badge-mention');
   const $dmBadge = $('.badge-dm');
+  if ($homeBadge.length) {
+    if (timelineCount > 0) {
+      $homeBadge.text(timelineCount).show();
+    } else {
+      $homeBadge.hide();
+    }
+  }
   if ($mentionBadge.length) {
     if (mentionCount > 0) {
       $mentionBadge.text(mentionCount).show();
