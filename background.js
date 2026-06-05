@@ -11,6 +11,7 @@ importScripts(
 );
 
 const SYNC_INTERVAL_MS = 3 * 60 * 1000;
+const SYNC_ALARM_NAME = 'fanflow-sync-alarm';
 const PREFETCH_MENTION_COUNT = 20;
 const PREFETCH_DM_COUNT = 8;
 const PREFETCH_HOME_TIMELINE_COUNT = 40;
@@ -466,12 +467,29 @@ async function runSync(trigger) {
   }
 }
 
+function ensureSyncAlarm() {
+  const periodInMinutes = Math.max(1, Math.round(SYNC_INTERVAL_MS / 60000));
+
+  chrome.alarms.create(SYNC_ALARM_NAME, {
+    delayInMinutes: 0.1,
+    periodInMinutes
+  });
+}
+
 chrome.runtime.onInstalled.addListener(() => {
+  ensureSyncAlarm();
   runSync('installed');
 });
 
 chrome.runtime.onStartup.addListener(() => {
+  ensureSyncAlarm();
   runSync('startup-event');
+});
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm && alarm.name === SYNC_ALARM_NAME) {
+    runSync('alarm');
+  }
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
@@ -578,7 +596,5 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return false;
 });
 
+ensureSyncAlarm();
 runSync('startup');
-setInterval(() => {
-  runSync('interval');
-}, SYNC_INTERVAL_MS);
