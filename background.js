@@ -337,9 +337,6 @@ async function performSync(trigger) {
     let mentions = [];
     let dmConversations = [];
     let fetchedHomeTimeline = [];
-    let timelineUnread = Number(previousCache.timelineUnread) || 0;
-    let timelineLastReadId = previousCache.timelineLastReadId || null;
-    let timelineInitialized = Boolean(previousCache.timelineInitialized);
     const previousHomeTimeline = Array.isArray(previousCache.homeTimeline)
       ? previousCache.homeTimeline
       : (Array.isArray(existing.homelist) ? existing.homelist : []);
@@ -385,6 +382,31 @@ async function performSync(trigger) {
 
     const homeTimeline = mergeHomeTimelineLists(fetchedHomeTimeline, previousHomeTimeline);
 
+    const latestState = await storageGet({
+      messageCache: {
+        notification: null,
+        mentions: [],
+        dmConversations: [],
+        homeTimeline: [],
+        homeTimelineLastSyncAt: null,
+        timelineUnread: 0,
+        timelineLastReadId: null,
+        timelineLastSeenAt: null,
+        timelineInitialized: false,
+        lastUpdatedAt: null,
+        syncState: 'idle',
+        lastError: null,
+        source: null
+      }
+    });
+
+    const latestCache = latestState.messageCache || previousCache;
+    const previousTimelineUnread = Number(latestCache.timelineUnread) || 0;
+    let timelineUnread = previousTimelineUnread;
+    let timelineLastReadId = latestCache.timelineLastReadId || null;
+    let timelineInitialized = Boolean(latestCache.timelineInitialized);
+    let timelineLastSeenAt = latestCache.timelineLastSeenAt || previousCache.timelineLastSeenAt || null;
+
     if (homeTimeline.length > 0) {
       const currentTopId = homeTimeline[0].id || null;
 
@@ -396,11 +418,45 @@ async function performSync(trigger) {
         const unread = calculateTimelineUnread(homeTimeline, timelineLastReadId);
         if (unread.foundAnchor) {
           timelineUnread = unread.unreadCount;
-        } else if ((Number(previousCache.timelineUnread) || 0) === 0) {
+        } else if (previousTimelineUnread === 0) {
           timelineUnread = 0;
         } else {
           timelineUnread = unread.unreadCount;
         }
+      }
+    }
+
+    const latestBeforeWriteState = await storageGet({
+      messageCache: {
+        notification: null,
+        mentions: [],
+        dmConversations: [],
+        homeTimeline: [],
+        homeTimelineLastSyncAt: null,
+        timelineUnread: 0,
+        timelineLastReadId: null,
+        timelineLastSeenAt: null,
+        timelineInitialized: false,
+        lastUpdatedAt: null,
+        syncState: 'idle',
+        lastError: null,
+        source: null
+      }
+    });
+
+    const latestBeforeWriteCache = latestBeforeWriteState.messageCache || latestCache;
+    const latestSeenAt = latestBeforeWriteCache.timelineLastSeenAt || null;
+
+    if (latestSeenAt && (!timelineLastSeenAt || latestSeenAt > timelineLastSeenAt)) {
+      timelineLastSeenAt = latestSeenAt;
+      timelineLastReadId = latestBeforeWriteCache.timelineLastReadId || timelineLastReadId;
+      timelineInitialized = Boolean(latestBeforeWriteCache.timelineInitialized);
+
+      if (!timelineInitialized || !timelineLastReadId) {
+        timelineUnread = 0;
+      } else {
+        const unread = calculateTimelineUnread(homeTimeline, timelineLastReadId);
+        timelineUnread = unread.foundAnchor ? unread.unreadCount : 0;
       }
     }
 
@@ -412,7 +468,7 @@ async function performSync(trigger) {
       homeTimelineLastSyncAt: Date.now(),
       timelineUnread,
       timelineLastReadId,
-      timelineLastSeenAt: Date.now(),
+      timelineLastSeenAt: timelineLastSeenAt || Date.now(),
       timelineInitialized,
       lastUpdatedAt: Date.now(),
       syncState: 'ok',
