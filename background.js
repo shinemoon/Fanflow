@@ -6,7 +6,7 @@
 
 importScripts(
   'fanfou/crypto-js.min.js',
-  'fanfou/cred.js',
+  'FanfouLite/cred.js',
   'fanfou/oauth1.js'
 );
 
